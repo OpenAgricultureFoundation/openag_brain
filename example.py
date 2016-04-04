@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import gevent
-from openag.modules import *
+from openag.client.core.modules import *
 
 
 class Arduino(Module):
@@ -39,6 +39,7 @@ class Persist(Module):
     input = Input(data_type=DataType.TEST)
     def on_input(self, item):
         print(item.value)
+        self.logger.info(item)
 
 
 sensor = Sensor(2)

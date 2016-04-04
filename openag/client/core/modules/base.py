@@ -3,6 +3,7 @@ This module defines the `Module` class from which all modules should inherit
 and some helper classes used to simplify interaction with modules
 """
 import time
+import logging
 from gevent.event import AsyncResult
 from collections import namedtuple
 from .endpoints import *
@@ -147,6 +148,8 @@ class Module(metaclass=ModuleMeta):
         `mod_id` is the ID of the module in the database
         """
         self.mod_id = mod_id
+        if mod_id in Module._registry:
+            raise ValueError('A module with this id has already been created')
         Module._registry[mod_id] = self
 
         # Used internally for handling requests
@@ -171,6 +174,9 @@ class Module(metaclass=ModuleMeta):
             getattr(self, input).spawn_reader()
         self._requests.spawn_reader()
         self._responses.spawn_reader()
+
+        # Create a logger for this module
+        self.logger = logging.getLogger("module.{}".format(mod_id))
 
     @classmethod
     def get_by_id(cls, mod_id):
