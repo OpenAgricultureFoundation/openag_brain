@@ -40,16 +40,14 @@ class InputQueue:
         """
         self.queue.put(item)
 
-    def spawn_reader(self):
+    def read(self):
         """
-        Spawns and returns a handle to a thread that reads from this queue and
-        calls all of the registered callbacks for each item encountered.
+        Reads from this queue and calls all of the registered callbacks for
+        each item encountered
         """
-        def reader_thread():
-            for item in self:
-                for callback in self.callbacks.values():
-                    callback(item)
-        return gevent.spawn(reader_thread)
+        for item in self:
+            for callback in self.callbacks.values():
+                callback(item)
 
 class Input:
     """

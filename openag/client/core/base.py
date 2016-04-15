@@ -3,6 +3,7 @@ This module defines the `Module` class from which all modules should inherit
 and some helper classes used to simplify interaction with modules
 """
 import time
+import gevent
 import logging
 from gevent.event import AsyncResult
 from collections import namedtuple
@@ -10,8 +11,8 @@ from .endpoints import *
 from .input import *
 from .output import *
 from .stream import *
-from .types import *
 from .util import *
+from .var_types import *
 
 __all__ = ['Module', ]
 
@@ -45,13 +46,13 @@ class ModuleMeta(type):
                 attr.name = name
                 # Ignore private inputs
                 if not name.startswith('_'):
-                    inputs[name] = getattr(attr.data_type, 'value', None)
+                    inputs[name] = attr.data_type
                 continue
             elif isinstance(attr, Output):
                 attr.name = name
                 # Ignore private outputs
                 if not name.startswith('_'):
-                    outputs[name] = getattr(attr.data_type, 'value', None)
+                    outputs[name] = attr.data_type
                 continue
 
             # Handle endpoints
@@ -169,11 +170,15 @@ class Module(metaclass=ModuleMeta):
         self._requests.add_callback(self.on_request)
         self._responses.add_callback(self.on_response)
 
+        self._threads_to_spawn = []
+        self._threads = []
+        self.is_running = False
+
         # Spawn reader threads for all of the inputs
         for input in self._info.inputs:
-            getattr(self, input).spawn_reader()
-        self._requests.spawn_reader()
-        self._responses.spawn_reader()
+            self.spawn(getattr(self, input).read)
+        self.spawn(self._requests.read)
+        self.spawn(self._responses.read)
 
         # Create a logger for this module
         self.logger = logging.getLogger("module.{}".format(mod_id))
@@ -190,6 +195,31 @@ class Module(metaclass=ModuleMeta):
         interpreted as module parameters.
         """
         pass
+
+    def spawn(self, f):
+        """
+        If this module has already been started, then this spawns a thread that
+        runs the given function. Otherwise, it adds the function to a list of
+        functions to spawn threads for when the modules is started.
+        """
+        if self.is_running:
+            self._threads.append(gevent.spawn(f))
+        else:
+            self._threads_to_spawn.append(f)
+
+    def start(self):
+        """ Starts this module.  """
+        self.is_running = True
+        for f in self._threads_to_spawn:
+            self._threads.append(gevent.spawn(f))
+        self._threads.append(gevent.spawn(self.run))
+
+    def stop(self):
+        """ Stops the module. """
+        self.is_running = False
+        for g in self._threads:
+            g.kill()
+        self._threads = []
 
     def get_request_handle(self):
         """

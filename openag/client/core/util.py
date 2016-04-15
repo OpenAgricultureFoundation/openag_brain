@@ -1,6 +1,6 @@
+from couchdb import PreconditionFailed
 from collections import OrderedDict
 from .parameters import *
-
 
 def get_argument_info(f):
     arguments = OrderedDict()
@@ -14,3 +14,9 @@ def get_argument_info(f):
             arg_info['description'] = str(annotation)
         arguments[arg_name] = arg_info
     return arguments
+
+def get_or_create_db(server, db_name):
+    try:
+        return server.create(db_name)
+    except PreconditionFailed:
+        return server[db_name]

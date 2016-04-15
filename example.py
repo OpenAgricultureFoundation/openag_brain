@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import gevent
-from openag.client.core.modules import *
+from openag.client.core import *
 
 
 class Arduino(Module):
@@ -49,8 +49,10 @@ sensor.init(1, 3)
 arduino.init()
 persist.init()
 sensor.output.output_to(persist.input)
-threads = []
-threads.append(gevent.spawn(arduino.run))
-threads.append(gevent.spawn(sensor.run))
-threads.append(gevent.spawn(persist.run))
-gevent.joinall(threads)
+arduino.start()
+sensor.start()
+persist.start()
+gevent.sleep(10)
+arduino.stop()
+sensor.stop()
+persist.stop()

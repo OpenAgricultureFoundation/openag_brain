@@ -32,7 +32,7 @@ class OutputChannel:
         timestamp = timestamp or time.time()
         object_id = object_id or self.object_id
         if data_type is None:
-            raise RuntimeException('No data type specified for output item')
+            raise RuntimeError('No data type specified for output item')
         item = StreamItem(value, data_type, timestamp, self.mod_id, object_id)
         for dest in self.destinations:
             dest.put(item)
