@@ -7,7 +7,7 @@ class Persistence(Module):
 
     def init(self, env_id: "The id of the environment for which to record " \
             "data" = None):
-        self.server = Server()
+        server = Server()
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT.value]
         # TODO: Make sure an envinroment with this ID already exists
         self.env_id = env_id
