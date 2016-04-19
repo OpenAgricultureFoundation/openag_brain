@@ -2,6 +2,8 @@
 This module defines the names of the databases to be accessed on the CouchDB
 server storing data for the application.
 """
+__all__ = ['DbName']
+
 from enum import Enum
 
 class DbName(Enum):
