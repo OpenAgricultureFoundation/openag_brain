@@ -1,3 +1,4 @@
+import gevent
 from openag.client.core import *
 
 class RecipeHandler(Module):
