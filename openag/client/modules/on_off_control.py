@@ -1,3 +1,5 @@
+from openag.client.core import Module
+
 class OnOffControl(Module):
     set_point = Input()
     measured = Input()
