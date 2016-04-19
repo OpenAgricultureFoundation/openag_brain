@@ -1,7 +1,7 @@
 from openag.client.core import *
 
 class Dht22(Module):
-    temperature = Output(EnvironmentalVariable.TEMPERATURE)
+    temperature = Output(EnvironmentalVariable.AIR_TEMPERATURE)
     humidity = Output(EnvironmentalVariable.HUMIDITY)
 
     def init(self, board_id: "ID of the module for the board to which this " \

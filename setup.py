@@ -31,5 +31,6 @@ setup(
     namespace_packages=['openag', 'openag.client', 'openag.client.modules'],
     install_requires=[
         'couchdb>=1.0.1',
+        'flask>=0.10.1',
     ]
 )
