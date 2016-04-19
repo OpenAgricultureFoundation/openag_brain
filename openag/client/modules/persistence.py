@@ -1,5 +1,5 @@
 from couchdb import Server
-from .models import EnvironmentalDataPointModel
+from openag.client.core import *
 
 class Persistence(Module):
     desired_data = Input()
