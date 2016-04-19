@@ -46,13 +46,13 @@ class ModuleMeta(type):
                 attr.name = name
                 # Ignore private inputs
                 if not name.startswith('_'):
-                    inputs[name] = attr.data_type
+                    inputs[name] = getattr(attr.data_type, 'value', None)
                 continue
             elif isinstance(attr, Output):
                 attr.name = name
                 # Ignore private outputs
                 if not name.startswith('_'):
-                    outputs[name] = attr.data_type
+                    outputs[name] = getattr(attr.data_type, 'value', None)
                 continue
 
             # Handle endpoints
