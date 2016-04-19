@@ -10,7 +10,7 @@ class Arduino(Module):
 
 
 class Sensor(Module):
-    output = Output(DataType.TEST)
+    output = Output(TEST_TYPE)
     def init(self, device_mod_id: ModuleParameter("ID of the device module"),
             pin: IntegerParameter("The pin to read from")):
         self.device = self.ask(device_mod_id)
@@ -36,7 +36,7 @@ class Sensor(Module):
             gevent.sleep(1)
 
 class Persist(Module):
-    input = Input(data_type=DataType.TEST)
+    input = Input(data_type=TEST_TYPE)
     def on_input(self, item):
         print(item.value)
         self.logger.info(item)

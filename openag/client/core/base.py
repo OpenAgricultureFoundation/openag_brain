@@ -95,7 +95,7 @@ class AsyncRequest:
         handle = self.src_mod.get_request_handle()
         self.src_mod._open_requests[handle] = result
         item = StreamItem(
-            (self.fn_name, args), DataType.REQUEST, time.time(),
+            (self.fn_name, args), REQUEST_TYPE, time.time(),
             self.src_mod.mod_id, handle
         )
         self.dest_mod._requests.put(item)
@@ -260,7 +260,7 @@ class Module(metaclass=ModuleMeta):
             value = e
         src_mod = Module.get_by_id(item.src_id)
         result = StreamItem(
-            value, DataType.RESPONSE, time.time(), self.mod_id, item.object_id
+            value, RESPONSE_TYPE, time.time(), self.mod_id, item.object_id
         )
         src_mod._responses.put(result)
 
