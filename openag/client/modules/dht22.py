@@ -1,4 +1,5 @@
 from openag.client.core import *
+import gevent
 
 class Dht22(Module):
     temperature = Output(EnvironmentalVariable.AIR_TEMPERATURE)
