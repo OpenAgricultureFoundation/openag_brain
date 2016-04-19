@@ -8,5 +8,3 @@ if __name__ == '__main__':
             server.create(db_name.value)
         except PreconditionFailed:
             pass
-
-    # TODO: Create variable entries too
