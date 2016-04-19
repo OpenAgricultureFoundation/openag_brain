@@ -1,3 +1,8 @@
+__all__ = [
+    'ModuleTypeModel', 'ModuleModel', 'ModuleConnectionModel',
+    'EnvironmentModel', 'EnvironmentalDataPointModel'
+]
+
 from couchdb.mapping import (
     Document, TextField, FloatField, DictField, BooleanField, ListField
 )
