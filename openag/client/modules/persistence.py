@@ -3,9 +3,10 @@ from openag.client.core import *
 
 class Persistence(Module):
     desired_data = Input()
-    mesaured_data = Input()
+    measured_data = Input()
 
-    def init(self, env_id: "The id of the environment for which to record data"):
+    def init(self, env_id: "The id of the environment for which to record " \
+            "data" = None):
         self.server = Server()
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT.value]
         # TODO: Make sure an envinroment with this ID already exists
