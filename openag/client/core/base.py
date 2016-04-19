@@ -90,12 +90,12 @@ class AsyncRequest:
         self.dest_mod = dest_mod
         self.fn_name = fn_name
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         result = AsyncResult()
         handle = self.src_mod.get_request_handle()
         self.src_mod._open_requests[handle] = result
         item = StreamItem(
-            (self.fn_name, args), REQUEST_TYPE, time.time(),
+            (self.fn_name, args, kwargs), REQUEST_TYPE, time.time(),
             self.src_mod.mod_id, handle
         )
         self.dest_mod._requests.put(item)
@@ -106,8 +106,8 @@ class Request(AsyncRequest):
     The same as AsyncRequest except that it blocks and returns the result of
     the request instead of returning an AsyncResult
     """
-    def __call__(self, *args):
-        return super().__call__(*args).get()
+    def __call__(self, *args, **kwargs):
+        return super().__call__(*args, **kwargs).get()
 
 class AsyncRequester:
     """
@@ -181,12 +181,12 @@ class Module(metaclass=ModuleMeta):
         self.spawn(self._responses.read)
 
         # Create a logger for this module
-        self.logger = logging.getLogger("module.{}".format(mod_id))
+        self._logger = logging.getLogger("module.{}".format(mod_id))
 
     @classmethod
     def get_by_id(cls, mod_id):
         """ Returns the module with the id `mod_id` """
-        return cls._registry[mod_id]
+        return cls._registry.get(mod_id, None)
 
     def init(self, *args, **kwargs):
         """
@@ -253,9 +253,9 @@ class Module(metaclass=ModuleMeta):
         Callback for requests. Processes the request and then sends a
         response back to the module that sent the request.
         """
-        fn_name, fn_args = item.value
+        fn_name, fn_args, fn_kwargs = item.value
         try:
-            value = self.process_request(fn_name, fn_args)
+            value = self.process_request(fn_name, fn_args, fn_kwargs)
         except Exception as e:
             value = e
         src_mod = Module.get_by_id(item.src_id)
@@ -275,7 +275,7 @@ class Module(metaclass=ModuleMeta):
         else:
             result.set(item.value)
 
-    def process_request(self, fn_name, fn_args):
+    def process_request(self, fn_name, fn_args, fn_kwargs):
         """
         If there is an endpoint on this module with the name `fn_name`,
         then that function is called with the arguments `fn_args`. Otherwise,
@@ -283,7 +283,7 @@ class Module(metaclass=ModuleMeta):
         """
         if fn_name in self._info.endpoints:
             endpoint = getattr(self, fn_name)
-            return endpoint(*fn_args)
+            return endpoint(*fn_args, **fn_kwargs)
         else:
             return RuntimeError()
 

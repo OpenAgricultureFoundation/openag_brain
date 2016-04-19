@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
-from .base import Module
+from .base import Module, Requester
 from .util import get_or_create_db
 from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
 from .db_names import *
 
+from uuid import uuid4
+from flask import Flask, request
 import gevent
+from gevent.wsgi import WSGIServer
 from couchdb import Server
 from importlib import import_module
 
@@ -45,6 +48,19 @@ if __name__ == '__main__':
         mod = Module.get_by_id(mod_id)
         mod.start()
 
-    # Listen for changes to the module configuration
-    while True:
-        gevent.sleep(60)
+    # Create and run a Flask app for calling endpoints
+    app = Flask(__name__)
+    app.debug=True
+
+    mod_id = uuid4().hex
+    while Module.get_by_id(mod_id):
+        mod_id = uuid4().hex
+    app.mod = Module(mod_id)
+    app.mod.start()
+
+    @app.route("/<mod_id>/<endpoint>", methods=['POST'])
+    def serve_endpoint(mod_id, endpoint):
+        return getattr(app.mod.ask(mod_id), endpoint)(**request.json)
+
+    http_server = WSGIServer(('', 5000), app)
+    http_server.serve_forever()
