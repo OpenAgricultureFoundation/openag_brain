@@ -1,4 +1,6 @@
-from couchdb.mapping import Document, TextField, FloatField, DictField
+from couchdb.mapping import (
+    Document, TextField, FloatField, DictField, BooleanField
+)
 
 class ModuleTypeModel(Document):
     name = TextField()
@@ -21,3 +23,12 @@ class ModuleConnectionModel(Document):
     input_module = TextField()
     input_name = TextField()
 
+class EnvironmentModel(Document):
+    variables = ListField(TextField())
+
+class EnvironmentalDataPointModel(Document):
+    environment = TextField()
+    variable = TextField()
+    is_desired = BooleanField()
+    value = FloatField()
+    timestamp = FloatField()

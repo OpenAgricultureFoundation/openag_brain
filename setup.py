@@ -21,7 +21,7 @@ setup(
         'Environment :: Console',
         'Framework :: Flask',
         'Intended Audience :: Developers,',
-        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.5',
