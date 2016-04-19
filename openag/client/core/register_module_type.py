@@ -1,4 +1,3 @@
-from .util import get_or_create_db
 from .models import ModuleTypeModel
 from .db_names import *
 
@@ -10,7 +9,7 @@ from importlib import import_module
 
 if __name__ == '__main__':
     server = Server()
-    db = get_or_create_db(server, MODULE_TYPE_DB)
+    db = server[DbName.MODULE_TYPE.value]
     class_path = argv[1]
     package_path, class_name = class_path.split(":")
     package = import_module(package_path)
