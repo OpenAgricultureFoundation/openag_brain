@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 from .base import Module, Requester
-from .util import get_or_create_db
 from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
-from .db_names import *
+from .db_names import DbName
 
 from uuid import uuid4
 from flask import Flask, request
@@ -14,9 +13,9 @@ from importlib import import_module
 
 if __name__ == '__main__':
     server = Server()
-    module_db = get_or_create_db(server, MODULE_DB)
-    module_type_db = get_or_create_db(server, MODULE_TYPE_DB)
-    module_connection_db = get_or_create_db(server, MODULE_CONNECTION_DB)
+    module_db = server[DbName.MODULE.value]
+    module_type_db = server[DbName.MODULE_TYPE.value]
+    module_connection_db = server[DbName.MODULE_CONNECTION.value]
 
     # Construct all of the modules
     for mod_id in module_db:

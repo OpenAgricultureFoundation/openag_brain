@@ -1,5 +1,5 @@
 from couchdb.mapping import (
-    Document, TextField, FloatField, DictField, BooleanField
+    Document, TextField, FloatField, DictField, BooleanField, ListField
 )
 
 class ModuleTypeModel(Document):

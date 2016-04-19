@@ -2,7 +2,7 @@ import gevent
 from openag.client.core import *
 
 class Echo(Module):
-    out_data = Output(TEST_TYPE)
+    out_data = Output(InternalVariable.TEST)
 
     def init(self, msg: "The message to echo"):
         self.msg = msg

@@ -95,8 +95,8 @@ class AsyncRequest:
         handle = self.src_mod.get_request_handle()
         self.src_mod._open_requests[handle] = result
         item = StreamItem(
-            (self.fn_name, args, kwargs), REQUEST_TYPE, time.time(),
-            self.src_mod.mod_id, handle
+            (self.fn_name, args, kwargs), InternalVariable.REQUEST,
+            time.time(), self.src_mod.mod_id, handle
         )
         self.dest_mod._requests.put(item)
         return result
@@ -141,8 +141,8 @@ class Module(metaclass=ModuleMeta):
     Parent class for all modules. Subclasses must override `init` and/or
     `run` to define the module's operation.
     """
-    _requests = Input()
-    _responses = Input()
+    _requests = Input(InternalVariable.REQUEST)
+    _responses = Input(InternalVariable.RESPONSE)
 
     def __init__(self, mod_id):
         """
@@ -260,7 +260,8 @@ class Module(metaclass=ModuleMeta):
             value = e
         src_mod = Module.get_by_id(item.src_id)
         result = StreamItem(
-            value, RESPONSE_TYPE, time.time(), self.mod_id, item.object_id
+            value, InternalVariable.RESPONSE, time.time(), self.mod_id,
+            item.object_id
         )
         src_mod._responses.put(result)
 
