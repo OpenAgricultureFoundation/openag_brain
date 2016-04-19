@@ -27,5 +27,5 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     packages=[find_packages()],
-    namespace_packages['openag', 'openag.client'],
+    namespace_packages['openag', 'openag.client', 'openag.client.modules'],
 )
