@@ -14,8 +14,8 @@ class Persistence(Module):
     def on_desired_data(self, item):
         point = EnvironmentalDataPointModel(
             environment=self.env_id,
-            variable=item.data_type
-            is_desired=True
+            variable=item.data_type,
+            is_desired=True,
             value=item.value,
             timestamp=item.timestamp
         )
@@ -24,8 +24,8 @@ class Persistence(Module):
     def on_measured_data(self, item):
         point = EnvironmentalDataPointModel(
             environment=self.env_id,
-            variable=item.data_type
-            is_desired=False
+            variable=item.data_type,
+            is_desired=False,
             value=item.value,
             timestamp=item.timestamp
         )

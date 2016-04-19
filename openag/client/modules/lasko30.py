@@ -1,4 +1,4 @@
-from openag.client.core import *o
+from openag.client.core import *
 
 class Lasko30(Module):
     state = Input(InternalVariable.BOOLEAN)

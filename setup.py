@@ -1,5 +1,6 @@
-from setuptools import setup, find_packages
+from os import path
 from codecs import open
+from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -26,6 +27,6 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.5',
     ],
-    packages=[find_packages()],
-    namespace_packages['openag', 'openag.client', 'openag.client.modules'],
+    packages=find_packages(),
+    namespace_packages=['openag', 'openag.client', 'openag.client.modules'],
 )
