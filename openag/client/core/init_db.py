@@ -36,8 +36,12 @@ if __name__ == '__main__':
         if db_name.startswith('__'):
             continue
         db_path = os.path.join(design_path, db_name)
-        doc = folder_to_dict(db_path)
-        doc['_id'] = "_design/openag"
+        db = server[db_name]
+        if "_design/openag" in db:
+            doc = db["_design/openag"]
+        else:
+            doc = {"_id": "_design/openag"}
+        doc.update(folder_to_dict(db_path))
         server[db_name].save(doc)
 
     # Create entries in the MODULE_TYPE database for all of the module types
