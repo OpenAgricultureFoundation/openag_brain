@@ -10,7 +10,8 @@ from couchdb.mapping import (
 class ModuleTypeModel(Document):
     name = TextField()
     description = TextField()
-    class_path = TextField()
+    package_path = TextField()
+    class_name = TextField()
     parameters = DictField()
     inputs = DictField()
     outputs = DictField()
@@ -35,5 +36,5 @@ class EnvironmentalDataPointModel(Document):
     environment = TextField()
     variable = TextField()
     is_desired = BooleanField()
-    value = FloatField()
+    value = TextField()
     timestamp = FloatField()

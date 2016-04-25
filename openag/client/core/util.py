@@ -1,5 +1,10 @@
+import sys
+import time
+import random
 from collections import OrderedDict
 from .parameters import *
+
+__all__ = ['get_argument_info', 'gen_doc_id']
 
 def get_argument_info(f):
     arguments = OrderedDict()
@@ -13,3 +18,6 @@ def get_argument_info(f):
             arg_info['description'] = str(annotation)
         arguments[arg_name] = arg_info
     return arguments
+
+def gen_doc_id():
+    return "{}-{}".format(time.time(), random.randint(0, sys.maxsize))

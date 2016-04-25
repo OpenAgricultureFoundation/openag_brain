@@ -16,9 +16,8 @@ class Persistence(Module):
         self.env_id = env_id
 
     def on_desired_data(self, item):
-        _id = "{}-{}".format(time.time(), random.randind(0, sys.maxsize))
         point = EnvironmentalDataPointModel(
-            _id=_id
+            _id=_gen_doc_id(),
             environment=self.env_id,
             variable=item.data_type.value,
             is_desired=True,
@@ -28,9 +27,8 @@ class Persistence(Module):
         point.store(self.db)
 
     def on_measured_data(self, item):
-        _id = "{}-{}".format(time.time(), random.randind(0, sys.maxsize))
         point = EnvironmentalDataPointModel(
-            _id=_id
+            _id=gen_doc_id(),
             environment=self.env_id,
             variable=item.data_type.value,
             is_desired=False,

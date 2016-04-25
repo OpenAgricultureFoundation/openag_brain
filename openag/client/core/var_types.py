@@ -16,3 +16,5 @@ class InternalVariable(Enum):
 class EnvironmentalVariable(Enum):
     AIR_TEMPERATURE = 'air_temperature'
     HUMIDITY = 'humidity'
+    RECIPE_START = 'recipe_start'
+    RECIPE_END = 'recipe_end'

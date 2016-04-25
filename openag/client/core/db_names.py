@@ -7,6 +7,7 @@ __all__ = ['DbName']
 from enum import Enum
 
 class DbName(Enum):
+    RECIPE = 'recipes'
     MODULE = 'module'
     MODULE_TYPE = 'module_type'
     MODULE_CONNECTION = 'module_connection'
