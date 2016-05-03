@@ -1,14 +1,14 @@
 import gevent
-from openag.client.core import *
+from openag.brain.core import *
 
 class Echo(Module):
-    out_data = Output(InternalVariable.TEST)
+    out_data = Output(InternalVariable.STRING)
 
-    def init(self, msg: "The message to echo"):
+    def init(self, msg: StringParameter("The message to echo")):
         self.msg = msg
 
     @endpoint
-    def set_msg(self, msg: "The new message to echo"):
+    def set_msg(self, msg: StringParameter("The new message to echo")):
         """ Set the message to echo """
         self.msg = msg
         return msg

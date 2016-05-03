@@ -45,6 +45,7 @@ if __name__ == '__main__':
     for mod_id in module_db:
         mod = Module.get_by_id(mod_id)
         mod.start()
+    print("Running {} modules".format(len(module_db)))
 
     # Create and run a Flask app for calling endpoints
     app = Flask(__name__)
@@ -61,4 +62,5 @@ if __name__ == '__main__':
         return getattr(app.mod.ask(mod_id), endpoint)(**request.json)
 
     http_server = WSGIServer(('', 5000), app)
+    print("Listening for requests on http://localhost:5000/")
     http_server.serve_forever()

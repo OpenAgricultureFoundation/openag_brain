@@ -1,11 +1,12 @@
-from openag.client.core import *
+from openag.brain.core import *
 
 class OnOffControl(Module):
     set_point = Input()
     measured = Input()
     state = Output(InternalVariable.BOOLEAN)
 
-    def init(self, default: "The default value for the set point"):
+    def init(self, default: FloatParameter("The default value for the set "
+            "point")):
         self.current_set_point = float(default)
         self.current_measured = float(default)
 

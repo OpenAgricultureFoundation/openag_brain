@@ -9,11 +9,11 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='openag-client-core',
+    name='openag-brain',
     version='0.0.1',
-    description='Core code for running a client of the OpenAg system',
+    description='Framework for software modules in an OpenAg food computer',
     long_description=long_description,
-    url='https://github.com/OpenAgInitiative/openag-client-core',
+    url='https://github.com/OpenAgInitiative/openag-brain',
     author='Open Agriculture Initiative',
     author_email='mitopenag@gmail.com',
     license='GPL',
@@ -28,9 +28,10 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     packages=find_packages(),
-    namespace_packages=['openag', 'openag.client', 'openag.client.modules'],
+    namespace_packages=['openag', 'openag.brain', 'openag.brain.modules'],
     install_requires=[
         'couchdb>=1.0.1',
         'flask>=0.10.1',
+        'gevent>=1.1.1',
     ]
 )

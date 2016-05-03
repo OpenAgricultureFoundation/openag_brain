@@ -5,7 +5,8 @@ allowing ModuleMeta to generate a description of the parameter that includes
 both its type and description.
 """
 __all__ = [
-    'Parameter', 'StringParameter', 'IntegerParameter', 'ModuleParameter'
+    'Parameter', 'StringParameter', 'IntegerParameter', 'FloatParameter',
+    'ReferenceParameter'
 ]
 
 class Parameter:
@@ -19,5 +20,10 @@ class StringParameter(Parameter):
 class IntegerParameter(Parameter):
     type = 'integer'
 
-class ModuleParameter(Parameter):
-    type = 'module_id'
+class FloatParameter(Parameter):
+    type = 'float'
+
+class ReferenceParameter(Parameter):
+    def __init__(self, db_name, description):
+        self.db_name = db_name
+        self.description = description

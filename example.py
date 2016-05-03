@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import gevent
-from openag.client.core import *
+from openag.brain.core import *
 
 
 class Arduino(Module):

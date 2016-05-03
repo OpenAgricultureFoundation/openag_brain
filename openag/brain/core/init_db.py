@@ -51,7 +51,8 @@ if __name__ == '__main__':
             continue
         if f_name.startswith('__'):
             continue
-        py_mod_name = 'openag.client.modules.' + f_name.split('.')[0]
+        package_name = '.'.join(__package__.split('.')[:-1])
+        py_mod_name = package_name + '.modules.' + f_name.split('.')[0]
         py_mod = import_module(py_mod_name)
         for name, cls in inspect.getmembers(py_mod, inspect.isclass):
             if issubclass(cls, Module) and cls != Module:

@@ -10,6 +10,7 @@ from enum import Enum
 class InternalVariable(Enum):
     TEST = 'test'
     BOOLEAN = 'boolean'
+    STRING = 'string'
     REQUEST = 'request'
     RESPONSE = 'response'
 

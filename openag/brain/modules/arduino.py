@@ -1,4 +1,4 @@
-from openag.client.core import Module
+from openag.brain.core import Module
 from openag_pymata_aio.pymata3 import PyMata3
 
 class Arduino(Module):
