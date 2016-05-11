@@ -32,7 +32,15 @@ if __name__ == '__main__':
 
     # Copy the couchdb config file into the correct directory
     config_file_path = os.path.join(os.path.dirname(__file__), "couchdb.ini")
-    shutil.copy(config_file_path, "/etc/couchdb/default.d/openag.ini")
+    if os.path.isdir("/etc/couchdb/default.d"):
+        shutil.copy(config_file_path, "/etc/couchdb/default.d/openag.ini")
+    elif os.path.isdir("/usr/local/etc/couchdb/default.d"):
+        shutil.copy(
+            config_file_path, "/usr/local/etc/couchdb/default.d/openag.ini"
+        )
+    else:
+        raise RuntimeError("Failed to install couchdb configuration file")
+
 
     # Create all of the databases
     for db_name in DbName:
