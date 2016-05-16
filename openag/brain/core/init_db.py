@@ -4,9 +4,9 @@ import shutil
 import inspect
 import argparse
 from importlib import import_module
+from pkg_resources import resource_filename
 from .db_names import DbName
 from . import _design, fixtures
-from .. import modules
 from .base import ModuleMeta, Module
 from .register_module_type import register_module_type
 from couchdb import Server, PreconditionFailed
@@ -64,8 +64,9 @@ if __name__ == '__main__':
         server[db_name].save(doc)
 
     # Create entries in the MODULE_TYPE database for all of the module types
-    modules_path = os.path.dirname(modules.__file__)
-    for f_name in os.listdir(modules_path):
+    brain_dir = os.path.dirname(resource_filename(__name__, ''))
+    mod_dir = os.path.join(brain_dir, 'modules')
+    for f_name in os.listdir(mod_dir):
         if not f_name.endswith('.py'):
             continue
         if f_name.startswith('__'):
