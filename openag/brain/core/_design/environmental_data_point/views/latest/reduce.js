@@ -1,9 +1,9 @@
 function (key, values, rereduce) {
-  var best = null;
+  var best = values[0];
   var num_vals = values.length;
   for (var i = 0; i < num_vals; i++) {
     var curr_val = values[i];
-    if (best == null || curr_val.timesamp < best.timestamp) {
+    if (curr_val.timestamp > best.timestamp) {
       best = curr_val;
     }
   }
