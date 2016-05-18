@@ -10,7 +10,7 @@ class Persistence(Module):
 
     def init(self, env_id: ReferenceParameter(DbName.ENVIRONMENT, "The id of "
             "the environment for which to record data")):
-        global server
+        server = Server()
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT.value]
         self.env_id = env_id
 
