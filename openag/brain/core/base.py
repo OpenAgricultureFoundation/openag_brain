@@ -181,7 +181,9 @@ class Module(metaclass=ModuleMeta):
         self.spawn(self._responses.read)
 
         # Create a logger for this module
-        self._logger = logging.getLogger("module.{}".format(mod_id))
+        self._logger = logging.getLogger(
+            "openag_brain.module.{}".format(mod_id)
+        )
 
     @classmethod
     def get_by_id(cls, mod_id):
@@ -296,4 +298,36 @@ class Module(metaclass=ModuleMeta):
         the inputs and waits for them to terminate.
         """
         pass
+
+    def debug(self, msg, *args, **kwargs):
+        """
+        Logs a message with level logging.DEBUG on the logger for this module
+        """
+        return self._logger.debug(msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        """
+        Logs a message with level logging.INFO on the logger for this module
+        """
+        return self._logger.info(msg, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        """
+        Logs a message with level logging.WARNING on the logger for this module
+        """
+        return self._logger.warning(msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        """
+        Logs a message with level logging.ERROR on the logger for this module
+        """
+        return self._logger.error(msg, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        """
+        Logs a message with level logging.CRITICAL on the logger for this
+        module
+        """
+        return self._logger.critical(msg, *args, **kwargs)
+
 Module._registry = {}

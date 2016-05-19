@@ -4,6 +4,8 @@ from .base import Module, Requester
 from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
 from .db_names import DbName
 
+import logging
+import argparse
 from uuid import uuid4
 from flask import Flask, request
 import gevent
@@ -12,6 +14,31 @@ from couchdb import Server
 from importlib import import_module
 
 if __name__ == '__main__':
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Run all modules defined for '
+    'this system')
+    parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument('--log', default=None)
+    args = parser.parse_args()
+
+    # Configure logging
+    logger = logging.getLogger("openag_brain")
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(levelname)s %(asctime)s (%(name)s): %(message)s"
+    )
+    stream_log_level = max(10, 30-10*args.verbose)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(stream_log_level)
+    logger.addHandler(stream_handler)
+    if args.log:
+        file_handler = logging.FileHandler(args.log)
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(min(logging.INFO, stream_log_level))
+        logger.addHandler(file_handler)
+
+    # Connect to the databases
     server = Server()
     module_db = server[DbName.MODULE.value]
     module_type_db = server[DbName.MODULE_TYPE.value]
@@ -46,7 +73,7 @@ if __name__ == '__main__':
     for mod_id in module_db:
         mod = Module.get_by_id(mod_id)
         mod.start()
-    print("Running {} modules".format(len(module_db)))
+    logger.info("Running {} modules".format(len(module_db)))
 
     # Create and run a Flask app for calling endpoints
     app = Flask(__name__)
@@ -63,5 +90,5 @@ if __name__ == '__main__':
         return getattr(app.mod.ask(mod_id), endpoint)(**request.json)
 
     http_server = WSGIServer(('', 5000), app)
-    print("Listening for requests on http://localhost:5000/")
+    logger.info("Listening for requests on http://localhost:5000/")
     http_server.serve_forever()

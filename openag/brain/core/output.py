@@ -2,6 +2,7 @@
 This module defines a set of classes used to define outups from `Module`s
 """
 import time
+import logging
 from .stream import *
 
 __all__ = ['Output']
@@ -11,11 +12,15 @@ class OutputChannel:
     Output channels from `Module`s that write data to `Input`s of other
     `Module`s.
     """
-    def __init__(self, mod_id, data_type=None, object_id=None):
+    def __init__(self, mod_id, name, data_type=None, object_id=None):
         self.mod_id = mod_id
+        self.name = name
         self.data_type = data_type
         self.object_id = object_id
         self.destinations = []
+        self._logger = logging.getLogger(
+            "openag_brain.module.{}.{}".format(mod_id, name)
+        )
 
     def output_to(self, dest):
         """
@@ -34,6 +39,7 @@ class OutputChannel:
         if data_type is None:
             raise RuntimeError('No data type specified for output item')
         item = StreamItem(value, data_type, timestamp, self.mod_id, object_id)
+        self._logger.debug("Emitted {}".format(item))
         for dest in self.destinations:
             dest.put(item)
 
@@ -51,6 +57,6 @@ class Output:
         if instance is None:
             return self
         setattr(instance, self.name, OutputChannel(
-            instance.mod_id, self.data_type, self.object_id
+            instance.mod_id, self.name, self.data_type, self.object_id
         ))
         return getattr(instance, self.name)

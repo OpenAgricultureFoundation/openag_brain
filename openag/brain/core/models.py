@@ -9,7 +9,6 @@ from couchdb.mapping import (
 
 class ModuleTypeModel(Document):
     _id = TextField()
-    name = TextField()
     description = TextField()
     parameters = DictField()
     inputs = DictField()
@@ -18,7 +17,7 @@ class ModuleTypeModel(Document):
     procedures = DictField()
 
 class ModuleModel(Document):
-    name = TextField()
+    _id = TextField()
     type = TextField()
     parameters = DictField()
 
