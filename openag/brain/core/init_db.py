@@ -46,11 +46,12 @@ def main():
 
 
     # Create all of the databases
-    for db_name in DbName:
-        try:
-            server.create(db_name)
-        except PreconditionFailed:
-            pass
+    for k,v in DbName.__dict__.items():
+        if k.isupper():
+            try:
+                server.create(v)
+            except PreconditionFailed:
+                pass
 
     # Push design documents to all of the databases
     design_path = os.path.dirname(_design.__file__)
