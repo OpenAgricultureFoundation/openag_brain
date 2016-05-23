@@ -26,7 +26,7 @@ def folder_to_dict(path):
             res[key] = folder_to_dict(key_path)
     return res
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description="Initialize the database")
     parser.add_argument('--fixture', required=False)
     args = parser.parse_args()
@@ -104,3 +104,6 @@ if __name__ == '__main__':
                 item_id = item["_id"]
                 doc = get_or_create(db, item_id)
                 update_doc(db, doc, item)
+
+if __name__ == '__main__':
+    main()

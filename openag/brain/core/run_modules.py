@@ -15,7 +15,7 @@ from .server import server
 from .db_names import DbName
 from .parameters import Parameter
 
-if __name__ == '__main__':
+def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Run all modules defined for '
     'this system')
@@ -71,6 +71,8 @@ if __name__ == '__main__':
 
     # Hook up all of the connections
     for mod_conn_id in module_connection_db:
+        if mod_conn_id.startswith('_'):
+            continue
         mod_conn = ModuleConnectionModel.load(module_connection_db, mod_conn_id)
         output_module = Module.get_by_id(mod_conn.output_module)
         input_module = Module.get_by_id(mod_conn.input_module)
@@ -104,3 +106,6 @@ if __name__ == '__main__':
     http_server = WSGIServer(('', 5000), app)
     logger.info("Listening for requests on http://localhost:5000/")
     http_server.serve_forever()
+
+if __name__ == '__main__':
+    main()

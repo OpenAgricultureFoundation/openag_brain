@@ -41,5 +41,11 @@ setup(
         'couchdb>=1.0.1',
         'flask>=0.10.1',
         'gevent>=1.1.1',
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'openag_init_db = openag.brain.core.init_db:main',
+            'openag_run_modules = openag.brain.core.run_modules:main'
+        ]
+    }
 )
