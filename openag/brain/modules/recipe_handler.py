@@ -21,10 +21,13 @@ class SimpleRecipe(Recipe):
         self.current_index = 0
 
     def next_operation(self):
-        if self.current_index == len(self.operations):
+        if self.current_index >= len(self.operations):
             return None
         else:
             return self.operations[self.current_index]
+
+    def cancel(self):
+        self.current_index = len(self.operations)
 
     def set_points(self):
         initial_values = {}
@@ -113,6 +116,10 @@ class RecipeHandler(Module):
         )
         self.recipe_flag.set()
         return "Success"
+
+    @endpoint
+    def stop_recipe(self):
+        self.current_recipe.cancel()
 
     def run(self):
         while True:
