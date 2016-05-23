@@ -7,12 +7,13 @@ from importlib import import_module
 
 import gevent
 from flask import Flask, request
-from couchdb import Server
 from gevent.wsgi import WSGIServer
 
 from .base import Module, Requester
 from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
+from .server import server
 from .db_names import DbName
+from .parameters import Parameter
 
 if __name__ == '__main__':
     # Parse command line arguments
@@ -40,7 +41,6 @@ if __name__ == '__main__':
         logger.addHandler(file_handler)
 
     # Connect to the databases
-    server = Server()
     module_db = server[DbName.MODULE.value]
     module_type_db = server[DbName.MODULE_TYPE.value]
     module_connection_db = server[DbName.MODULE_CONNECTION.value]
@@ -62,6 +62,11 @@ if __name__ == '__main__':
             continue
         mod_info = ModuleModel.load(module_db, mod_id)
         mod = Module.get_by_id(mod_id)
+        params = mod_info.parameters
+        for arg_name in mod.init.__code__.co_varnames[1:mod.init.__code__.co_argcount]:
+            annotation = mod.init.__annotations__.get(arg_name, '')
+            if isinstance(annotation, Parameter):
+                params[arg_name] = annotation.encode(params[arg_name])
         mod.init(**mod_info.parameters)
 
     # Hook up all of the connections
