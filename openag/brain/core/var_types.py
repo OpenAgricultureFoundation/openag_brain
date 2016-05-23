@@ -3,9 +3,9 @@ This module defines all of the types of data that can be passed between
 modules. There should be one type in this file for each variable type in the
 database.
 """
-__all__ = ['InternalVariable', 'EnvironmentalVariable']
-
 from enum import Enum
+
+__all__ = ['InternalVariable', 'EnvironmentalVariable']
 
 class InternalVariable(Enum):
     TEST = 'test'

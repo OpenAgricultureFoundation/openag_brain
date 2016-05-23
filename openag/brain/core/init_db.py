@@ -4,12 +4,15 @@ import shutil
 import inspect
 import argparse
 from importlib import import_module
-from pkg_resources import resource_filename
-from .db_names import DbName
-from . import _design, fixtures
-from .base import ModuleMeta, Module
-from .register_module_type import register_module_type
+
 from couchdb import Server, PreconditionFailed
+
+from . import _design, fixtures
+from .base import Module, ModuleGroup
+from .util import get_or_create, update_doc
+from .db_names import DbName
+from .register_module_type import register_module_type
+from .register_module_group import register_module_group
 
 def folder_to_dict(path):
     res = {}
@@ -56,15 +59,11 @@ if __name__ == '__main__':
             continue
         db_path = os.path.join(design_path, db_name)
         db = server[db_name]
-        if "_design/openag" in db:
-            doc = db["_design/openag"]
-        else:
-            doc = {"_id": "_design/openag"}
-        doc.update(folder_to_dict(db_path))
-        server[db_name].save(doc)
+        doc = get_or_create(db, "_design/openag")
+        update_doc(db, doc, folder_to_dict(db_path))
 
     # Create entries in the MODULE_TYPE database for all of the module types
-    brain_dir = os.path.dirname(resource_filename(__name__, ''))
+    brain_dir = os.path.dirname(os.path.dirname(__file__))
     mod_dir = os.path.join(brain_dir, 'modules')
     for f_name in os.listdir(mod_dir):
         if not f_name.endswith('.py'):
@@ -75,8 +74,22 @@ if __name__ == '__main__':
         py_mod_name = package_name + '.modules.' + f_name.split('.')[0]
         py_mod = import_module(py_mod_name)
         for name, cls in inspect.getmembers(py_mod, inspect.isclass):
-            if issubclass(cls, Module) and cls != Module:
+            if issubclass(cls, Module) and cls.__module__ == py_mod_name:
                 register_module_type(cls, server[DbName.MODULE_TYPE.value])
+
+    # Create entries in the MODULE_GROUP database for all of the module groups
+    mod_group_dir = os.path.join(brain_dir, 'module_groups')
+    for f_name in os.listdir(mod_group_dir):
+        if not f_name.endswith('.py'):
+            continue
+        if f_name.startswith('__'):
+            continue
+        package_name = '.'.join(__package__.split('.')[:-1])
+        py_mod_name = package_name + '.module_groups.' + f_name.split('.')[0]
+        py_mod = import_module(py_mod_name)
+        for name, cls in inspect.getmembers(py_mod, inspect.isclass):
+            if issubclass(cls, ModuleGroup) and cls.__module__ == py_mod_name:
+                register_module_group(cls, server[DbName.MODULE_GROUP.value])
 
     # Create modules based on the fixture passed in from the command line
     if args.fixture:
@@ -89,10 +102,5 @@ if __name__ == '__main__':
             db = server[db_name]
             for item in items:
                 item_id = item["_id"]
-                if item_id in db:
-                    doc = db[item_id]
-                else:
-                    doc = {}
-                if any(doc.get(k, None) != v for k,v in item.items()):
-                    doc.update(item)
-                    db.save(doc)
+                doc = get_or_create(db, item_id)
+                update_doc(db, doc, item)

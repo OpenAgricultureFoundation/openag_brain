@@ -3,21 +3,25 @@ This module defines the `Module` class from which all modules should inherit
 and some helper classes used to simplify interaction with modules
 """
 import time
-import gevent
 import logging
-from gevent.event import AsyncResult
 from collections import namedtuple
-from .endpoints import *
+
+import gevent
+from gevent.event import AsyncResult
+
+from .util import *
 from .input import *
 from .output import *
 from .stream import *
-from .util import *
+from .endpoints import *
 from .var_types import *
 
-__all__ = ['Module', ]
+__all__ = ['Module', 'ModuleGroup']
 
 ModuleInfo = namedtuple(
-    'ModuleInfo', ['inputs', 'outputs', 'parameters', 'endpoints', 'procedures']
+    'ModuleInfo', [
+        'inputs', 'outputs', 'parameters', 'endpoints', 'procedures', 'groups'
+    ]
 )
 ModuleInfo.__doc__ = """
 Describes a `Module` subclass. `inputs` is a dictionary mapping input names to
@@ -40,6 +44,13 @@ class ModuleMeta(type):
         outputs = {}
         endpoints = {}
         procedures = {}
+        groups = []
+        if name != "ModuleGroup":
+            for super_cls in bases:
+                if issubclass(super_cls, ModuleGroup) and super_cls != ModuleGroup:
+                    groups.append(
+                        super_cls.__module__ + ':' + super_cls.__name__
+                    )
         for name, attr in attrs.items():
             # Handle inputs and outputs
             if isinstance(attr, Input):
@@ -74,7 +85,9 @@ class ModuleMeta(type):
         parameters = get_argument_info(init) if init else {}
 
         # Finally construct the `ModuleInfo` object
-        info = ModuleInfo(inputs, outputs, parameters, endpoints, procedures)
+        info = ModuleInfo(
+            inputs, outputs, parameters, endpoints, procedures, groups
+        )
         cls._info = info
 
 class AsyncRequest:
@@ -331,3 +344,6 @@ class Module(metaclass=ModuleMeta):
         return self._logger.critical(msg, *args, **kwargs)
 
 Module._registry = {}
+
+class ModuleGroup(Module):
+    pass

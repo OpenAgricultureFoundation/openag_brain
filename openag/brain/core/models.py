@@ -1,11 +1,21 @@
+from couchdb.mapping import (
+    Document, TextField, FloatField, DictField, BooleanField, ListField
+)
+
 __all__ = [
     'ModuleTypeModel', 'ModuleModel', 'ModuleConnectionModel',
     'EnvironmentModel', 'EnvironmentalDataPointModel'
 ]
 
-from couchdb.mapping import (
-    Document, TextField, FloatField, DictField, BooleanField, ListField
-)
+class ModuleGroupModel(Document):
+    _id = TextField
+    description = TextField()
+    parameters = DictField()
+    inputs = DictField()
+    outputs = DictField()
+    endpoints = DictField()
+    prcedures = DictField()
+    groups = ListField(TextField())
 
 class ModuleTypeModel(Document):
     _id = TextField()
@@ -15,6 +25,7 @@ class ModuleTypeModel(Document):
     outputs = DictField()
     endpoints = DictField()
     procedures = DictField()
+    groups = ListField(TextField())
 
 class ModuleModel(Document):
     _id = TextField()

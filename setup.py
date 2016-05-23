@@ -28,7 +28,10 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     packages=find_packages(),
-    namespace_packages=['openag', 'openag.brain', 'openag.brain.modules'],
+    namespace_packages=[
+        'openag', 'openag.brain', 'openag.brain.modules',
+        'openag.brain.module_groups'
+    ],
     include_package_data=True,
     install_requires=[
         'couchdb>=1.0.1',

@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
-from .base import Module, Requester
-from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
-from .db_names import DbName
-
 import logging
 import argparse
 from uuid import uuid4
-from flask import Flask, request
-import gevent
-from gevent.wsgi import WSGIServer
-from couchdb import Server
 from importlib import import_module
+
+import gevent
+from flask import Flask, request
+from couchdb import Server
+from gevent.wsgi import WSGIServer
+
+from .base import Module, Requester
+from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
+from .db_names import DbName
 
 if __name__ == '__main__':
     # Parse command line arguments
@@ -46,6 +47,8 @@ if __name__ == '__main__':
 
     # Construct all of the modules
     for mod_id in module_db:
+        if mod_id.startswith('_'):
+            continue
         mod_info = ModuleModel.load(module_db, mod_id)
         mod_type_info = ModuleTypeModel.load(module_type_db, mod_info.type)
         package_path, class_name = mod_type_info._id.split(':')
@@ -55,6 +58,8 @@ if __name__ == '__main__':
 
     # Initialize all of the modules
     for mod_id in module_db:
+        if mod_id.startswith('_'):
+            continue
         mod_info = ModuleModel.load(module_db, mod_id)
         mod = Module.get_by_id(mod_id)
         mod.init(**mod_info.parameters)
@@ -71,6 +76,8 @@ if __name__ == '__main__':
     # Run all of the modules
     threads = []
     for mod_id in module_db:
+        if mod_id.startswith('_'):
+            continue
         mod = Module.get_by_id(mod_id)
         mod.start()
     logger.info("Running {} modules".format(len(module_db)))

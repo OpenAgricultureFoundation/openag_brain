@@ -3,6 +3,7 @@ This module defines a set of classes used to define outups from `Module`s
 """
 import time
 import logging
+
 from .stream import *
 
 __all__ = ['Output']
