@@ -20,8 +20,8 @@ doing so.
 Next, clone the repository and install the contained Python package using
 `pip`:
 
-    git clone https://github.com/OpenAgInitiative/openag-brain.git
-    cd openag-brain
+    git clone https://github.com/OpenAgInitiative/openag_brain.git
+    cd openag_brain
     pip3 install .
 
 Finally, initialize the CouchDB database by running the `init_db` command

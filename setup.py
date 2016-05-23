@@ -1,6 +1,10 @@
 from os import path
+import sys
 from codecs import open
 from setuptools import setup, find_packages
+
+if sys.version_info < (3, 5):
+    raise RuntimeError("openag_brain requires Python 3.5 or newer")
 
 here = path.abspath(path.dirname(__file__))
 
@@ -9,11 +13,11 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='openag-brain',
+    name='openag_brain',
     version='0.0.1',
     description='Framework for software modules in an OpenAg food computer',
     long_description=long_description,
-    url='https://github.com/OpenAgInitiative/openag-brain',
+    url='https://github.com/OpenAgInitiative/openag_brain',
     author='Open Agriculture Initiative',
     author_email='mitopenag@gmail.com',
     license='GPL',
