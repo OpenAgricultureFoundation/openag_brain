@@ -6,5 +6,5 @@ class Ds18b20(SensorModule):
 
     def read(self):
         self.water_temperature.emit(self.board.cban_get(
-            self.sensor_id, EnvironmentalVariable.WATER_TEMPERATURE.value
+            self.sensor_id, EnvironmentalVariable.WATER_TEMPERATURE
         ))

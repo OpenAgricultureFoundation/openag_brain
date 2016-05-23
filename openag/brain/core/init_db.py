@@ -48,7 +48,7 @@ def main():
     # Create all of the databases
     for db_name in DbName:
         try:
-            server.create(db_name.value)
+            server.create(db_name)
         except PreconditionFailed:
             pass
 
@@ -75,7 +75,7 @@ def main():
         py_mod = import_module(py_mod_name)
         for name, cls in inspect.getmembers(py_mod, inspect.isclass):
             if issubclass(cls, Module) and cls.__module__ == py_mod_name:
-                register_module_type(cls, server[DbName.MODULE_TYPE.value])
+                register_module_type(cls, server[DbName.MODULE_TYPE])
 
     # Create entries in the MODULE_GROUP database for all of the module groups
     mod_group_dir = os.path.join(brain_dir, 'module_groups')
@@ -89,7 +89,7 @@ def main():
         py_mod = import_module(py_mod_name)
         for name, cls in inspect.getmembers(py_mod, inspect.isclass):
             if issubclass(cls, ModuleGroup) and cls.__module__ == py_mod_name:
-                register_module_group(cls, server[DbName.MODULE_GROUP.value])
+                register_module_group(cls, server[DbName.MODULE_GROUP])
 
     # Create modules based on the fixture passed in from the command line
     if args.fixture:

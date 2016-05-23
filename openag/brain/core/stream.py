@@ -25,8 +25,8 @@ class StreamItem:
 
     def __str__(self):
         return json.dumps({
-            'value': self.value,
-            'data_type': self.data_type.value,
+            'value': str(self.value),
+            'data_type': self.data_type,
             'timestamp': self.timestamp,
             'src_id': self.src_id,
             'object_id': self.object_id

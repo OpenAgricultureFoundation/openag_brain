@@ -7,8 +7,8 @@ class Am2315(SensorModule):
 
     def read(self):
         self.air_temperature.emit(self.board.cban_get(
-            self.sensor_id, EnvironmentalVariable.AIR_TEMPERATURE.value
+            self.sensor_id, EnvironmentalVariable.AIR_TEMPERATURE
         ))
         self.air_humidity.emit(self.board.cban_get(
-            self.sensor_id, EnvironmentalVariable.AIR_HUMIDITY.value
+            self.sensor_id, EnvironmentalVariable.AIR_HUMIDITY
         ))

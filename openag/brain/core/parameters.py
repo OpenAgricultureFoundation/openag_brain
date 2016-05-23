@@ -4,7 +4,7 @@ parameters. They just have a type and wrap the parameter description,
 allowing ModuleMeta to generate a description of the parameter that includes
 both its type and description.
 """
-from .server import server
+from .db_server import db_server
 
 __all__ = [
     'Parameter', 'StringParameter', 'IntegerParameter', 'FloatParameter',
@@ -41,9 +41,9 @@ class ReferenceParameter(Parameter):
         self.db_name = db_name
         self.description = description
     def encode(self, val):
-        if not val in server[self.db_name]:
+        if not val in db_server[self.db_name]:
             raise ValueError(
-                "\"{}\" does not reference a valid object in the \"{}\" "
+                "\"{}\" does not reference a valid object in the \"{}\" "\
                 "database".format(val, self.db_name)
             )
         return val

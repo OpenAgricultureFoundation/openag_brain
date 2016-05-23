@@ -1,2 +1,3 @@
 from couchdb import Server
-server = Server()
+
+db_server = Server()

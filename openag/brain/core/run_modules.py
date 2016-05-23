@@ -11,8 +11,8 @@ from gevent.wsgi import WSGIServer
 
 from .base import Module, Requester
 from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
-from .server import server
 from .db_names import DbName
+from .db_server import db_server
 from .parameters import Parameter
 
 def main():
@@ -41,9 +41,9 @@ def main():
         logger.addHandler(file_handler)
 
     # Connect to the databases
-    module_db = server[DbName.MODULE.value]
-    module_type_db = server[DbName.MODULE_TYPE.value]
-    module_connection_db = server[DbName.MODULE_CONNECTION.value]
+    module_db = db_server[DbName.MODULE]
+    module_type_db = db_server[DbName.MODULE_TYPE]
+    module_connection_db = db_server[DbName.MODULE_CONNECTION]
 
     # Construct all of the modules
     for mod_id in module_db:

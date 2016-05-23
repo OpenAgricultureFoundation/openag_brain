@@ -10,14 +10,13 @@ class Persistence(Module):
 
     def init(self, env_id: ReferenceParameter(DbName.ENVIRONMENT, "The id of "
             "the environment for which to record data")):
-        server = Server()
-        self.db = server[DbName.ENVIRONMENTAL_DATA_POINT.value]
+        self.db = db_server[DbName.ENVIRONMENTAL_DATA_POINT]
         self.env_id = env_id
 
     def on_desired_data(self, item):
         point = EnvironmentalDataPointModel(
             environment=self.env_id,
-            variable=item.data_type.value,
+            variable=item.data_type,
             is_desired=True,
             value=item.value,
             timestamp=item.timestamp
@@ -28,7 +27,7 @@ class Persistence(Module):
     def on_measured_data(self, item):
         point = EnvironmentalDataPointModel(
             environment=self.env_id,
-            variable=item.data_type.value,
+            variable=item.data_type,
             is_desired=False,
             value=item.value,
             timestamp=item.timestamp

@@ -3,8 +3,8 @@ import time
 import random
 import gevent
 from gevent.event import Event
-from couchdb import Server
-from openag.brain.core import *
+
+from ..core import *
 
 class Recipe:
     def __init__(self, _id, operations, start_time):
@@ -65,9 +65,8 @@ class RecipeHandler(Module):
 
     def init(self, env_id: ReferenceParameter(DbName.ENVIRONMENT, "The id of "
             "the environment for which to record data")):
-        global server
-        self.env_data_db = server[DbName.ENVIRONMENTAL_DATA_POINT.value]
-        self.recipe_db = server[DbName.RECIPE.value]
+        self.env_data_db = db_server[DbName.ENVIRONMENTAL_DATA_POINT]
+        self.recipe_db = db_server[DbName.RECIPE]
         self.env_id = env_id
         self.current_recipe = None
 
@@ -76,16 +75,16 @@ class RecipeHandler(Module):
 
         # Get the recipe that has been started most recently
         start_view = self.env_data_db.view("openag/latest", key=[
-            env_id, EnvironmentalVariable.RECIPE_START.value, "desired"
+            env_id, EnvironmentalVariable.RECIPE_START, "desired"
         ])
         if len(start_view) == 0:
             return
-        start_doc = view.rows[0].value
+        start_doc = start_view.rows[0].value
 
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view("openag/latest", key=[
-            env_id, EnvironmentalVariable.RECIPE_END.value, "desired"
+            env_id, EnvironmentalVariable.RECIPE_END, "desired"
         ])
         if len(end_view):
             end_doc = view.rows[0].value
@@ -93,16 +92,23 @@ class RecipeHandler(Module):
                 return
 
         # Run the recipe
-        self.start_recipe(doc["value"], doc["timestamp"])
+        self.start_recipe(start_doc["value"], start_doc["timestamp"])
 
     @endpoint
     def start_recipe(self, recipe_id: "The id of the recipe to run",
             start_time: "Time to start the recipe" = None):
-        recipe = self.recipe_db[recipe_id]
+        if self.recipe_flag.is_set():
+            return "There is already a recipe running. Please stop it before "\
+            "attempting to start a new one\n", 400
+        try:
+            recipe = self.recipe_db[recipe_id]
+        except Exception as e:
+            return "\"{}\" does not reference a valid "\
+            "recipe\n".format(recipe_id), 400
         start_time = start_time or time.time()
         point = EnvironmentalDataPointModel(
             environment=self.env_id,
-            variable=EnvironmentalVariable.RECIPE_START.value,
+            variable=EnvironmentalVariable.RECIPE_START,
             is_desired=True,
             value=recipe_id,
             timestamp=start_time
@@ -120,6 +126,7 @@ class RecipeHandler(Module):
     @endpoint
     def stop_recipe(self):
         self.current_recipe.cancel()
+        return "Success"
 
     def run(self):
         while True:
@@ -128,7 +135,7 @@ class RecipeHandler(Module):
                 self.set_points.emit(value, variable, timestamp)
             point = EnvironmentalDataPointModel(
                 environment=self.env_id,
-                variable=EnvironmentalVariable.RECIPE_END.value,
+                variable=EnvironmentalVariable.RECIPE_END,
                 is_desired=True,
                 value=self.current_recipe._id,
                 timestamp=time.time()
