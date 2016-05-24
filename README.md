@@ -15,7 +15,9 @@ Installation
 
 First, install an instance of CouchDB on your machine. There are installation
 instructions [here](http://docs.couchdb.org/en/1.6.1/install/index.html) for
-doing so.
+doing so. For newer versions of Ubuntu (13.10 and up), this can be done via
+`sudo apt-get install couchdb`. Once CouchDB is installed, it should
+automatically start itself on `localhost:5984`.
 
 Next, clone the repository and install the contained Python package using
 `pip`:
