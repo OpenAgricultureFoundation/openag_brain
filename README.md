@@ -26,4 +26,4 @@ Next, clone the repository and install the contained Python package using
 
 Finally, initialize the CouchDB database by running the `init_db` command
 
-    python3 -m openag.brain.core.init_db
+    sudo python3 -m openag.brain.core.init_db
