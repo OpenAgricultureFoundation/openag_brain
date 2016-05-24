@@ -11,8 +11,6 @@ class heater(Module):
     @endpoint
     def set_state(self, state):
         if state == 'true':
-            print("heater on")
-            self.board.digital_write(self.pin, 0)
-        else:
-            print("heater off")
             self.board.digital_write(self.pin, 1)
+        else:
+            self.board.digital_write(self.pin, 0)
