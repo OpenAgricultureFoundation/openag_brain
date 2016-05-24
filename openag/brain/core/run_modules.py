@@ -65,7 +65,7 @@ def main():
         params = mod_info.parameters
         for arg_name in mod.init.__code__.co_varnames[1:mod.init.__code__.co_argcount]:
             annotation = mod.init.__annotations__.get(arg_name, '')
-            if isinstance(annotation, Parameter):
+            if isinstance(annotation, Parameter) and arg_name in params:
                 params[arg_name] = annotation.encode(params[arg_name])
         mod.init(**mod_info.parameters)
 
