@@ -24,6 +24,14 @@ Next, clone the repository and install the contained Python package using
     cd openag_brain
     pip3 install .
 
+Then, install [openag-pymata-aio](https://github.com/OpenAgInitiative/openag-pymata-aio).
+(**Note:** this step is temporary and will be automated away when we register
+openag-pymata-aio with pip.)
+
+    git clone https://github.com/OpenAgInitiative/openag-pymata-aio
+    cd openag-pymata-aio
+    sudo python3 setuptools.py install
+
 Finally, initialize the CouchDB database by running the `init_db` command
 
     sudo python3 -m openag.brain.core.init_db
