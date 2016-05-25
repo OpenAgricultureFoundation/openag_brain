@@ -1,3 +1,0 @@
-recursive-include openag/brain/core/_design *.js
-recursive-include openag/brain/core/fixtures *.json
-include openag/brain/core/couchdb.ini

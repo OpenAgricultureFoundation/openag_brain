@@ -1,12 +1,13 @@
+#!/usr/bin/python
+
 import sys
 import time
 import random
-import gevent
 from gevent.event import Event
 
-from ..core import *
+from openag_brain.db_server import db_server
 
-class Recipe:
+class Recipe(object):
     def __init__(self, _id, operations, start_time):
         self._id = _id
         self.operations = operations
@@ -16,8 +17,8 @@ class Recipe:
         raise NotImplementedError()
 
 class SimpleRecipe(Recipe):
-    def __init__(self, _id, operations, start_time):
-        super().__init__(_id, operations, start_time)
+    def __init__(self, *args):
+        super().__init__(*args)
         self.current_index = 0
 
     def next_operation(self):
@@ -51,24 +52,23 @@ class SimpleRecipe(Recipe):
             offset, variable, value = next_operation
             next_time = self.start_time + offset
             while next_time > time.time():
-                gevent.sleep(1)
+                rospy.sleep(1)
             yield (timestamp, variable, value)
             self.current_index += 1
 
-class RecipeHandler(Module):
-    set_points = Output()
-
+class RecipeHandler(object):
     # Dictionary that maps recipe formats to python classes
     recipe_class_map = {
         "simple": SimpleRecipe
     }
 
-    def init(self, env_id: ReferenceParameter(DbName.ENVIRONMENT, "The id of "
-            "the environment for which to record data")):
+    def __init__(self):
         self.env_data_db = db_server[DbName.ENVIRONMENTAL_DATA_POINT]
         self.recipe_db = db_server[DbName.RECIPE]
         self.env_id = env_id
         self.current_recipe = None
+
+        rospy.Service('start_recipe',
 
         # Indicates whether or not a recipe is running
         self.recipe_flag = Event()
