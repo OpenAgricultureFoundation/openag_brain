@@ -6,7 +6,7 @@ from uuid import uuid4
 from importlib import import_module
 
 import gevent
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from gevent.wsgi import WSGIServer
 
 from .base import Module, Requester
@@ -44,6 +44,7 @@ def main():
     module_db = db_server[DbName.MODULE]
     module_type_db = db_server[DbName.MODULE_TYPE]
     module_connection_db = db_server[DbName.MODULE_CONNECTION]
+    env_data_db = db_server[DbName.ENVIRONMENTAL_DATA_POINT]
 
     # Construct all of the modules
     for mod_id in module_db:
@@ -99,9 +100,56 @@ def main():
     app.mod = Module(mod_id)
     app.mod.start()
 
+
+    def find_recipe_start(env_data_db, env_id):
+        """Given a pointer to the environmental data point db, return the
+        latest recipe start for a given environment.
+        returns a Dict or None.
+        """
+        # @TODO this constant should exist somewhere else
+        recipe_start_type = 'recipe_start'
+        # Query latest view with key (requires this design doc to exist)
+        env_data_view = env_data_db.view('openag/latest',
+            key=[env_id, recipe_start_type, 'desired'])
+        # Collect results of iterator (ViewResult has no next method)
+        recipe_starts = [recipe_start for recipe_start in env_data_view]
+        return recipe_starts[0].value if len(recipe_starts) else None
+
+
+    def find_env_recipe_handler_id(module_db, env_id):
+        """Find ID of recipe handler that is running in current environment.
+        Returns ID or None.
+        """
+        recipe_type = 'openag.brain.modules.recipe_handler:RecipeHandler'
+        module_view = module_db.view('openag/by_type')
+
+        recipe_handler_ids = [
+            module.id
+            for module in module_view
+            if module.key == recipe_type
+        ]
+
+        return recipe_handler_ids[0] if len(recipe_handler_ids) > 0 else None
+
+
     @app.route("/<mod_id>/<endpoint>", methods=['POST'])
     def serve_endpoint(mod_id, endpoint):
         return getattr(app.mod.ask(mod_id), endpoint)(**request.json)
+
+
+    @app.route("/environment/<env_id>", methods=['GET'])
+    def serve_environment(env_id):
+
+        recipe_handler_id = find_env_recipe_handler_id(module_db, env_id)
+        recipe_start = find_recipe_start(env_data_db, env_id)
+
+        return jsonify(
+            env_id = env_id,
+            recipe_id = recipe_start["value"],
+            recipe_start_timestamp = recipe_start["timestamp"],
+            recipe_handler_id = recipe_handler_id
+        )
+
 
     http_server = WSGIServer(('', 5000), app)
     logger.info("Listening for requests on http://localhost:5000/")
