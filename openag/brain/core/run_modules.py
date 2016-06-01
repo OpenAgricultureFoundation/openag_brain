@@ -16,6 +16,8 @@ from .db_server import db_server
 from .parameters import Parameter
 from .var_types import EnvironmentalVariable
 
+API_VER = '0.0.1'
+
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Run all modules defined for '
@@ -131,12 +133,12 @@ def main():
         return recipe_handler_ids[0] if len(recipe_handler_ids) > 0 else None
 
 
-    @app.route("/<mod_id>/<endpoint>", methods=['POST'])
+    @app.route("/api/{v}/module/<mod_id>/<endpoint>".format(v=API_VER), methods=['POST'])
     def serve_endpoint(mod_id, endpoint):
         return getattr(app.mod.ask(mod_id), endpoint)(**request.json)
 
 
-    @app.route("/environment/<env_id>", methods=['GET'])
+    @app.route("/api/{v}/environment/<env_id>".format(v=API_VER), methods=['GET'])
     def serve_environment(env_id):
 
         recipe_handler_id = find_env_recipe_handler_id(module_db, env_id)
