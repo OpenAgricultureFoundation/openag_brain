@@ -110,12 +110,26 @@ def main():
         returns a Dict or None.
         """
         # Query latest view with key (requires this design doc to exist)
-        env_data_view = env_data_db.view('openag/latest',
+        recipe_start_view = env_data_db.view('openag/latest',
             key=[env_id, EnvironmentalVariable.RECIPE_START, 'desired'])
-        # Collect results of iterator (ViewResult has no next method)
-        recipe_starts = [recipe_start for recipe_start in env_data_view]
-        return recipe_starts[0].value if len(recipe_starts) else None
+        recipe_end_view = env_data_db.view('openag/latest',
+            key=[env_id, EnvironmentalVariable.RECIPE_END, 'desired'])
+        # Collect results of iterator (ViewResult has no next method).
+        recipe_starts = [recipe_start for recipe_start in recipe_start_view]
+        recipe_ends = [recipe_end for recipe_end in recipe_end_view]
+        # Narrow list of results down to one and unbox the value
+        recipe_start = recipe_starts[0].value if len(recipe_starts) else None
+        recipe_end = recipe_ends[0].value if len(recipe_ends) else None
 
+        # If we have a recipe_end, check that it is older than the latest
+        # recipe_start
+        if recipe_start and recipe_end and recipe_start["timestamp"] > recipe_end["timestamp"]:
+            return recipe_start
+        # If we don't have a recipe end, but do have a recipe_start, return it.
+        elif recipe_start:
+            return recipe_start
+        else:
+            return None
 
     def find_env_recipe_handler_id(module_db, env_id):
         """Find ID of recipe handler that is running in current environment.
@@ -143,11 +157,13 @@ def main():
 
         recipe_handler_id = find_env_recipe_handler_id(module_db, env_id)
         recipe_start = find_recipe_start(env_data_db, env_id)
+        recipe_id = recipe_start["value"] if recipe_start else None
+        recipe_start_timestamp = recipe_start["timestamp"] if recipe_start else None
 
         return jsonify(
             env_id = env_id,
-            recipe_id = recipe_start["value"],
-            recipe_start_timestamp = recipe_start["timestamp"],
+            recipe_id = recipe_id,
+            recipe_start_timestamp = recipe_start_timestamp,
             recipe_handler_id = recipe_handler_id
         )
 
