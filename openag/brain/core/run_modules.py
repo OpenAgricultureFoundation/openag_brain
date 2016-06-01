@@ -14,6 +14,7 @@ from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
 from .db_names import DbName
 from .db_server import db_server
 from .parameters import Parameter
+from .var_types import EnvironmentalVariable
 
 def main():
     # Parse command line arguments
@@ -106,11 +107,9 @@ def main():
         latest recipe start for a given environment.
         returns a Dict or None.
         """
-        # @TODO this constant should exist somewhere else
-        recipe_start_type = 'recipe_start'
         # Query latest view with key (requires this design doc to exist)
         env_data_view = env_data_db.view('openag/latest',
-            key=[env_id, recipe_start_type, 'desired'])
+            key=[env_id, EnvironmentalVariable.RECIPE_START, 'desired'])
         # Collect results of iterator (ViewResult has no next method)
         recipe_starts = [recipe_start for recipe_start in env_data_view]
         return recipe_starts[0].value if len(recipe_starts) else None
