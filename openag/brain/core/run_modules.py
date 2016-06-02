@@ -6,7 +6,7 @@ from uuid import uuid4
 from importlib import import_module
 
 import gevent
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from gevent.wsgi import WSGIServer
 
 from .base import Module, Requester
@@ -14,6 +14,9 @@ from .models import ModuleModel, ModuleTypeModel, ModuleConnectionModel
 from .db_names import DbName
 from .db_server import db_server
 from .parameters import Parameter
+from .var_types import EnvironmentalVariable
+
+API_VER = '0.0.1'
 
 def main():
     # Parse command line arguments
@@ -44,6 +47,7 @@ def main():
     module_db = db_server[DbName.MODULE]
     module_type_db = db_server[DbName.MODULE_TYPE]
     module_connection_db = db_server[DbName.MODULE_CONNECTION]
+    env_data_db = db_server[DbName.ENVIRONMENTAL_DATA_POINT]
 
     # Construct all of the modules
     for mod_id in module_db:
@@ -99,9 +103,70 @@ def main():
     app.mod = Module(mod_id)
     app.mod.start()
 
-    @app.route("/<mod_id>/<endpoint>", methods=['POST'])
+
+    def find_recipe_start(env_data_db, env_id):
+        """Given a pointer to the environmental data point db, return the
+        latest recipe start for a given environment.
+        returns a Dict or None.
+        """
+        # Query latest view with key (requires this design doc to exist)
+        recipe_start_view = env_data_db.view('openag/latest',
+            key=[env_id, EnvironmentalVariable.RECIPE_START, 'desired'])
+        recipe_end_view = env_data_db.view('openag/latest',
+            key=[env_id, EnvironmentalVariable.RECIPE_END, 'desired'])
+        # Collect results of iterator (ViewResult has no next method).
+        recipe_starts = [recipe_start for recipe_start in recipe_start_view]
+        recipe_ends = [recipe_end for recipe_end in recipe_end_view]
+        # Narrow list of results down to one and unbox the value
+        recipe_start = recipe_starts[0].value if len(recipe_starts) else None
+        recipe_end = recipe_ends[0].value if len(recipe_ends) else None
+
+        # If we have a recipe_end, check that it is older than the latest
+        # recipe_start
+        if recipe_start and recipe_end and recipe_start["timestamp"] > recipe_end["timestamp"]:
+            return recipe_start
+        # If we don't have a recipe end, but do have a recipe_start, return it.
+        elif recipe_start:
+            return recipe_start
+        else:
+            return None
+
+    def find_env_recipe_handler_id(module_db, env_id):
+        """Find ID of recipe handler that is running in current environment.
+        Returns ID or None.
+        """
+        recipe_type = 'openag.brain.modules.recipe_handler:RecipeHandler'
+        module_view = module_db.view('openag/by_type')
+
+        recipe_handler_ids = [
+            module.id
+            for module in module_view
+            if module.key == recipe_type
+        ]
+
+        return recipe_handler_ids[0] if len(recipe_handler_ids) > 0 else None
+
+
+    @app.route("/api/{v}/module/<mod_id>/<endpoint>".format(v=API_VER), methods=['POST'])
     def serve_endpoint(mod_id, endpoint):
         return getattr(app.mod.ask(mod_id), endpoint)(**request.json)
+
+
+    @app.route("/api/{v}/environment/<env_id>".format(v=API_VER), methods=['GET'])
+    def serve_environment(env_id):
+
+        recipe_handler_id = find_env_recipe_handler_id(module_db, env_id)
+        recipe_start = find_recipe_start(env_data_db, env_id)
+        recipe_id = recipe_start["value"] if recipe_start else None
+        recipe_start_timestamp = recipe_start["timestamp"] if recipe_start else None
+
+        return jsonify(
+            env_id = env_id,
+            recipe_id = recipe_id,
+            recipe_start_timestamp = recipe_start_timestamp,
+            recipe_handler_id = recipe_handler_id
+        )
+
 
     http_server = WSGIServer(('', 5000), app)
     logger.info("Listening for requests on http://localhost:5000/")
