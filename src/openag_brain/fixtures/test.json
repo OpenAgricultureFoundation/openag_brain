@@ -1,24 +1,21 @@
 {
-    "module": [
+    "software_module": [
         {
             "_id": "echoer",
+            "type": "openag_brain:echoer.py",
             "parameters": {
-                "msg": "test"
+                "~rate": 1
             },
-            "type": "openag.brain.modules.echo:Echo"
+            "mappings": {
+              "output": "test"
+            }
         },
         {
             "_id": "printer",
-            "type": "openag.brain.modules.print:Print"
-        }
-    ],
-    "module_connection": [
-        {
-            "_id": "echoer_to_printer",
-            "output_module": "echoer",
-            "output_name": "out_data",
-            "input_module": "printer",
-            "input_name": "in_data"
+            "type": "openag_brain:printer.py",
+            "mappings": {
+              "input": "test"
+            }
         }
     ]
 }

@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+import argparse
+
+from couchdb import Server
+
+from openag_brain.commands import register_modules
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Creates entries in the "
+    "database for all modules contained in the designated ROS package")
+    parser.add_argument("package_name")
+    args = parser.parse_args()
+    server = Server()
+    register_modules(server, "openag_brain")

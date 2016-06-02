@@ -1,6 +1,6 @@
-__pycache__
-.idea
-venv
 *.swp
 *.pyc
 *.egg-info
+__pycache__
+.idea
+modules.launch

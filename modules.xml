@@ -1,0 +1,16 @@
+<modules>
+    <software>
+        <module type="echoer.py">
+            <description>Repeatedly outputs a given string</description>
+            <parameter name="~rate" />
+            <output name="output" />
+            <service name="change_msg" />
+        </module>
+        <module type="printer.py">
+            <description>Prints everything to the console everything that arrives at its input</description>
+            <input name="input"/>
+        </module>
+    </software>
+    <firmware>
+    </firmware>
+</modules>

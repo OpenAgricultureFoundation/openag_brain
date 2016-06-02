@@ -3,6 +3,6 @@ function(newDoc, oldDoc, userCtx, secObj) {
     return;
   }
   if (!newDoc.type) {
-    throw({forbidden: "Module instances are required to have a 'type' attribute"})
+    throw({forbidden: "SoftwareModule instances are required to have a 'type' attribute"})
   }
 }

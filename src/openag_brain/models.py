@@ -3,40 +3,24 @@ from couchdb.mapping import (
 )
 
 __all__ = [
-    'ModuleTypeModel', 'ModuleModel', 'ModuleConnectionModel',
+    'SoftwareModuleTypeModel', 'SoftwareModuleModel',
     'EnvironmentModel', 'EnvironmentalDataPointModel'
 ]
 
-class ModuleGroupModel(Document):
-    _id = TextField
+class SoftwareModuleTypeModel(Document):
     description = TextField()
-    parameters = DictField()
-    inputs = DictField()
-    outputs = DictField()
-    endpoints = DictField()
-    prcedures = DictField()
-    groups = ListField(TextField())
+    parameters = ListField(TextField())
+    inputs = ListField(TextField())
+    outputs = ListField(TextField())
+    services = ListField(TextField())
 
-class ModuleTypeModel(Document):
-    _id = TextField()
-    description = TextField()
-    parameters = DictField()
-    inputs = DictField()
-    outputs = DictField()
-    endpoints = DictField()
-    procedures = DictField()
-    groups = ListField(TextField())
-
-class ModuleModel(Document):
-    _id = TextField()
+class SoftwareModuleModel(Document):
+    environment = TextField()
     type = TextField()
     parameters = DictField()
+    mappings = DictField()
 
-class ModuleConnectionModel(Document):
-    output_module = TextField()
-    output_name = TextField()
-    input_module = TextField()
-    input_name = TextField()
+# TODO: Make FirmwareModuleTypeModel and FirmwareModuleModel
 
 class EnvironmentModel(Document):
     variables = ListField(TextField())

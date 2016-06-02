@@ -1,20 +1,9 @@
-import sys
-import time
-import random
-from collections import OrderedDict
+from couchdb.mapping import Document
 
-__all__ = ['gen_doc_id', 'get_or_create', 'update_doc']
+__all__ = ['get_or_create']
 
-def gen_doc_id():
-    return "{}-{}".format(time.time(), random.randint(0, sys.maxsize))
-
-def get_or_create(db, doc_id):
+def get_or_create(db, doc_id, Model=Document):
     if doc_id in db:
-        return db[doc_id]
+        return Model.load(db, doc_id)
     else:
-        return {"_id": doc_id}
-
-def update_doc(db, doc, updates):
-    if any(doc.get(k, None) != v for k,v in updates.items()):
-        doc.update(updates)
-        db.save(doc)
+        return Model(id=doc_id)

@@ -19,7 +19,7 @@ class OnOffControl(object):
         self.current_measured = data.data
         self.update_state()
 
-    def compute_state(self):
+    def update_state(self):
         if self.current_measured < self.current_set_point:
             self.state.publish(True)
         else:

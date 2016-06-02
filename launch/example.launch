@@ -1,9 +1,0 @@
-<launch>
-    <node name="echoer" pkg="openag_brain" type="echoer.py">
-        <remap from="output" to="test" />
-        <param name="rate" value="1" type="int" />
-    </node>
-    <node name="printer" pkg="openag_brain" type="printer.py">
-        <remap from="input" to="test" />
-    </node>
-</launch>
