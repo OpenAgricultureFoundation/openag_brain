@@ -3,9 +3,16 @@
 import sys
 import time
 import random
-from gevent.event import Event
+from threading import Event
 
-from openag_brain.db_server import db_server
+import rospy
+from couchdb import Server
+from std_msgs.msg import Float64
+
+from openag_brain.srv import ChangeString, Empty
+from openag_brain.db_names import DbName
+from openag_brain.models import EnvironmentalDataPointModel
+from openag_brain.var_types import EnvironmentalVariable
 
 class Recipe(object):
     def __init__(self, _id, operations, start_time):
@@ -18,8 +25,9 @@ class Recipe(object):
 
 class SimpleRecipe(Recipe):
     def __init__(self, *args):
-        super().__init__(*args)
+        super(SimpleRecipe, self).__init__(*args)
         self.current_index = 0
+        self.is_running = True
 
     def next_operation(self):
         if self.current_index >= len(self.operations):
@@ -29,6 +37,7 @@ class SimpleRecipe(Recipe):
 
     def cancel(self):
         self.current_index = len(self.operations)
+        self.is_running = False
 
     def set_points(self):
         initial_values = {}
@@ -52,9 +61,24 @@ class SimpleRecipe(Recipe):
             offset, variable, value = next_operation
             next_time = self.start_time + offset
             while next_time > time.time():
+                if rospy.is_shutdown():
+                    raise rospy.ROSInterruptException()
+                if not self.is_running:
+                    return
                 rospy.sleep(1)
             yield (timestamp, variable, value)
             self.current_index += 1
+
+class PublisherDict:
+    def __init__(self):
+        self.publishers = {}
+
+    def __getitem__(self, topic):
+        if not topic in self.publishers:
+            self.publishers[topic] = rospy.Publisher(
+                topic, Float64, queue_size=10
+            )
+        return self.publishers[topic]
 
 class RecipeHandler(object):
     # Dictionary that maps recipe formats to python classes
@@ -62,20 +86,25 @@ class RecipeHandler(object):
         "simple": SimpleRecipe
     }
 
-    def __init__(self):
-        self.env_data_db = db_server[DbName.ENVIRONMENTAL_DATA_POINT]
-        self.recipe_db = db_server[DbName.RECIPE]
-        self.env_id = env_id
+    def __init__(self, server):
+        self.env_data_db = server[DbName.ENVIRONMENTAL_DATA_POINT]
+        self.recipe_db = server[DbName.RECIPE]
         self.current_recipe = None
 
-        rospy.Service('start_recipe',
+        self.namespace = rospy.get_namespace()
+        self.environment = self.namespace.split('/')[-2]
+
+        rospy.init_node('recipe_handler')
+        self.publishers = PublisherDict()
+        rospy.Service('start_recipe', ChangeString, self.start_recipe)
+        rospy.Service('stop_recipe', Empty, self.stop_recipe)
 
         # Indicates whether or not a recipe is running
         self.recipe_flag = Event()
 
         # Get the recipe that has been started most recently
         start_view = self.env_data_db.view("openag/latest", key=[
-            env_id, EnvironmentalVariable.RECIPE_START, "desired"
+            self.environment, EnvironmentalVariable.RECIPE_START, "desired"
         ])
         if len(start_view) == 0:
             return
@@ -84,7 +113,7 @@ class RecipeHandler(object):
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view("openag/latest", key=[
-            env_id, EnvironmentalVariable.RECIPE_END, "desired"
+            self.environment, EnvironmentalVariable.RECIPE_END, "desired"
         ])
         if len(end_view):
             end_doc = view.rows[0].value
@@ -92,11 +121,13 @@ class RecipeHandler(object):
                 return
 
         # Run the recipe
-        self.start_recipe(start_doc["value"], start_doc["timestamp"])
+        self.start_recipe(
+            ChangeString._request_class(start_doc["value"]),
+            start_doc["timestamp"]
+        )
 
-    @endpoint
-    def start_recipe(self, recipe_id: "The id of the recipe to run",
-            start_time: "Time to start the recipe" = None):
+    def start_recipe(self, data, start_time=None):
+        recipe_id = data.data
         if self.recipe_flag.is_set():
             return "There is already a recipe running. Please stop it before "\
             "attempting to start a new one\n", 400
@@ -107,38 +138,53 @@ class RecipeHandler(object):
             "recipe\n".format(recipe_id), 400
         start_time = start_time or time.time()
         point = EnvironmentalDataPointModel(
-            environment=self.env_id,
+            environment=self.environment,
             variable=EnvironmentalVariable.RECIPE_START,
             is_desired=True,
             value=recipe_id,
             timestamp=start_time
         )
-        point["_id"] = gen_doc_id()
+        point.id = self.gen_doc_id(start_time)
         point.store(self.env_data_db)
         self.current_recipe = self.recipe_class_map[
             getattr(recipe, "format", "simple")
         ](
-            recipe["_id"], recipe["operations"], start_time
+            recipe.id, recipe["operations"], start_time
         )
         self.recipe_flag.set()
-        return "Success"
+        return "Success", 200
 
-    @endpoint
-    def stop_recipe(self):
+    def stop_recipe(self, data):
         self.current_recipe.cancel()
-        return "Success"
+        return "Success", 200
 
     def run(self):
         while True:
-            self.recipe_flag.wait()
+            while not self.recipe_flag.is_set():
+                if rospy.is_shutdown():
+                    raise rospy.ROSInterruptException()
+                rospy.sleep(1)
             for timestamp, variable, value in self.current_recipe.set_points():
-                self.set_points.emit(value, variable, timestamp)
+                self.publishers["desired_"+ variable].publish(value)
+            curr_time = time.time()
             point = EnvironmentalDataPointModel(
-                environment=self.env_id,
+                environment=self.environment,
                 variable=EnvironmentalVariable.RECIPE_END,
                 is_desired=True,
                 value=self.current_recipe._id,
-                timestamp=time.time()
+                timestamp=curr_time
             )
-            point["_id"] = gen_doc_id()
+            point.id = self.gen_doc_id(curr_time)
+            point.store(self.env_data_db)
             self.recipe_flag.clear()
+
+    def gen_doc_id(self, curr_time):
+        return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
+
+if __name__ == '__main__':
+    server = Server()
+    mod = RecipeHandler(server)
+    try:
+        mod.run()
+    except rospy.ROSInterruptException:
+        pass

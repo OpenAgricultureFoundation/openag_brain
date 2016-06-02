@@ -34,6 +34,8 @@ class Persistence:
         self.update_subscribers()
 
     def update_subscribers(self):
+        if rospy.is_shutdown():
+            return
         for topic, topic_type in rospy.get_published_topics(self.namespace):
             topic_type = resolve_message_type(topic_type)
             if topic in self.subscribers:
@@ -51,7 +53,7 @@ class Persistence:
                 self.subscribers[topic] = rospy.Subscriber(
                     topic, topic_type, callback
                 )
-        threading.Timer(5, self.update_subscribers)
+        threading.Timer(5, self.update_subscribers).start()
 
     def on_desired_data(self, item, variable):
         curr_time = time.time()
