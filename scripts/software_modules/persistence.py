@@ -32,6 +32,8 @@ class Persistence:
         server = Server()
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
         self.update_subscribers()
+        self.last_desired_data = {}
+        self.last_measured_data = {}
 
     def update_subscribers(self):
         if rospy.is_shutdown():
@@ -57,27 +59,35 @@ class Persistence:
 
     def on_desired_data(self, item, variable):
         curr_time = time.time()
+        value = item.data
+        if self.last_desired_data.get(variable, None) == value:
+            return
         point = EnvironmentalDataPointModel(
             environment=self.environment,
             variable=variable,
             is_desired=True,
-            value=item.data,
+            value=value,
             timestamp=curr_time
         )
         point["_id"] = self.gen_doc_id(curr_time)
         point.store(self.db)
+        self.last_desired_data[variable] = value
 
-    def on_measured_data(self, item, topic):
+    def on_measured_data(self, item, variable):
         curr_time = time.time()
+        value = item.data
+        if self.last_measured_data.get(variable, None) == value:
+            return
         point = EnvironmentalDataPointModel(
             environment=self.environment,
-            variable=topic,
+            variable=variable,
             is_desired=False,
             value=item.data,
             timestamp=curr_time
         )
         point["_id"] = self.gen_doc_id(curr_time)
         point.store(self.db)
+        self.last_measured_data[variable] = value
 
     def gen_doc_id(self, curr_time):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
