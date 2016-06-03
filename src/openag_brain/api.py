@@ -44,4 +44,8 @@ def perform_service_call(service_name):
         k: str(v) if isinstance(v, unicode) else v for k,v in args.items()
     }
     res = call_service(service_name, [args])[1]
-    return res.data, res.status_code
+    status_code = getattr(res, 'status_code', 200)
+    data = getattr(res, 'data', None)
+    if data is None:
+        data = {k: getattr(res, k) for k in res.__slots__}
+    return jsonify(data), status_code
