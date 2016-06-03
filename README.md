@@ -1,29 +1,52 @@
 OpenAg Brain
 ============
 
-This repository holds code that runs on the main computing board of an OpenAg
-food computer. In builds on top of [CouchDB](http://couchdb.apache.org/) for
-data storage. In particular, the "core" code in this respository reads a
-configuration of software modules from a CouchDB instance and then runs those
-modules. The modules themselves are responsible for interfacing with hardware,
-running control loops, posting the grow data to CouchDB instance, running
-recipes, and performing any other tasks required for operation of the food
-computer.
+This repository hold code that runs on the main computing board of an OpenAg
+food computer. It runs on top on [ROS](www.ros.org) and uses
+[CouchDB](http://couchdb.apache.org/) for data storage.
 
 Installation
 ------------
 
-First, install an instance of CouchDB on your machine. There are installation
+First, install ROS Indigo on your machine. There are installation instructions
+[here](http://wiki.ros.org/indigo/Installation/) for doing so.
+
+Next, install an instance of CouchDB on your machine. There are installation
 instructions [here](http://docs.couchdb.org/en/1.6.1/install/index.html) for
 doing so.
 
-Next, clone the repository and install the contained Python package using
-`pip`:
+Create a catkin workspace as described
+[here](http://wiki.ros.org/indigo/catkin/Tutorials/create_a_workspace/) and
+install the code from this repository in the workspace.
 
-    git clone https://github.com/OpenAgInitiative/openag_brain.git
-    cd openag_brain
-    pip3 install .
+    cd ~/catkin_ws/src
+    git clone https://github.com/OpenAgInitiative/openag_brain.git -b ros
+    cd ..
+    catkin_make
+    catkin_make install
 
-Finally, initialize the CouchDB database by running the `init_db` command
+Finally, initialize the CouchDB database as follows:
 
-    python3 -m openag.brain.core.init_db
+    rosrun openag_brain init_db
+
+There is a default fixture that will create a single environment as well a
+couple basic modules for working with the environment. The fixture can be
+installed as follows:
+
+    rosrun openag_brain load_fixture default
+
+The following command will generate a roslaunch file describing all of the
+modules defined in the database:
+
+    rosrun openag_brain update_launch
+
+That command creates a file named `modules.launch`. The modules can be run by
+calling:
+
+    roslaunch openag_brain modules.launch
+
+There is also a Flask API that allows external programs (e.g.
+[openag_ui](http://github.com/OpenAgInitiative/openag_ui)) to interact with the
+local ROS installation. The API can be launched as follows:
+
+    rosrun openag_brain api
