@@ -4,5 +4,8 @@ from gevent.wsgi import WSGIServer
 from openag_brain.api import app
 
 if __name__ == '__main__':
-    http_server = WSGIServer(('', 5000), app)
-    http_server.serve_forever()
+    server = WSGIServer(('', 5000), app)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.stop()

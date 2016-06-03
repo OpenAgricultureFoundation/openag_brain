@@ -8,10 +8,6 @@ API_VER = '0.0.1'
 
 app = Flask(__name__)
 
-@app.route("/api/{v}/status".format(v=API_VER), methods=['GET'])
-def get_status():
-    pass
-
 @app.route("/api/{v}/param".format(v=API_VER), methods=['GET'])
 def list_params():
     return jsonify(rospy.get_param_names())

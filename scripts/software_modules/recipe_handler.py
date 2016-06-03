@@ -3,7 +3,7 @@
 import sys
 import time
 import random
-from threading import Event
+from threading import Event, Timer
 
 import rospy
 from couchdb import Server
@@ -92,7 +92,9 @@ class RecipeHandler(object):
     def __init__(self, server):
         self.env_data_db = server[DbName.ENVIRONMENTAL_DATA_POINT]
         self.recipe_db = server[DbName.RECIPE]
-        self.current_recipe = None
+
+        # Indicates whether or not a recipe is running
+        self.recipe_flag = Event()
 
         self.namespace = rospy.get_namespace()
         self.environment = self.namespace.split('/')[-2]
@@ -102,8 +104,11 @@ class RecipeHandler(object):
         rospy.Service('start_recipe', ChangeString, self.start_recipe)
         rospy.Service('stop_recipe', Empty, self.stop_recipe)
 
-        # Indicates whether or not a recipe is running
-        self.recipe_flag = Event()
+        self.current_recipe = None
+        self.current_set_points = {}
+
+        # Start publishing set points
+        self.publish_set_points()
 
         # Get the recipe that has been started most recently
         start_view = self.env_data_db.view("openag/latest", key=[
@@ -128,6 +133,13 @@ class RecipeHandler(object):
             ChangeString._request_class(start_doc["value"]),
             start_doc["timestamp"]
         )
+
+    def publish_set_points(self):
+        if rospy.is_shutdown():
+            return
+        for variable, value in self.current_set_points.items():
+            self.publishers["desired_" + variable].publish(value)
+        Timer(5, self.publish_set_points).start()
 
     def start_recipe(self, data, start_time=None):
         recipe_id = data.data
@@ -171,7 +183,9 @@ class RecipeHandler(object):
                 if rospy.is_shutdown():
                     raise rospy.ROSInterruptException()
                 rospy.sleep(1)
+            self.current_set_points = {}
             for timestamp, variable, value in self.current_recipe.set_points():
+                self.current_set_points[variable] = value
                 self.publishers["desired_"+ variable].publish(value)
             curr_time = time.time()
             point = EnvironmentalDataPointModel(
