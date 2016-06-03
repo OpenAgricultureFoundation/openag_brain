@@ -1,7 +1,5 @@
 import rospy
-from rosservice import (
-    get_service_list, get_service_node, get_service_args, call_service
-)
+import rosservice
 from flask import Flask, jsonify, request
 
 API_VER = '0.0.1'
@@ -14,22 +12,31 @@ def list_params():
 
 @app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=['GET'])
 def get_param(param_name):
-    return str(rospy.get_param(param_name))
+    if not rospy.has_param(param_name):
+        return "No such parameter exists\n", 400
+    return str(rospy.get_param(param_name)) + '\n'
 
 @app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=['POST'])
 def set_param(param_name):
-    return str(rospy.set_param(param_name, request.values['value']))
+    if not 'value' in request.values:
+        return "No value supplied\n", 400
+    rospy.set_param(param_name, request.values['value'])
+    return "Success\n", 200
 
 @app.route("/api/{v}/service".format(v=API_VER), methods=['GET'])
 def list_services():
-    return jsonify(get_service_list())
+    return jsonify(rosservice.get_service_list())
 
 @app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['GET'])
 def get_service_info(service_name):
     service_name = '/' + service_name
+    service_type = rosservice.get_service_type(service_name)
+    if not service_type:
+        return "No such service exists\n", 404
     return jsonify({
-        "node": get_service_node(service_name),
-        "args": get_service_args(service_name)
+        "request_type": service_type,
+        "node": rosservice.get_service_node(service_name),
+        "args": rosservice.get_service_args(service_name)
     })
 
 @app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['POST'])
@@ -39,7 +46,10 @@ def perform_service_call(service_name):
     args = {
         k: str(v) if isinstance(v, unicode) else v for k,v in args.items()
     }
-    res = call_service(service_name, [args])[1]
+    try:
+        res = rosservice.call_service(service_name, [args])[1]
+    except rosservice.ROSServiceException as e:
+        return str(e) + '\n', 400
     status_code = getattr(res, 'status_code', 200)
     data = getattr(res, 'data', None)
     if data is None:
