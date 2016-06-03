@@ -1,0 +1,19 @@
+{
+  "environment": [
+    {
+      "_id": "environment_1"
+    }
+  ],
+  "software_module": [
+    {
+      "_id": "recipe_handler_1",
+      "type": "openag_brain:recipe_handler.py",
+      "environment": "environment_1"
+    },
+    {
+      "_id": "persistence_1",
+      "type": "openag_brain:persistence.py",
+      "environment": "environment_1"
+    }
+  ]
+}

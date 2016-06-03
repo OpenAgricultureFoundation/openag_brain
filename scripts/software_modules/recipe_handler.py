@@ -14,6 +14,9 @@ from openag_brain.db_names import DbName
 from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.var_types import EnvironmentalVariable
 
+CURRENT_RECIPE = 'current_recipe'
+CURRENT_RECIPE_START = 'current_recipe_start'
+
 class Recipe(object):
     def __init__(self, _id, operations, start_time):
         self._id = _id
@@ -116,7 +119,7 @@ class RecipeHandler(object):
             self.environment, EnvironmentalVariable.RECIPE_END, "desired"
         ])
         if len(end_view):
-            end_doc = view.rows[0].value
+            end_doc = end_view.rows[0].value
             if (end_doc["timestamp"] > start_doc["timestamp"]):
                 return
 
@@ -146,6 +149,8 @@ class RecipeHandler(object):
         )
         point.id = self.gen_doc_id(start_time)
         point.store(self.env_data_db)
+        rospy.set_param(CURRENT_RECIPE, recipe_id)
+        rospy.set_param(CURRENT_RECIPE_START, start_time)
         self.current_recipe = self.recipe_class_map[
             getattr(recipe, "format", "simple")
         ](
@@ -176,6 +181,8 @@ class RecipeHandler(object):
             )
             point.id = self.gen_doc_id(curr_time)
             point.store(self.env_data_db)
+            rospy.delete_param(CURRENT_RECIPE)
+            rospy.delete_param(CURRENT_RECIPE_START)
             self.recipe_flag.clear()
 
     def gen_doc_id(self, curr_time):
