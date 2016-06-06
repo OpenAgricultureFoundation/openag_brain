@@ -7,10 +7,11 @@ import rospkg
 import xml.etree.ElementTree as ET
 from xml.dom.minidom import parse
 from couchdb import PreconditionFailed
+from couchdb.mapping import Document
 
 import _design
 import fixtures
-from .util import get_or_create
+from .util import get_or_create, update_doc
 from .models import SoftwareModuleTypeModel, SoftwareModuleModel
 from .db_names import DbName
 
@@ -27,32 +28,33 @@ def register_modules(server, package_name):
     for module in software_modules.getElementsByTagName('module'):
         module_type = module.attributes["type"].value
         module_id = "{}:{}".format(package_name, module_type)
-        module_entry = get_or_create(db, module_id, SoftwareModuleTypeModel)
+        module_doc = get_or_create(db, module_id, SoftwareModuleTypeModel)
+        doc_updates = SoftwareModuleTypeModel()
 
         description = module.getElementsByTagName('description')[0]
-        module_entry.description = description.firstChild.data
+        doc_updates.description = description.firstChild.data
 
         parameters = module.getElementsByTagName('parameter')
-        module_entry.parameters = [
+        doc_updates.parameters = [
             parameter.attributes["name"].value for parameter in parameters
         ]
 
         inputs = module.getElementsByTagName('input')
-        module_entry.inputs = [
+        doc_updates.inputs = [
             input.attributes["name"].value for input in inputs
         ]
 
         outputs = module.getElementsByTagName('output')
-        module_entry.outputs = [
+        doc_updates.outputs = [
             output.attributes["name"].value for output in outputs
         ]
 
         services = modules.getElementsByTagName('service')
-        module_entry.services = [
+        doc_updates.services = [
             service.attributes["name"].value for service in services
         ]
 
-        module_entry.store(db)
+        update_doc(module_doc, doc_updates, db)
 
     # TODO: Handle the firmware modules
 
@@ -87,6 +89,7 @@ def init_db(server):
             try:
                 server.create(v)
             except PreconditionFailed:
+                # The db already exists
                 pass
 
     # Push design documents to all of the databases
@@ -97,8 +100,7 @@ def init_db(server):
         db_path = os.path.join(design_path, db_name)
         db = server[db_name]
         doc = get_or_create(db, "_design/openag")
-        doc._data.update(folder_to_dict(db_path))
-        doc.store(db)
+        update_doc(doc, folder_to_dict(db_path), db)
 
     register_modules(server, 'openag_brain')
 
@@ -115,8 +117,7 @@ def load_fixture(server, fixture_name):
         for item in items:
             item_id = item.pop("_id")
             doc = get_or_create(db, item_id)
-            doc._data.update(item)
-            doc.store(db)
+            update_doc(doc, item, db)
 
 def update_launch(server):
     db = server[DbName.SOFTWARE_MODULE]
