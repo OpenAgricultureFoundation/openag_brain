@@ -13,7 +13,8 @@ First, install ROS Indigo on your machine. There are installation instructions
 
 Next, install an instance of CouchDB on your machine. There are installation
 instructions [here](http://docs.couchdb.org/en/1.6.1/install/index.html) for
-doing so.
+doing so. In newer version of Ubuntu (13.10 and up), this can be done via `sudo
+apt-get install couchdb`.
 
 Create a catkin workspace as described
 [here](http://wiki.ros.org/indigo/catkin/Tutorials/create_a_workspace/) and
@@ -24,16 +25,23 @@ install the code from this repository in the workspace.
     cd ..
     catkin_make
     catkin_make install
+    rosdep install openag_brain
 
-Finally, initialize the CouchDB database as follows:
+Next, initialize the CouchDB database as follows:
 
     rosrun openag_brain init_db
+
+CouchDB will have to be restarted for all of the changes to take effect. On
+Ubuntu, this can be done via `sudo service couchdb restart`.
 
 There is a default fixture that will create a single environment as well a
 couple basic modules for working with the environment. The fixture can be
 installed as follows:
 
     rosrun openag_brain load_fixture default
+
+Running
+-------
 
 The following command will generate a roslaunch file describing all of the
 modules defined in the database:
