@@ -7,6 +7,7 @@ from importlib import import_module
 
 import gevent
 from flask import Flask, request, jsonify
+from flask.ext.cors import CORS
 from gevent.wsgi import WSGIServer
 
 from .base import Module, Requester
@@ -95,6 +96,8 @@ def main():
 
     # Create and run a Flask app for calling endpoints
     app = Flask(__name__)
+    # Set cross-origin headers
+    CORS(app)
     app.debug=True
 
     mod_id = uuid4().hex

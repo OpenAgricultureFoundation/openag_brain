@@ -41,6 +41,7 @@ setup(
         'couchdb>=1.0.1',
         'flask>=0.10.1',
         'gevent>=1.1.1',
+        'flask-cors>=2.1.2',
     ],
     entry_points={
         'console_scripts': [
