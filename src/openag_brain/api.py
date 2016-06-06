@@ -1,6 +1,12 @@
+import socket
+
+import gevent.monkey; gevent.monkey.patch_all()
 import rospy
+import rostopic
+import rosgraph
 import rosservice
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
+from gevent.queue import Queue
 
 API_VER = '0.0.1'
 
@@ -55,4 +61,53 @@ def perform_service_call(service_name):
     data = getattr(res, 'data', None)
     if data is None:
         data = {k: getattr(res, k) for k in res.__slots__}
-    return jsonify(data), status_code
+    return jsonify({"result": data}), status_code
+
+@app.route("/api/{v}/topic".format(v=API_VER), methods=['GET'])
+def list_topics():
+    return jsonify({"results": [x[0] for x in rospy.get_published_topics()]})
+
+@app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=['GET'])
+def get_topic_info(topic_name):
+    topic_name = '/' + topic_name
+    master = rosgraph.Master('/rostopic')
+    try:
+        state = master.getSystemState()
+    except socket.error:
+        return jsonify({"error": "Unable to communicate with master"}), 400
+    pubs, subs, _ = state
+    try:
+        subs = next(x for x in subs if x[0] == topic_name)[1]
+        pubs = next(x for x in pubs if x[0] == topic_name)[1]
+    except StopIteration:
+        return jsonify({"error": "Topic does not exist"}), 404
+    topic_type = next(
+        x for name, x in master.getTopicTypes() if name == topic_name
+    )
+    return jsonify({
+        "type": topic_type,
+        "subs": subs,
+        "pubs": pubs
+    })
+
+@app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=['GET'])
+def stream_topic(topic_name):
+    topic_name = '/' + topic_name
+    try:
+        msg_class, real_topic, _ = rostopic.get_topic_class(topic_name)
+    except rostopic.ROSTopicIOException:
+        return jsonify({"error": "Unable to communicate with master"}), 400
+    if not real_topic:
+        return jsonify({"error": "Topic does not exist"}), 404
+    queue = Queue(5)
+    def callback(data, queue=queue):
+        data = getattr(data, 'data', None)
+        if data is None:
+            data = {k: getattr(res, k) for k in res.__slots__}
+        queue.put(data)
+    sub = rospy.Subscriber(real_topic, msg_class, callback)
+    def gen(queue=queue):
+        while True:
+            x = queue.get()
+            yield str(x) + '\n'
+    return Response(gen())
