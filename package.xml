@@ -44,6 +44,9 @@
   <build_depend>message_generation</build_depend>
   <run_depend>rospy</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>python-couchdb</run_depend>
+  <run_depend>python-gevent</run_depend>
+  <run_depend>python-flask</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
