@@ -6,12 +6,13 @@ import rostopic
 import rosgraph
 import rosservice
 from flask import Flask, jsonify, request, Response
+from flask.ext.cors import CORS
 from gevent.queue import Queue
 
 API_VER = '0.0.1'
 
 app = Flask(__name__)
-app.debug = True
+CORS(app)
 
 @app.route("/api/{v}/param".format(v=API_VER), methods=['GET'])
 def list_params():
