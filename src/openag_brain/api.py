@@ -80,7 +80,7 @@ def get_service_info(service_name):
     return jsonify({
         "request_type": service_type,
         "node": rosservice.get_service_node(service_name),
-        "args": rosservice.get_service_args(service_name)
+        "args": rosservice.get_service_args(service_name).split(" ")
     })
 
 @app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['POST'])
@@ -112,7 +112,14 @@ def list_topics():
 
     GET the list of published ROS topics.
     """
-    return jsonify({"results": [x[0] for x in rospy.get_published_topics()]})
+    master = rosgraph.Master('/rostopic')
+    try:
+        state = master.getSystemState()
+    except socket.error:
+        return jsonigy({"error": "Unable to communicate with master"}), 400
+    pubs, subs, _ = state
+    topics = set(x[0] for x in subs) | set(x[0] for x in pubs)
+    return jsonify({"results": list(topics)})
 
 @app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=['GET'])
 def get_topic_info(topic_name):
@@ -136,10 +143,18 @@ def get_topic_info(topic_name):
     except socket.error:
         return jsonify({"error": "Unable to communicate with master"}), 400
     pubs, subs, _ = state
+    topic_exists = 2
     try:
         subs = next(x for x in subs if x[0] == topic_name)[1]
+    except StopIteration:
+        topic_exists -= 1
+        subs = []
+    try:
         pubs = next(x for x in pubs if x[0] == topic_name)[1]
     except StopIteration:
+        topic_exists -= 1
+        pubs = []
+    if not topic_exists:
         return jsonify({"error": "Topic does not exist"}), 404
     topic_type = next(
         x for name, x in master.getTopicTypes() if name == topic_name
