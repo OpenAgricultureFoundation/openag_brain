@@ -91,7 +91,9 @@ def perform_service_call(service_name):
     POST a message to a ROS service by name.
     """
     service_name = '/' + service_name
-    args = request.values.to_dict()
+    args = request.json
+    if not args:
+        args = request.values.to_dict()
     args = {
         k: str(v) if isinstance(v, unicode) else v for k,v in args.items()
     }
