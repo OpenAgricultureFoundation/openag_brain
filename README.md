@@ -17,7 +17,7 @@ doing so. In newer version of Ubuntu (13.10 and up), this can be done via `sudo
 apt-get install couchdb`.
 
 Create a catkin workspace as described
-[here](http://wiki.ros.org/indigo/catkin/Tutorials/create_a_workspace/) and
+[here](http://wiki.ros.org/catkin/Tutorials/create_a_workspace/) and
 install the code from this repository in the workspace.
 
     cd ~/catkin_ws/src
