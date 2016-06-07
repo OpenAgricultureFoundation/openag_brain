@@ -25,7 +25,7 @@ install the code from this repository in the workspace.
     cd ..
     catkin_make
     catkin_make install
-    rosdep install openag_brain
+    rosdep install -i openag_brain
 
 To run any of the openag commands, you must first activate the catkin workspace
 as follows:
