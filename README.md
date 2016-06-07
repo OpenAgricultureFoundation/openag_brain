@@ -27,6 +27,11 @@ install the code from this repository in the workspace.
     catkin_make install
     rosdep install openag_brain
 
+To run any of the openag commands, you must first activate the catkin workspace
+as follows:
+
+    source ~/catkin_ws/devel/setup.bash
+
 Next, initialize the CouchDB database as follows:
 
     rosrun openag_brain init_db
