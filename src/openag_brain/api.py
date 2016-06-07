@@ -15,16 +15,40 @@ app.debug = True
 
 @app.route("/api/{v}/param".format(v=API_VER), methods=['GET'])
 def list_params():
+    """
+    GET /api/<version>/param
+
+    GET a list of all available params from the ROS Parameter Server.
+    See http://wiki.ros.org/Parameter%20Server for more on the Parameter Server.
+
+    Parameter names are listed in the "results" field of the JSON response body.
+    """
     return jsonify({"results": rospy.get_param_names()})
 
 @app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=['GET'])
 def get_param(param_name):
+    """
+    GET /api/<version>/param/<param_name>
+
+    GET the value for a specific parameter at param_name in the ROS
+    Parameter Server.
+
+    Parameter value is in the "result" field of the JSON response body. If
+    parameter does not exist, a JSON document with "error" field will
+    be returned.
+    """
     if not rospy.has_param(param_name):
         return jsonify({"error": "No such parameter exists"}), 400
     return jsonify({"result": str(rospy.get_param(param_name))})
 
 @app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=['POST'])
 def set_param(param_name):
+    """
+    POST /api/<version>/param/<param_name> {"value": "x"}
+
+    POST to the ROS Parameter Server. Value should be in the value field
+    of the request body.
+    """
     if not 'value' in request.values:
         return jsonify({"error": "No value supplied"}), 400
     rospy.set_param(param_name, request.values['value'])
@@ -32,10 +56,22 @@ def set_param(param_name):
 
 @app.route("/api/{v}/service".format(v=API_VER), methods=['GET'])
 def list_services():
+    """
+    GET /api/<version>/service
+
+    GET a list of all available ROS services.
+
+    Services are listed in the "results" field of the JSON response body.
+    """
     return jsonify({"results": rosservice.get_service_list()})
 
 @app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['GET'])
 def get_service_info(service_name):
+    """
+    GET /api/<version>/service/<service_name>
+
+    GET information about a ROS service.
+    """
     service_name = '/' + service_name
     service_type = rosservice.get_service_type(service_name)
     if not service_type:
@@ -48,6 +84,11 @@ def get_service_info(service_name):
 
 @app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['POST'])
 def perform_service_call(service_name):
+    """
+    POST /api/<version>/service/<service_name>
+
+    POST a message to a ROS service by name.
+    """
     service_name = '/' + service_name
     args = request.values.to_dict()
     args = {
@@ -65,10 +106,28 @@ def perform_service_call(service_name):
 
 @app.route("/api/{v}/topic".format(v=API_VER), methods=['GET'])
 def list_topics():
+    """
+    GET /api/<version>/topic
+
+    GET the list of published ROS topics.
+    """
     return jsonify({"results": [x[0] for x in rospy.get_published_topics()]})
 
 @app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=['GET'])
 def get_topic_info(topic_name):
+    """
+    GET /api/<version>/topic/<topic_name>
+
+    GET info from a ROS topic.
+
+    Returns a JSON response with the following fields (or error):
+
+    {
+        "type": "...",   // topic type,
+        "subs": [...],   // a list of subscribers
+        "pubs": [...]    // a list of publishers
+    }
+    """
     topic_name = '/' + topic_name
     master = rosgraph.Master('/rostopic')
     try:
@@ -92,6 +151,11 @@ def get_topic_info(topic_name):
 
 @app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=['GET'])
 def stream_topic(topic_name):
+    """
+    GET /api/<version>/topic_stream/<topic_name>
+
+    Stream a topic over HTTP by keeping the http connection alive.
+    """
     topic_name = '/' + topic_name
     try:
         msg_class, real_topic, _ = rostopic.get_topic_class(topic_name)

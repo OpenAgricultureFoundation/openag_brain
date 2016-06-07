@@ -48,13 +48,21 @@ modules defined in the database:
 
     rosrun openag_brain update_launch
 
-That command creates a file named `modules.launch`. The modules can be run by
-calling:
+That command creates a file named `modules.launch`. The modules can then be
+run by calling:
 
     roslaunch openag_brain modules.launch
 
-There is also a Flask API that allows external programs (e.g.
+There is also a Flask REST API that allows external programs (e.g.
 [openag_ui](http://github.com/OpenAgInitiative/openag_ui)) to interact with the
 local ROS installation. The API can be launched as follows:
 
     rosrun openag_brain api
+
+Note that you must create a roslaunch file (`modules.launch`) and and run
+run the modules before running the Flask REST API.
+
+Development
+-----------
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md).
