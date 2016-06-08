@@ -53,8 +53,7 @@ catkin_python_setup()
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  ChangeString.srv
-  ChangeFloat.srv
+  StartRecipe.srv
   Empty.srv
 )
 

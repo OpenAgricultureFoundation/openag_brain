@@ -9,12 +9,12 @@ from flask import Flask, jsonify, request, Response
 from flask.ext.cors import CORS
 from gevent.queue import Queue
 
-API_VER = '0.0.1'
+API_VER = "0.0.1"
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/api/{v}/param".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/param".format(v=API_VER), methods=["GET"])
 def list_params():
     """
     GET /api/<version>/param
@@ -26,7 +26,7 @@ def list_params():
     """
     return jsonify({"results": rospy.get_param_names()})
 
-@app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=["GET"])
 def get_param(param_name):
     """
     GET /api/<version>/param/<param_name>
@@ -42,7 +42,7 @@ def get_param(param_name):
         return jsonify({"error": "No such parameter exists"}), 400
     return jsonify({"result": str(rospy.get_param(param_name))})
 
-@app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=['POST'])
+@app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=["POST"])
 def set_param(param_name):
     """
     POST /api/<version>/param/<param_name> {"value": "x"}
@@ -50,12 +50,12 @@ def set_param(param_name):
     POST to the ROS Parameter Server. Value should be in the value field
     of the request body.
     """
-    if not 'value' in request.values:
+    if not "value" in request.values:
         return jsonify({"error": "No value supplied"}), 400
-    rospy.set_param(param_name, request.values['value'])
+    rospy.set_param(param_name, request.values["value"])
     return "", 204
 
-@app.route("/api/{v}/service".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/service".format(v=API_VER), methods=["GET"])
 def list_services():
     """
     GET /api/<version>/service
@@ -66,14 +66,14 @@ def list_services():
     """
     return jsonify({"results": rosservice.get_service_list()})
 
-@app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=["GET"])
 def get_service_info(service_name):
     """
     GET /api/<version>/service/<service_name>
 
     GET information about a ROS service.
     """
-    service_name = '/' + service_name
+    service_name = "/" + service_name
     service_type = rosservice.get_service_type(service_name)
     if not service_type:
         return jsonify({"error": "No such service exists"}), 404
@@ -83,14 +83,14 @@ def get_service_info(service_name):
         "args": rosservice.get_service_args(service_name).split(" ")
     })
 
-@app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=['POST'])
+@app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=["POST"])
 def perform_service_call(service_name):
     """
     POST /api/<version>/service/<service_name>
 
     POST a message to a ROS service by name.
     """
-    service_name = '/' + service_name
+    service_name = "/" + service_name
     args = request.json
     if not args:
         args = request.values.to_dict()
@@ -101,20 +101,18 @@ def perform_service_call(service_name):
         res = rosservice.call_service(service_name, [args])[1]
     except rosservice.ROSServiceException as e:
         return jsonify({"error": str(e)}), 400
-    status_code = getattr(res, 'status_code', 200)
-    data = getattr(res, 'data', None)
-    if data is None:
-        data = {k: getattr(res, k) for k in res.__slots__}
-    return jsonify({"result": data}), status_code
+    status_code = getattr(res, "status_code", 200)
+    data = {k: getattr(res, k) for k in res.__slots__ if k != "status_code"}
+    return jsonify(data), status_code
 
-@app.route("/api/{v}/topic".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/topic".format(v=API_VER), methods=["GET"])
 def list_topics():
     """
     GET /api/<version>/topic
 
     GET the list of published ROS topics.
     """
-    master = rosgraph.Master('/rostopic')
+    master = rosgraph.Master("/rostopic")
     try:
         state = master.getSystemState()
     except socket.error:
@@ -123,7 +121,7 @@ def list_topics():
     topics = set(x[0] for x in subs) | set(x[0] for x in pubs)
     return jsonify({"results": list(topics)})
 
-@app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=["GET"])
 def get_topic_info(topic_name):
     """
     GET /api/<version>/topic/<topic_name>
@@ -138,8 +136,8 @@ def get_topic_info(topic_name):
         "pubs": [...]    // a list of publishers
     }
     """
-    topic_name = '/' + topic_name
-    master = rosgraph.Master('/rostopic')
+    topic_name = "/" + topic_name
+    master = rosgraph.Master("/rostopic")
     try:
         state = master.getSystemState()
     except socket.error:
@@ -167,14 +165,14 @@ def get_topic_info(topic_name):
         "pubs": pubs
     })
 
-@app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=['GET'])
+@app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=["GET"])
 def stream_topic(topic_name):
     """
     GET /api/<version>/topic_stream/<topic_name>
 
     Stream a topic over HTTP by keeping the http connection alive.
     """
-    topic_name = '/' + topic_name
+    topic_name = "/" + topic_name
     try:
         msg_class, real_topic, _ = rostopic.get_topic_class(topic_name)
     except rostopic.ROSTopicIOException:
@@ -183,7 +181,7 @@ def stream_topic(topic_name):
         return jsonify({"error": "Topic does not exist"}), 404
     queue = Queue(5)
     def callback(data, queue=queue):
-        data = getattr(data, 'data', None)
+        data = getattr(data, "data", None)
         if data is None:
             data = {k: getattr(res, k) for k in res.__slots__}
         queue.put(data)
@@ -191,5 +189,5 @@ def stream_topic(topic_name):
     def gen(queue=queue):
         while True:
             x = queue.get()
-            yield str(x) + '\n'
+            yield str(x) + "\n"
     return Response(gen())

@@ -9,7 +9,7 @@ import rospy
 from couchdb import Server
 from std_msgs.msg import Float64
 
-from openag_brain.srv import ChangeString, Empty
+from openag_brain.srv import StartRecipe, Empty
 from openag_brain.db_names import DbName
 from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.var_types import EnvironmentalVariable
@@ -101,7 +101,7 @@ class RecipeHandler(object):
 
         rospy.init_node('recipe_handler')
         self.publishers = PublisherDict()
-        rospy.Service('start_recipe', ChangeString, self.start_recipe)
+        rospy.Service('start_recipe', StartRecipe, self.start_recipe)
         rospy.Service('stop_recipe', Empty, self.stop_recipe)
 
         self.current_recipe = None
@@ -142,7 +142,7 @@ class RecipeHandler(object):
         Timer(5, self.publish_set_points).start()
 
     def start_recipe(self, data, start_time=None):
-        recipe_id = data.data
+        recipe_id = data.recipe_id
         if not recipe_id:
             return "No recipe id was specified", 400
         if self.recipe_flag.is_set():
