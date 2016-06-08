@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+import time
+import atexit
+import argparse
+import requests
+import subprocess
+from openag_brain import DbName
+
+api = None
+modules = None
+
+@atexit.register
+def kill_children():
+    if api is not None:
+        api.terminate()
+        api.wait()
+    if modules is not None:
+        modules.terminate()
+        modules.wait()
+
+def main(fixture=None):
+    # Initialize the database
+    print "Initializing the database..."
+    subprocess.call(["rosrun", "openag_brain", "init_db"])
+
+    # Load the fixture
+    if fixture:
+        print "Applying fixture {}...".format(fixture)
+        subprocess.call(["rosrun", "openag_brain", "load_fixture", fixture])
+
+    # Start the api
+    global api
+    api = subprocess.Popen(["rosrun", "openag_brain", "api"])
+
+    # Start the software modules
+    subprocess.call(["rosrun", "openag_brain", "update_launch"])
+    global modules
+    modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
+
+    # Whenever the module configuration changes, restart the modules
+    last_seq = requests.get(
+        "http://localhost:5984/{db}/_changes".format(db=DbName.SOFTWARE_MODULE)
+    ).json()['last_seq']
+    while True:
+        time.sleep(2)
+        changes = requests.get(
+            "http://localhost:5984/{db}/_changes?last-event-id={last_seq}".format(
+                db=DbName.SOFTWARE_MODULE, last_seq=last_seq
+            )
+        ).json()
+        last_seq = changes['last_seq']
+        if len(changes['results']):
+            modules.terminate()
+            subprocess.call(["rosrun", "openag_brain", "update_launch"])
+            modules.wait()
+            modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="Run the API and software modules for openag_brain",
+    )
+    parser.add_argument(
+        '-f', '--fixture', help="Name of the fixture to apply to the database"
+    )
+    args = parser.parse_args()
+    main(args.fixture)

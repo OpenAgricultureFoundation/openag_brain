@@ -1,7 +1,10 @@
 import os
 import json
+import time
 import shlex
+import requests
 import subprocess
+from ConfigParser import ConfigParser
 
 import rospkg
 import xml.etree.ElementTree as ET
@@ -72,16 +75,24 @@ def folder_to_dict(path):
 
 def init_db(server):
     # Copy the couchdb config file into the correct directory
-    config_file_path = os.path.join(os.path.dirname(__file__), "couchdb.ini")
-    if os.path.isdir("/etc/couchdb/default.d"):
-        dest_path = "/etc/couchdb/default.d/openag.ini"
-    elif os.path.isdir("/usr/local/etc/couchdb/default.d"):
-        dest_path = "/usr/local/etc/couchdb/default.d/openag.ini"
-    else:
-        raise RuntimeError("Failed to install couchdb configuration file")
-    command = "sudo cp {} {}".format(config_file_path, dest_path)
-    print "Running", command
-    subprocess.call(shlex.split(command))
+    rospack = rospkg.RosPack()
+    pkg_path = rospack.get_path('openag_brain')
+    config_file_path = os.path.join(pkg_path, 'couchdb.ini')
+    config = ConfigParser()
+    config.read(config_file_path)
+    for section in config.sections():
+        for param, value in config.items(section):
+            res = requests.put(
+                "http://localhost:5984/_config/{}/{}".format(section, param),
+                data = '"{}"'.format(value.replace('"', '\\"'))
+            )
+            # Unless there is some delay between requests, CouchDB gets sad.
+            # I'm not really sure why
+            time.sleep(1)
+            if not res.status_code == 200:
+                raise RuntimeError(
+                    'Failed to set configuration parameter "{}"'.format(param)
+                )
 
     # Create all of the databases
     for k,v in DbName.__dict__.items():
@@ -103,8 +114,6 @@ def init_db(server):
         update_doc(doc, folder_to_dict(db_path), db)
 
     register_modules(server, 'openag_brain')
-
-    print "CouchDB may have to be restarted for all changes to take effect"
 
 def load_fixture(server, fixture_name):
     fixture_file_name = os.path.join(
