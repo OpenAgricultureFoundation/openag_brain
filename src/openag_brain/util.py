@@ -6,7 +6,9 @@ def get_or_create(db, doc_id, Model=Document):
     if doc_id in db:
         return Model.load(db, doc_id)
     else:
-        return Model(id=doc_id)
+        doc = Model(id=doc_id)
+        doc.store(db)
+        return doc
 
 def update_doc(doc, updates, db):
     should_save = False
