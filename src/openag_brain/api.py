@@ -12,7 +12,13 @@ from gevent.queue import Queue
 API_VER = "0.0.1"
 
 app = Flask(__name__)
+app.debug = True
 CORS(app)
+
+@app.errorhandler(socket.error)
+@app.errorhandler(rosservice.ROSServiceIOException)
+def socket_error_handler(error):
+    return jsonify({"error": "Unable to communicate with master"}), 400
 
 @app.route("/api/{v}/param".format(v=API_VER), methods=["GET"])
 def list_params():
@@ -98,6 +104,10 @@ def perform_service_call(service_name):
         k: str(v) if isinstance(v, unicode) else v for k,v in args.items()
     }
     try:
+        rospy.wait_for_service(service_name, 1)
+    except rospy.ROSException as e:
+        raise socket.error()
+    try:
         res = rosservice.call_service(service_name, [args])[1]
     except rosservice.ROSServiceException as e:
         return jsonify({"error": str(e)}), 400
@@ -113,10 +123,7 @@ def list_topics():
     GET the list of published ROS topics.
     """
     master = rosgraph.Master("/rostopic")
-    try:
-        state = master.getSystemState()
-    except socket.error:
-        return jsonigy({"error": "Unable to communicate with master"}), 400
+    state = master.getSystemState()
     pubs, subs, _ = state
     topics = set(x[0] for x in subs) | set(x[0] for x in pubs)
     return jsonify({"results": list(topics)})
@@ -138,10 +145,7 @@ def get_topic_info(topic_name):
     """
     topic_name = "/" + topic_name
     master = rosgraph.Master("/rostopic")
-    try:
-        state = master.getSystemState()
-    except socket.error:
-        return jsonify({"error": "Unable to communicate with master"}), 400
+    state = master.getSystemState()
     pubs, subs, _ = state
     topic_exists = 2
     try:
