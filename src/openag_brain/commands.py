@@ -73,7 +73,7 @@ def folder_to_dict(path):
             res[key] = folder_to_dict(key_path)
     return res
 
-def init_db(server):
+def init_db(server, hostname):
     # Copy the couchdb config file into the correct directory
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('openag_brain')
@@ -84,10 +84,12 @@ def init_db(server):
         for param, value in config.items(section):
             url = "{}/_config/{}/{}".format(server.resource.url, section, param)
             current_val = requests.get(url).content.strip()
-            desired_val = '"{}"'.format(value.replace('"', '\\"'))
+            desired_val = '"{}"'.format(
+                value.replace('"', '\\"').replace("$hostname", hostname)
+            )
             if current_val != desired_val:
                 res = requests.put(
-                    url, data = '"{}"'.format(value.replace('"', '\\"'))
+                    url, data=desired_val
                 )
                 # Unless there is some delay between requests, CouchDB gets sad.
                 # I'm not really sure why

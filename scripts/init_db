@@ -7,9 +7,13 @@ from openag_brain.commands import init_db
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Initialize the database")
     parser.add_argument(
-        "-d", "--database", help="Address of the database server",
-        action="store_const", default="http://localhost:5984"
+        "-D", "--database", help="Address of the database server",
+         default="http://localhost:5984"
+    )
+    parser.add_argument(
+        "-H", "--hostname", help="Hostame of the machine running this file",
+        default="localhost"
     )
     args = parser.parse_args()
     server = Server(args.database)
-    init_db(server)
+    init_db(server, args.hostname)

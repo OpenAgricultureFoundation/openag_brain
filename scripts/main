@@ -21,11 +21,11 @@ def kill_children():
         modules.terminate()
         modules.wait()
 
-def main(database, fixture=None):
+def main(database, hostname, fixture=None):
     # Initialize the database
     print "Initializing the database..."
     server = Server(database)
-    commands.init_db(server)
+    commands.init_db(server, hostname)
 
     # Load the fixture
     if fixture:
@@ -64,11 +64,15 @@ if __name__ == '__main__':
         description="Run the API and software modules for openag_brain",
     )
     parser.add_argument(
-        "-d", "--database", help="Address of the database server",
-        default="http://localhost:5984"
+        "-D", "--database", help="Address of the database server",
+        default="localhost"
+    )
+    parser.add_argument(
+        "-H", "--hostname", help="Hostame of the machine running this file",
+        default="localhost"
     )
     parser.add_argument(
         '-f', '--fixture', help="Name of the fixture to apply to the database"
     )
     args = parser.parse_args()
-    main(args.database, args.fixture)
+    main(args.database, args.hostname, args.fixture)
