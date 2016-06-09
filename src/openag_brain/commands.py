@@ -82,17 +82,20 @@ def init_db(server):
     config.read(config_file_path)
     for section in config.sections():
         for param, value in config.items(section):
-            res = requests.put(
-                "http://localhost:5984/_config/{}/{}".format(section, param),
-                data = '"{}"'.format(value.replace('"', '\\"'))
-            )
-            # Unless there is some delay between requests, CouchDB gets sad.
-            # I'm not really sure why
-            time.sleep(1)
-            if not res.status_code == 200:
-                raise RuntimeError(
-                    'Failed to set configuration parameter "{}"'.format(param)
+            url = "http://localhost:5984/_config/{}/{}".format(section, param)
+            current_val = requests.get(url).content.strip()
+            desired_val = '"{}"'.format(value.replace('"', '\\"'))
+            if current_val != desired_val:
+                res = requests.put(
+                    url, data = '"{}"'.format(value.replace('"', '\\"'))
                 )
+                # Unless there is some delay between requests, CouchDB gets sad.
+                # I'm not really sure why
+                time.sleep(1)
+                if not res.status_code == 200:
+                    raise RuntimeError(
+                        'Failed to set configuration parameter "{}"'.format(param)
+                    )
 
     # Create all of the databases
     for k,v in DbName.__dict__.items():
