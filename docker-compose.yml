@@ -1,0 +1,11 @@
+brain:
+    build: .
+    expose:
+        - 5000
+
+db:
+    image: dogi/rpi-couchdb
+    ports:
+        - "5984:5984"
+    links:
+        - "brain"
