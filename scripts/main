@@ -43,12 +43,12 @@ def main(database, hostname, fixture=None):
 
     # Whenever the module configuration changes, restart the modules
     last_seq = requests.get(
-        "http://localhost:5984/{db}/_changes".format(db=DbName.SOFTWARE_MODULE)
+        database + "/{db}/_changes".format(db=DbName.SOFTWARE_MODULE)
     ).json()['last_seq']
     while True:
         time.sleep(2)
         changes = requests.get(
-            "http://localhost:5984/{db}/_changes?last-event-id={last_seq}".format(
+            database + "/{db}/_changes?last-event-id={last_seq}".format(
                 db=DbName.SOFTWARE_MODULE, last_seq=last_seq
             )
         ).json()
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "-D", "--database", help="Address of the database server",
-        default="localhost"
+        default="http://localhost:5984"
     )
     parser.add_argument(
         "-H", "--hostname", help="Hostame of the machine running this file",
