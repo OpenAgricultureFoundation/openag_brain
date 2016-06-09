@@ -6,7 +6,7 @@ import rostopic
 import rosgraph
 import rosservice
 from flask import Flask, jsonify, request, Response
-from flask.ext.cors import CORS
+from flask_cors import CORS
 from gevent.queue import Queue
 
 API_VER = "0.0.1"

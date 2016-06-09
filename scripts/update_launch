@@ -1,9 +1,18 @@
 #!/usr/bin/env python
+import argparse
+
 from couchdb import Server
 
 from openag_brain.commands import update_launch
 
 if __name__ == '__main__':
-    # Open a connection to the CouchDB server
-    server = Server()
+    parser = argparse.ArgumentParser(
+        description="Update the roslaunch file for the software modules"
+    )
+    parser.add_argument(
+        "-d", "--database", help="Address of the database server",
+        default="http://localhost:5984"
+    )
+    args = parser.parse_args()
+    server = Server(args.database)
     update_launch(server)

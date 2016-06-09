@@ -4,7 +4,10 @@ import atexit
 import argparse
 import requests
 import subprocess
-from openag_brain import DbName
+
+from couchdb import Server
+
+from openag_brain import DbName, commands
 
 api = None
 modules = None
@@ -18,22 +21,23 @@ def kill_children():
         modules.terminate()
         modules.wait()
 
-def main(fixture=None):
+def main(database, fixture=None):
     # Initialize the database
     print "Initializing the database..."
-    subprocess.call(["rosrun", "openag_brain", "init_db"])
+    server = Server(database)
+    commands.init_db(server)
 
     # Load the fixture
     if fixture:
         print "Applying fixture {}...".format(fixture)
-        subprocess.call(["rosrun", "openag_brain", "load_fixture", fixture])
+        commands.load_fixture(server, args.fixture)
 
     # Start the api
     global api
     api = subprocess.Popen(["rosrun", "openag_brain", "api"])
 
     # Start the software modules
-    subprocess.call(["rosrun", "openag_brain", "update_launch"])
+    commands.update_launch(server)
     global modules
     modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
 
@@ -51,7 +55,7 @@ def main(fixture=None):
         last_seq = changes['last_seq']
         if len(changes['results']):
             modules.terminate()
-            subprocess.call(["rosrun", "openag_brain", "update_launch"])
+            commands.update_launch(server)
             modules.wait()
             modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
 
@@ -60,7 +64,11 @@ if __name__ == '__main__':
         description="Run the API and software modules for openag_brain",
     )
     parser.add_argument(
+        "-d", "--database", help="Address of the database server",
+        default="http://localhost:5984"
+    )
+    parser.add_argument(
         '-f', '--fixture', help="Name of the fixture to apply to the database"
     )
     args = parser.parse_args()
-    main(args.fixture)
+    main(args.database, args.fixture)

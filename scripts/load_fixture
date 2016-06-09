@@ -9,6 +9,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Populate the database with "
     "objects from the designated fixture")
     parser.add_argument('fixture')
+    parser.add_argument(
+        "-d", "--database", help="Address of the database server",
+        default="http://localhost:5984"
+    )
     args = parser.parse_args()
-    server = Server()
+    server = Server(args.database)
     load_fixture(server, args.fixture)

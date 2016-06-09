@@ -1,8 +1,15 @@
 #!/usr/bin/env python
+import argparse
 from couchdb import Server
 
 from openag_brain.commands import init_db
 
 if __name__ == '__main__':
-    server = Server()
+    parser = argparse.ArgumentParser(description="Initialize the database")
+    parser.add_argument(
+        "-d", "--database", help="Address of the database server",
+        action="store_const", default="http://localhost:5984"
+    )
+    args = parser.parse_args()
+    server = Server(args.database)
     init_db(server)
