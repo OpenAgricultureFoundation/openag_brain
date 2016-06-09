@@ -82,7 +82,7 @@ def init_db(server):
     config.read(config_file_path)
     for section in config.sections():
         for param, value in config.items(section):
-            url = "http://localhost:5984/_config/{}/{}".format(section, param)
+            url = "{}/_config/{}/{}".format(server.resource.url, section, param)
             current_val = requests.get(url).content.strip()
             desired_val = '"{}"'.format(value.replace('"', '\\"'))
             if current_val != desired_val:
