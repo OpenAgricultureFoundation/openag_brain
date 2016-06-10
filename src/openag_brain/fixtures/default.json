@@ -4,6 +4,40 @@
       "_id": "environment_1"
     }
   ],
+  "software_module_type": [
+    {
+      "_id": "openag_brain:echoer.py",
+      "description": "Repeatedly outputs a given string",
+      "parameters": ["~rate"],
+      "inputs": [],
+      "outputs": ["output"],
+      "services": ["change_msg"]
+    },
+    {
+      "_id": "openag_brain:on_off_control.py",
+      "description": "Performs simple on/off control given a sensor reading and a set point",
+      "parameters": ["~default_set_point"],
+      "inputs": ["set_point", "measured"],
+      "outputs": ["state"],
+      "services": []
+    },
+    {
+      "_id": "openag_brain:persistence.py",
+      "description": "Listens to topic on the environment and writes their data to CouchDB",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": []
+    },
+    {
+      "_id": "openag_brain:recipe_handler.py",
+      "description": "Runs recipes and outputs set points for the environment",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": ["start_recipe", "stop_recipe"]
+    }
+  ],
   "software_module": [
     {
       "_id": "recipe_handler_1",

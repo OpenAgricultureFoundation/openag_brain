@@ -30,6 +30,6 @@ def update_doc(doc, updates, db):
             continue
         if not k in updates:
             should_save = True
-            doc.pop(k)
+            del doc[k]
     if should_save:
         doc.store(db)

@@ -4,6 +4,7 @@ from couchdb.mapping import (
 
 __all__ = [
     'SoftwareModuleTypeModel', 'SoftwareModuleModel',
+    'FirmwareModuleTypeModel', 'FirmwareModuleModel',
     'EnvironmentModel', 'EnvironmentalDataPointModel'
 ]
 
@@ -20,10 +21,20 @@ class SoftwareModuleModel(Document):
     parameters = DictField()
     mappings = DictField()
 
-# TODO: Make FirmwareModuleTypeModel and FirmwareModuleModel
+class FirmwareModuleTypeModel(Document):
+    url = TextField()
+    description = TextField()
+    parameters = ListField(TextField())
+    inputs = ListField(TextField())
+    outputs = ListField(TextField())
+
+class FirmwareModuleModel(Document):
+    environment = TextField()
+    type = TextField()
+    parameters = DictField()
 
 class EnvironmentModel(Document):
-    variables = ListField(TextField())
+    pass
 
 class EnvironmentalDataPointModel(Document):
     environment = TextField()

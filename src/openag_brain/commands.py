@@ -18,49 +18,6 @@ from .util import get_or_create, update_doc
 from .models import SoftwareModuleTypeModel, SoftwareModuleModel
 from .db_names import DbName
 
-def register_modules(server, package_name):
-    # Find and parse the modules file
-    rospack = rospkg.RosPack()
-    pkg_path = rospack.get_path(package_name)
-    modules_path = os.path.join(pkg_path, 'modules.xml')
-    modules = parse(modules_path)
-
-    # Handle the software modules
-    software_modules = modules.getElementsByTagName('software')[0]
-    db = server[DbName.SOFTWARE_MODULE_TYPE]
-    for module in software_modules.getElementsByTagName('module'):
-        module_type = module.attributes["type"].value
-        module_id = "{}:{}".format(package_name, module_type)
-        module_doc = get_or_create(db, module_id, SoftwareModuleTypeModel)
-        doc_updates = SoftwareModuleTypeModel()
-
-        description = module.getElementsByTagName('description')[0]
-        doc_updates.description = description.firstChild.data
-
-        parameters = module.getElementsByTagName('parameter')
-        doc_updates.parameters = [
-            parameter.attributes["name"].value for parameter in parameters
-        ]
-
-        inputs = module.getElementsByTagName('input')
-        doc_updates.inputs = [
-            input.attributes["name"].value for input in inputs
-        ]
-
-        outputs = module.getElementsByTagName('output')
-        doc_updates.outputs = [
-            output.attributes["name"].value for output in outputs
-        ]
-
-        services = modules.getElementsByTagName('service')
-        doc_updates.services = [
-            service.attributes["name"].value for service in services
-        ]
-
-        update_doc(module_doc, doc_updates, db)
-
-    # TODO: Handle the firmware modules
-
 def folder_to_dict(path):
     res = {}
     for key in os.listdir(path):
@@ -118,8 +75,6 @@ def init_db(server, hostname):
         doc = get_or_create(db, "_design/openag")
         update_doc(doc, folder_to_dict(db_path), db)
 
-    register_modules(server, 'openag_brain')
-
 def load_fixture(server, fixture_name):
     fixture_file_name = os.path.join(
         os.path.dirname(fixtures.__file__), fixture_name + ".json"
@@ -138,6 +93,14 @@ def update_launch(server):
 
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
+    api = ET.SubElement(root, 'node')
+    api.attrib['pkg'] = 'openag_brain'
+    api.attrib['type'] = 'api.py'
+    api.attrib['name'] = 'api'
+    ft = ET.SubElement(root, 'node')
+    ft.attrib['pkg'] = 'openag_brain'
+    ft.attrib['type'] = 'topic_connector.py'
+    ft.attrib['name'] = 'topic_connector'
     groups = {None: root}
     for module_id in db:
         if module_id.startswith('_'):

@@ -9,14 +9,10 @@ from couchdb import Server
 
 from openag_brain import DbName, commands
 
-api = None
 modules = None
 
 @atexit.register
 def kill_children():
-    if api is not None:
-        api.terminate()
-        api.wait()
     if modules is not None:
         modules.terminate()
         modules.wait()
@@ -31,10 +27,6 @@ def main(database, hostname, fixture=None):
     if fixture:
         print "Applying fixture {}...".format(fixture)
         commands.load_fixture(server, args.fixture)
-
-    # Start the api
-    global api
-    api = subprocess.Popen(["rosrun", "openag_brain", "api"])
 
     # Start the software modules
     commands.update_launch(server)
