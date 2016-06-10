@@ -1,11 +1,15 @@
-brain:
-    build: .
-    expose:
-        - 5000
-
-db:
-    image: dogi/rpi-couchdb
-    ports:
-        - "5984:5984"
-    links:
-        - "brain"
+version: "2"
+services:
+    brain:
+        build: .
+        expose:
+            - 5000
+        command: ~/catkin_ws/devel/env.sh rosrun openag_brain main -D http://db:5984 -H brain
+        depends_on:
+            - db
+    db:
+        image: dogi/rpi-couchdb
+        expose:
+            - 5984
+        ports:
+            - "5984:5984"
