@@ -7,7 +7,14 @@ def get_or_create(db, doc_id, Model=Document):
         return Model.load(db, doc_id)
     else:
         doc = Model(id=doc_id)
-        doc.store(db)
+        try:
+            doc.store(db)
+        except Exception:
+            # We might not be able to store the empty document because of
+            # validation functions in the database. If this happens, it is fine
+            # to continue because the document is going to be updated and saved
+            # later
+            pass
         return doc
 
 def update_doc(doc, updates, db):
