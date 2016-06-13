@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+import argparse
+
+from couchdb import Server
+
+from openag_brain.commands import generate_firmware
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate firmware code to flask to the Arduino"
+    )
+    parser.add_argument(
+        "-d", "--database", help="Address of the database server",
+        default="http://localhost:5984"
+    )
+    args = parser.parse_args()
+    server = Server(args.database)
+    generate_firmware(server)

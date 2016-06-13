@@ -23,10 +23,12 @@ class SoftwareModuleModel(Document):
 
 class FirmwareModuleTypeModel(Document):
     url = TextField()
+    header_file = TextField()
+    class_name = TextField()
     description = TextField()
     parameters = ListField(TextField())
-    inputs = ListField(TextField())
-    outputs = ListField(TextField())
+    inputs = DictField()
+    outputs = DictField()
 
 class FirmwareModuleModel(Document):
     environment = TextField()

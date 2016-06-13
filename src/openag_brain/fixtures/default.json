@@ -49,5 +49,20 @@
       "type": "openag_brain:persistence.py",
       "environment": "environment_1"
     }
+  ],
+  "firmware_module_type": [
+    {
+      "_id": "am2315",
+      "url": "https://github.com/OpenAgInitiative/openag_am2315",
+      "header_file": "openag_am2315.h",
+      "class_name": "Am2315",
+      "description": "Driver for the am2315 sensor",
+      "parameters": [],
+      "inputs": {},
+      "outputs": {
+        "air_temperature": "std_msgs/Float32",
+        "air_humidity": "std_msgs/Float32"
+      }
+    }
   ]
 }

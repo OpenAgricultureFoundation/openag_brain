@@ -1,0 +1,2 @@
+#!/bin/bash
+yes | pio run -d ~/.openag/build -t upload

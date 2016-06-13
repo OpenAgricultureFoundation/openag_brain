@@ -1,0 +1,6 @@
+#!/bin/bash
+sudo apt-get install python-virtualenv
+virtualenv ~/pio_env
+source ~/pio_env/bin/activate
+pip install platformio
+sudo ln -s ~/pio_env/bin/pio /usr/local/bin/pio
