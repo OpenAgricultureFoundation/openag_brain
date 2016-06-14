@@ -8,6 +8,7 @@ ADD . catkin_ws/src/openag_brain
 RUN sudo chown -R pi:pi ~/catkin_ws/src/openag_brain && cd ~/catkin_ws && \
     /opt/ros/indigo/env.sh catkin_make && sudo apt-get update && \
     sudo apt-get install -y python-pip && \
-    ~/catkin_ws/devel/env.sh rosdep install -i -y openag_brain
+    ~/catkin_ws/devel/env.sh rosdep install -i -y openag_brain && \
+    ~/catkin_ws/devel/env.sh rosrun openag_brain install_pio
 
 CMD ["~/catkin_ws/devel/env.sh", "rosrun", "openag_brain", "main"]
