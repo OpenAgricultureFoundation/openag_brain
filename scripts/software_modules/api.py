@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import gevent.monkey; gevent.monkey.patch_all()
 from gevent.wsgi import WSGIServer
 
 from openag_brain.api import app

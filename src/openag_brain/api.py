@@ -1,6 +1,5 @@
 import socket
 
-import gevent.monkey; gevent.monkey.patch_all()
 import rospy
 import rostopic
 import rosgraph

@@ -7,7 +7,7 @@ from openag_brain.commands import generate_firmware
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate firmware code to flask to the Arduino"
+        description="Generate firmware code to flash to the Arduino"
     )
     parser.add_argument(
         "-d", "--database", help="Address of the database server",

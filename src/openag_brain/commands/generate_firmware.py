@@ -90,7 +90,7 @@ def write_code(modules, module_types, f):
     # Write the setup function
     f.write("void setup() {\n")
     f.write("  Serial.begin(57600);\n")
-    f.write("  nh.initNode();\n")
+    f.write("  nh.initNode();\n\n")
     # TODO: Register subscribers
     # Register publishers
     for publisher in publishers:

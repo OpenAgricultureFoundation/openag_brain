@@ -1,3 +1,4 @@
+from importlib import import_module
 from couchdb.mapping import Document
 
 __all__ = ['get_or_create']
@@ -33,3 +34,8 @@ def update_doc(doc, updates, db):
             del doc[k]
     if should_save:
         doc.store(db)
+
+def resolve_message_type(msg_type):
+    pkg, cls = msg_type.split('/')
+    mod = import_module('.msg', pkg)
+    return getattr(mod, cls)

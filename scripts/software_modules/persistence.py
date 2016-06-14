@@ -10,13 +10,9 @@ import rospy
 import rostopic
 from couchdb import Server
 
+from openag_brain.util import resolve_message_type
 from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.db_names import DbName
-
-def resolve_message_type(msg_type):
-    package, cls = msg_type.split('/')
-    mod = import_module('.msg', package)
-    return getattr(mod, cls)
 
 class Persistence:
     def __init__(self):
