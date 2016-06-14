@@ -1,6 +1,6 @@
 import os
 import rospkg
-import xml.etree.ElementTree as ET
+import lxml.etree as ET
 
 from openag_brain.models import SoftwareModuleModel
 from openag_brain.db_names import DbName
@@ -54,4 +54,4 @@ def update_launch(server):
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('openag_brain')
     launch_path = os.path.join(pkg_path, 'modules.launch')
-    doc.write(launch_path)
+    doc.write(launch_path, pretty_print=True)
