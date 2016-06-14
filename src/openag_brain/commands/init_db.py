@@ -1,4 +1,5 @@
 import os
+import time
 import rospkg
 import requests
 from couchdb import PreconditionFailed
