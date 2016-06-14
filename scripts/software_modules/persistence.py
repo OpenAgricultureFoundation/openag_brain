@@ -25,7 +25,7 @@ class Persistence:
                 "Please designate an environment for this module."
             )
         self.environment = self.namespace.split('/')[-2]
-        server = Server()
+        server = Server(rospy.get_param("/database"))
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
         self.update_subscribers()
         self.last_desired_data = {}

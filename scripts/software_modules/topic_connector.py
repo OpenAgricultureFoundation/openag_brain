@@ -53,7 +53,7 @@ def connect_all_topics(module_db, module_type_db):
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
-    server = Server()
+    server = Server(rospy.get_param("/database"))
     module_db = server[DbName.FIRMWARE_MODULE]
     module_type_db = server[DbName.FIRMWARE_MODULE_TYPE]
     def restart(data):

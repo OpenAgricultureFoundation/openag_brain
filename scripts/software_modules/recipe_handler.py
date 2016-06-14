@@ -205,7 +205,7 @@ class RecipeHandler(object):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
 if __name__ == '__main__':
-    server = Server()
+    server = Server(rospy.get_param("/database"))
     mod = RecipeHandler(server)
     try:
         mod.run()
