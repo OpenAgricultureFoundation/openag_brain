@@ -194,3 +194,38 @@ def stream_topic(topic_name):
             x = queue.get()
             yield str(x) + "\n"
     return Response(gen())
+
+@app.route("/api/{v}/node".format(v=API_VER), methods=["GET"])
+def list_nodes():
+    """
+    GET /api/<version>/node
+
+    List all active ROS nodes
+    """
+    master = rosgraph.Master("/rosnode")
+    state = master.getSystemState()
+    nodes = []
+    for s in state:
+        for t, l in s:
+            nodes.extend(l)
+    return jsonify({"results": list(set(nodes))})
+
+@app.route("/api/{v}/node/<path:node_name>".format(v=API_VER), methods=["GET"])
+def get_node_info(node_name):
+    """
+    GET /api/<version>/node/<node_name>
+
+    Get information about a ROS node
+    """
+    node_name = "/" + node_name
+    master = rosgraph.Master("/rosnode")
+    state = master.getSystemState()
+    pubs = [t for t, l in state[0] if node_name in l]
+    subs = [t for t, l in state[1] if node_name in l]
+    srvs = [t for t, l in state[2] if node_name in l]
+    return jsonify({
+        "node_name": node_name,
+        "pubs": pubs,
+        "subs": subs,
+        "srvs": srvs
+    })
