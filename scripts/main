@@ -23,22 +23,25 @@ def main(database, hostname, fixture=None):
     subprocess.call(["rosrun", "openag_brain",  "install_pio"])
 
     # Initialize the database
-    print "Initializing the database..."
+    print "Initializing the database"
     server = Server(database)
     commands.init_db(server, hostname)
 
     # Load the fixture
     if fixture:
-        print "Applying fixture {}...".format(fixture)
+        print "Applying fixture {}".format(fixture)
         commands.load_fixture(server, args.fixture)
 
     # Start the software modules
+    print "Generating launch file"
     commands.update_launch(server)
     global modules
     modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
 
     # Flash the arduino
+    print "Generating firmware"
     commands.generate_firmware(server)
+    print "Flashing arduino"
     subprocess.call(["rosrun", "openag_brain", "flash_arduino"])
 
     # Whenever the softwate module configuration changes, restart the software
@@ -60,6 +63,7 @@ def main(database, hostname, fixture=None):
         last_software_seq = software_changes['last_seq']
         if len(software_changes['results']):
             modules.terminate()
+            print "Generating launch file"
             commands.update_launch(server)
             modules.wait()
             modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
@@ -70,7 +74,9 @@ def main(database, hostname, fixture=None):
         ).json()
         last_firmware_seq = firmware_changes['last_seq']
         if len(firmware_changes['results']):
+            print "Generating firmware"
             commands.generate_firmware(server)
+            print "Flashing arduino"
             subprocess.call(["rosrun", "openag_brain", "flash_arduino"])
 
 if __name__ == '__main__':
