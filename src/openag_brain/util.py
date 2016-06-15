@@ -36,6 +36,9 @@ def update_doc(doc, updates, db):
         doc.store(db)
 
 def resolve_message_type(msg_type):
-    pkg, cls = msg_type.split('/')
-    mod = import_module('.msg', pkg)
-    return getattr(mod, cls)
+    if not msg_type in resolve_message_type.cache:
+        pkg, cls = msg_type.split('/')
+        mod = import_module('.msg', pkg)
+        resolve_message_type.cache[msg_type] = getattr(mod, cls)
+    return resolve_message_type.cache[msg_type]
+resolve_message_type.cache = {}
