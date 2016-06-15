@@ -46,6 +46,7 @@
   <run_depend>angles</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rosserial_arduino</run_depend>
+  <run_depend>rosserial_python</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>python-requests</run_depend>
   <run_depend>python-couchdb</run_depend>

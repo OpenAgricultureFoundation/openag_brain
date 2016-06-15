@@ -35,6 +35,7 @@ def update_launch(server):
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
     create_node(root, 'openag_brain', 'api.py', 'api')
+    create_node(root, 'rosserial_python', 'serial_node.py', 'serial_node')
     create_node(root, 'openag_brain', 'topic_connector.py', 'topic_connector')
     create_param(root, 'database', server.resource.url, "str")
     groups = {None: root}
