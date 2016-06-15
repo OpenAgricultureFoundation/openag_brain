@@ -7,7 +7,7 @@ from openag_brain.db_names import DbName
 def read_module_data(module_db, module_type_db):
     modules = {
         module_id: FirmwareModuleModel.load(module_db, module_id) for module_id
-        in module_db
+        in module_db if not module_id.startswith('_')
     }
     module_types = {
         module.type: FirmwareModuleTypeModel.load(module_type_db, module.type)
