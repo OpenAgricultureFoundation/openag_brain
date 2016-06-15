@@ -139,6 +139,8 @@ def generate_firmware(server):
         if subprocess.call([
             "rosrun", "rosserial_arduino", "make_libraries.py", lib_path
         ]):
+            import shutil
+            shutil.rmtree(ros_lib_path)
             raise RuntimeError("Failed to make rosserial arduino libraries.")
 
     module_db = server[DbName.FIRMWARE_MODULE]
