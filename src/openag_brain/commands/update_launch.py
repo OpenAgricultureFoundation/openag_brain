@@ -35,10 +35,6 @@ def update_launch(server):
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
     create_node(root, 'openag_brain', 'api.py', 'api')
-    serial_node = create_node(
-        root, 'rosserial_python', 'serial_node.py', 'serial_node'
-    )
-    create_param(serial_node, 'port', '/dev/ttyACM0', 'str')
     create_node(root, 'openag_brain', 'topic_connector.py', 'topic_connector')
     create_node(root, 'openag_brain', 'handle_arduino.py', 'handle_arduino')
     create_param(root, 'database', server.resource.url, 'str')
