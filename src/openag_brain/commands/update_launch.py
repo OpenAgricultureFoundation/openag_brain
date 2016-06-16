@@ -45,6 +45,7 @@ def update_launch(server):
         module = SoftwareModuleModel.load(db, module_id)
         if not module.environment in groups:
             group = create_group(root, module.environment)
+            groups[module.environment] = group
         else:
             group = groups[module.environment]
         node_pkg, node_name = module.type.split(':')
