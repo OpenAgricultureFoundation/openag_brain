@@ -39,6 +39,8 @@ def connect_topics(src_topic, dest_topic):
 def connect_all_topics(module_db, module_type_db):
     topics = []
     for module_id in module_db:
+        if module_id.startswith('_'):
+            continue
         module = FirmwareModuleModel.load(module_db, module_id)
         module_type = FirmwareModuleTypeModel.load(module_type_db, module.type)
         for input_name in module_type.inputs.keys():
