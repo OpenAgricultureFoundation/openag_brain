@@ -17,7 +17,7 @@ def kill_children():
         modules.terminate()
         modules.wait()
 
-def main(database, hostname, fixture=None):
+def main(database, hostname, fixture=None, development=False):
     # Install platformio
     print "Installing PlatformIO"
     subprocess.call(["rosrun", "openag_brain",  "install_pio"])
@@ -33,10 +33,18 @@ def main(database, hostname, fixture=None):
         commands.load_fixture(server, args.fixture)
 
     # Start the software modules
-    print "Generating launch file"
-    commands.update_launch(server)
+    if not development:
+        print "Generating launch file"
+        commands.update_launch(server)
     global modules
-    modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
+    modules = subprocess.Popen([
+        "roslaunch", "openag_brain", "modules.launch",
+        "development:={}".format(development)
+    ])
+
+    if development:
+        while True:
+            time.sleep(10)
 
     # Whenever the softwate module configuration changes, restart the software
     # modules
@@ -73,5 +81,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '-f', '--fixture', help="Name of the fixture to apply to the database"
     )
+    parser.add_argument(
+        "-d", "--development", action="store_true",
+        help="Disables automatic module updates"
+    )
     args = parser.parse_args()
-    main(args.database, args.hostname, args.fixture)
+    main(args.database, args.hostname, args.fixture, args.development)

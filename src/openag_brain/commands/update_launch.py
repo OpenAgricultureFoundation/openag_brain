@@ -29,6 +29,18 @@ def create_remap(parent, from_val, to_val):
     e.attrib['from'] = from_val
     e.attrib['to'] = to_val
 
+def create_arg(parent, name, default=None, value=None):
+    e = ET.SubElement(parent, 'arg')
+    e.attrib['name'] = name
+    if default and value:
+        raise ValueError(
+            "Argument cannot have both a default value and a value"
+        )
+    if default:
+        e.attrib['default'] = str(default)
+    if value:
+        e.attrib['value'] = str(value)
+
 def update_launch(server):
     db = server[DbName.SOFTWARE_MODULE]
 
@@ -38,6 +50,8 @@ def update_launch(server):
     create_node(root, 'openag_brain', 'topic_connector.py', 'topic_connector')
     create_node(root, 'openag_brain', 'handle_arduino.py', 'handle_arduino')
     create_param(root, 'database', server.resource.url, 'str')
+    create_arg(root, 'development', default=False)
+    create_param(root, 'development', '$(arg development)', 'str')
     groups = {None: root}
     for module_id in db:
         if module_id.startswith('_'):

@@ -18,14 +18,15 @@ def kill_children():
         serial_node.terminate()
         serial_node.wait()
 
-def handle_arduino(database):
+def handle_arduino(database, development=False):
     server = Server(database)
 
     # Flash the arduino
-    print "Generating firmware"
-    commands.generate_firmware(server)
-    print "Flashing arduino"
-    subprocess.call(["rosrun", "openag_brain", "flash_arduino"])
+    if not development:
+        print "Generating firmware"
+        commands.generate_firmware(server)
+        print "Flashing arduino"
+        subprocess.call(["rosrun", "openag_brain", "flash_arduino"])
 
     # Start reading from the arduino
     print "Starting to read from Arduino"
@@ -33,6 +34,10 @@ def handle_arduino(database):
     serial_node = subprocess.Popen([
         "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
     ])
+
+    if development:
+        while True:
+            time.sleep(10)
 
     # Whenever the firmware module configuration changes, reflash the arduino
     last_firmware_seq = requests.get(
@@ -58,4 +63,9 @@ def handle_arduino(database):
             ])
 
 if __name__ == '__main__':
-     handle_arduino(rospy.get_param("/database"))
+    if rospy.has_param("/development"):
+        development = rospy.get_param("/development")
+        development = development == "True"
+    else:
+        development = False
+    handle_arduino(rospy.get_param("/database"), development)
