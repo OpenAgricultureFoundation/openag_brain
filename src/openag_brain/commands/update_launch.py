@@ -36,9 +36,9 @@ def create_arg(parent, name, default=None, value=None):
         raise ValueError(
             "Argument cannot have both a default value and a value"
         )
-    if default:
+    if default is not None:
         e.attrib['default'] = str(default)
-    if value:
+    if value is not None:
         e.attrib['value'] = str(value)
 
 def update_launch(server):

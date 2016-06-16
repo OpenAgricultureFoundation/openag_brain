@@ -15,23 +15,9 @@ def read_module_data(module_db, module_type_db):
     }
     return modules, module_types
 
-def download_lib(path, url):
-    if os.path.isdir(path):
-        subprocess.call(["git", "pull"], cwd=path)
-    else:
-        subprocess.call(["git", "clone", url, path])
-
-def download_libs(module_types, lib_folder):
+def download_libs(module_types):
     for module_type_id, module_type in module_types.items():
-        type_folder = os.path.join(lib_folder, module_type_id)
-        download_lib(type_folder, module_type.url)
-    peripheral_folder = os.path.join(
-        lib_folder, "openag_peripheral"
-    )
-    download_lib(
-        peripheral_folder,
-        "http://github.com/OpenAgInitiative/openag_peripheral"
-    )
+        subprocess.call(["pio", "lib", "install", module_type.pio_id])
 
 def write_code(modules, module_types, f):
     # Include the ros library
@@ -149,8 +135,7 @@ def generate_firmware(server):
     modules, module_types = read_module_data(
         module_db, module_type_db
     )
-    lib_folder = os.path.join(build_folder, "lib")
-    download_libs(module_types, lib_folder)
+    download_libs(module_types)
     src_folder = os.path.join(build_folder, "src")
     sketch_file = os.path.join(src_folder, "src.ino")
     with open(sketch_file, "w+") as f:

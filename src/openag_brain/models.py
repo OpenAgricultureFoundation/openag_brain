@@ -22,7 +22,7 @@ class SoftwareModuleModel(Document):
     mappings = DictField()
 
 class FirmwareModuleTypeModel(Document):
-    url = TextField()
+    pio_id = TextField()
     header_file = TextField()
     class_name = TextField()
     description = TextField()

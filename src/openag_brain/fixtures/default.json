@@ -53,7 +53,7 @@
   "firmware_module_type": [
     {
       "_id": "am2315",
-      "url": "https://github.com/OpenAgInitiative/openag_am2315",
+      "pio_id": "336",
       "header_file": "openag_am2315.h",
       "class_name": "Am2315",
       "description": "Driver for the am2315 sensor",
