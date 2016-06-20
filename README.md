@@ -67,8 +67,3 @@ With everything installed (not through Docker) and with the catkin workspace
 active, the project can be run as follows:
 
     rosrun openag_brain main
-
-Development
------------
-
-See [ARCHITECTURE.md](./ARCHITECTURE.md).

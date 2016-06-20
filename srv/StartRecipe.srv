@@ -1,4 +1,4 @@
 string recipe_id
 ---
-string msg
-int32 status_code
+bool success
+string message

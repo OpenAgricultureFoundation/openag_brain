@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
   <name>openag_brain</name>
-  <version>0.0.0</version>
-  <description>The openag_brain package</description>
+  <version>0.1.0</version>
+  <description>ROS package for controlling an OpenAg food computer</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="leonchambers@mit.edu">leonchambers</maintainer>
+  <maintainer email="leonchambers@mit.edu">Leon Chambers</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -41,6 +41,7 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>rospy</build_depend>
+  <build_depend>python-catkin-pkg</build_depend>
   <build_depend>message_generation</build_depend>
   <run_depend>tf</run_depend>
   <run_depend>angles</run_depend>
@@ -58,6 +59,6 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
+    <rosdoc config="rosdoc.yaml" />
   </export>
 </package>
