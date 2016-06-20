@@ -144,15 +144,15 @@ class RecipeHandler(object):
     def start_recipe(self, data, start_time=None):
         recipe_id = data.recipe_id
         if not recipe_id:
-            return "No recipe id was specified", 400
+            return False, "No recipe id was specified"
         if self.recipe_flag.is_set():
-            return "There is already a recipe running. Please stop it before "\
-            "attempting to start a new one", 400
+            return False, "There is already a recipe running. Please stop it before "\
+            "attempting to start a new one"
         try:
             recipe = self.recipe_db[recipe_id]
         except Exception as e:
-            return "\"{}\" does not reference a valid "\
-            "recipe".format(recipe_id), 400
+            return False, "\"{}\" does not reference a valid "\
+            "recipe".format(recipe_id)
         start_time = start_time or time.time()
         point = EnvironmentalDataPointModel(
             environment=self.environment,
@@ -171,11 +171,11 @@ class RecipeHandler(object):
             recipe.id, recipe["operations"], start_time
         )
         self.recipe_flag.set()
-        return "Success", 200
+        return True, "Success"
 
     def stop_recipe(self, data):
         self.current_recipe.cancel()
-        return "Success", 200
+        return True, "Success"
 
     def run(self):
         while True:

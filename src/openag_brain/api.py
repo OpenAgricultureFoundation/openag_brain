@@ -110,8 +110,8 @@ def perform_service_call(service_name):
         res = rosservice.call_service(service_name, [args])[1]
     except rosservice.ROSServiceException as e:
         return jsonify({"error": str(e)}), 400
-    status_code = getattr(res, "status_code", 200)
-    data = {k: getattr(res, k) for k in res.__slots__ if k != "status_code"}
+    status_code = 200 if getattr(res, "success", True) else 400
+    data = {k: getattr(res, k) for k in res.__slots__}
     return jsonify(data), status_code
 
 @app.route("/api/{v}/topic".format(v=API_VER), methods=["GET"])
