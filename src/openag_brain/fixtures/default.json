@@ -63,6 +63,54 @@
         "air_temperature": "std_msgs/Float32",
         "air_humidity": "std_msgs/Float32"
       }
+    },
+    {
+      "_id": "gc0012",
+      "pio_id": "337",
+      "header_file": "openag_gc0012.h",
+      "class_name": "Gc0012",
+      "description": "Driver for the gc0012 sensor",
+      "parameters": ["serial_port"],
+      "inputs": {},
+      "outputs": {
+        "carbon_dioxide": "std_msgs/Float32"
+      }
+    },
+    {
+      "_id": "atlas_ec",
+      "pio_id": "338",
+      "header_file": "openag_atlas_ec.h",
+      "class_name": "AtlasEc",
+      "description": "Driver for the Atlas Scientific electrical conductivity sensor",
+      "parameters": ["i2c_address"],
+      "inputs": {},
+      "outputs": {
+        "electrical_conductivity": "std_msgs/Float32"
+      }
+    },
+    {
+      "_id": "atlas_ph",
+      "pio_id": "339",
+      "header_file": "openag_atlas_ph.h",
+      "class_name": "AtlasPh",
+      "description": "Driver for the Atlas Scientific pH sensor",
+      "parameters": ["i2c_address"],
+      "inputs": {},
+      "outputs": {
+        "potential_hydrogen": "std_msgs/Float32"
+      }
+    },
+    {
+      "_id": "atlas_rgb",
+      "pio_id": "340",
+      "header_file": "openag_atlas_rgb.h",
+      "class_name": "AtlasRgb",
+      "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
+      "parameters": ["serial_port"],
+      "inputs": {},
+      "outputs": {
+        "illuminance": "std_msgs/Float32"
+      }
     }
   ]
 }
