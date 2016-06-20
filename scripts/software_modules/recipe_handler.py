@@ -103,6 +103,9 @@ class RecipeHandler(object):
         self.publishers = PublisherDict()
         rospy.Service('start_recipe', StartRecipe, self.start_recipe)
         rospy.Service('stop_recipe', Empty, self.stop_recipe)
+        rospy.set_param(
+            'supported_recipe_formats', ','.join(self.recipe_class_map.keys())
+        )
 
         self.current_recipe = None
         self.current_set_points = {}
