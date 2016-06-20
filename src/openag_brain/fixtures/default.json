@@ -7,6 +7,8 @@
   "software_module_type": [
     {
       "_id": "openag_brain:echoer.py",
+      "package": "openag_brain",
+      "executable": "echoer.py",
       "description": "Repeatedly outputs a given string",
       "parameters": ["~rate"],
       "inputs": [],
@@ -15,6 +17,8 @@
     },
     {
       "_id": "openag_brain:on_off_control.py",
+      "package": "openag_brain",
+      "executable": "on_off_control.py",
       "description": "Performs simple on/off control given a sensor reading and a set point",
       "parameters": ["~default_set_point"],
       "inputs": ["set_point", "measured"],
@@ -23,6 +27,8 @@
     },
     {
       "_id": "openag_brain:persistence.py",
+      "package": "openag_brain",
+      "executable": "persistence.py",
       "description": "Listens to topic on the environment and writes their data to CouchDB",
       "parameters": [],
       "inputs": [],
@@ -31,6 +37,8 @@
     },
     {
       "_id": "openag_brain:recipe_handler.py",
+      "package": "openag_brain",
+      "executable": "recipe_handler.py",
       "description": "Runs recipes and outputs set points for the environment",
       "parameters": [],
       "inputs": [],

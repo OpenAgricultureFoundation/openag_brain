@@ -155,6 +155,12 @@ class SoftwareModuleTypeModel(Document):
     Examples include the recipe handler and individual control loops. Software
     module types are distributed as ROS packages.
     """
+    package = TextField()
+    """
+    (str) The name of the ROS package containing the code for this object
+    """
+    executable = TextField()
+    """ (str) The name of the executable for this object """
     description = TextField()
     """ (str) Description of the library """
     parameters = ListField(TextField())

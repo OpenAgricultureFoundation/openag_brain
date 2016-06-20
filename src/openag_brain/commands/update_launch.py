@@ -2,7 +2,7 @@ import os
 import rospkg
 import lxml.etree as ET
 
-from openag_brain.models import SoftwareModuleModel
+from openag_brain.models import SoftwareModuleModel, SoftwareModuleTypeModel
 from openag_brain.db_names import DbName
 
 def create_node(parent, pkg, type, name):
@@ -42,7 +42,8 @@ def create_arg(parent, name, default=None, value=None):
         e.attrib['value'] = str(value)
 
 def update_launch(server):
-    db = server[DbName.SOFTWARE_MODULE]
+    module_db = server[DbName.SOFTWARE_MODULE]
+    module_type_db = server[DbName.SOFTWARE_MODULE_TYPE]
 
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
@@ -53,17 +54,19 @@ def update_launch(server):
     create_arg(root, 'development', default=False)
     create_param(root, 'development', '$(arg development)', 'str')
     groups = {None: root}
-    for module_id in db:
+    for module_id in module_db:
         if module_id.startswith('_'):
             continue
-        module = SoftwareModuleModel.load(db, module_id)
+        module = SoftwareModuleModel.load(module_db, module_id)
         if not module.environment in groups:
             group = create_group(root, module.environment)
             groups[module.environment] = group
         else:
             group = groups[module.environment]
-        node_pkg, node_name = module.type.split(':')
-        node = create_node(group, node_pkg, node_name, module.id)
+        module_type = SoftwareModuleTypeModel.load(module_type_db, module.type)
+        node = create_node(
+            group, module_type.package, module_type.executable, module.id
+        )
         for k,v in module.mappings.items():
             create_remap(node, k, v)
         for k,v in module.parameters.items():
