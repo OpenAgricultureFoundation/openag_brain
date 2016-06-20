@@ -6,16 +6,6 @@
   ],
   "software_module_type": [
     {
-      "_id": "openag_brain:echoer.py",
-      "package": "openag_brain",
-      "executable": "echoer.py",
-      "description": "Repeatedly outputs a given string",
-      "parameters": ["~rate"],
-      "inputs": [],
-      "outputs": ["output"],
-      "services": ["change_msg"]
-    },
-    {
       "_id": "openag_brain:on_off_control.py",
       "package": "openag_brain",
       "executable": "on_off_control.py",
