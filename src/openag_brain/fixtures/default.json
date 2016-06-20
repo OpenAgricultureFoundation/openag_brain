@@ -1,0 +1,68 @@
+{
+  "environment": [
+    {
+      "_id": "environment_1"
+    }
+  ],
+  "software_module_type": [
+    {
+      "_id": "openag_brain:echoer.py",
+      "description": "Repeatedly outputs a given string",
+      "parameters": ["~rate"],
+      "inputs": [],
+      "outputs": ["output"],
+      "services": ["change_msg"]
+    },
+    {
+      "_id": "openag_brain:on_off_control.py",
+      "description": "Performs simple on/off control given a sensor reading and a set point",
+      "parameters": ["~default_set_point"],
+      "inputs": ["set_point", "measured"],
+      "outputs": ["state"],
+      "services": []
+    },
+    {
+      "_id": "openag_brain:persistence.py",
+      "description": "Listens to topic on the environment and writes their data to CouchDB",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": []
+    },
+    {
+      "_id": "openag_brain:recipe_handler.py",
+      "description": "Runs recipes and outputs set points for the environment",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": ["start_recipe", "stop_recipe"]
+    }
+  ],
+  "software_module": [
+    {
+      "_id": "recipe_handler_1",
+      "type": "openag_brain:recipe_handler.py",
+      "environment": "environment_1"
+    },
+    {
+      "_id": "persistence_1",
+      "type": "openag_brain:persistence.py",
+      "environment": "environment_1"
+    }
+  ],
+  "firmware_module_type": [
+    {
+      "_id": "am2315",
+      "pio_id": "336",
+      "header_file": "openag_am2315.h",
+      "class_name": "Am2315",
+      "description": "Driver for the am2315 sensor",
+      "parameters": [],
+      "inputs": {},
+      "outputs": {
+        "air_temperature": "std_msgs/Float32",
+        "air_humidity": "std_msgs/Float32"
+      }
+    }
+  ]
+}
