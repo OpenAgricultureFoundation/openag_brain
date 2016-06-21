@@ -6,6 +6,12 @@ from openag_brain.models import SoftwareModuleModel, SoftwareModuleTypeModel
 from openag_brain.db_names import DbName
 
 def create_node(parent, pkg, type, name):
+    """
+    Creates an xml node for the launch file that represents a ROS node.
+    `parent` is the parent xml node. `pkg` is the ROS package of the node.
+    `type` is the name of the executable for the node. `name` is the name
+    of the ROS node.
+    """
     e = ET.SubElement(parent, 'node')
     e.attrib['pkg'] = pkg
     e.attrib['type'] = type
@@ -13,6 +19,12 @@ def create_node(parent, pkg, type, name):
     return e
 
 def create_param(parent, name, value, type):
+    """
+    Creates an xml node for the launch file that represents a ROS parameter.
+    `parent` is the parent xml node. `name` is the name of the parameter to
+    set. `value` is the value of the parameter. `type` is the type of the
+    paremeter (e.g. int, float)
+    """
     e = ET.SubElement(parent, 'param')
     e.attrib['name'] = name
     e.attrib['value'] = value
@@ -20,16 +32,31 @@ def create_param(parent, name, value, type):
     return e
 
 def create_group(parent, ns):
+    """
+    Creates an xml node for the launch file that represents a ROS group.
+    `parent` is the parent xml node. `ns` is the namespace of the group.
+    """
     e = ET.SubElement(parent, 'group')
     e.attrib['ns'] = ns
     return e
 
 def create_remap(parent, from_val, to_val):
+    """
+    Creates an xml node for the launch file that represents a name remapping.
+    `parent` is the parent xml node. `from_val` is the name that is to be
+    remapped. `to_val` is the target name.
+    """
     e = ET.SubElement(parent, 'remap')
     e.attrib['from'] = from_val
     e.attrib['to'] = to_val
 
 def create_arg(parent, name, default=None, value=None):
+    """
+    Creates an xml node for the launch file that represents a command line
+    argument. `parent` is the parent xml node. `default` is the default value
+    of the argument. `value` is the value of the argument. At most one of
+    `default` and `value` can be provided.
+    """
     e = ET.SubElement(parent, 'arg')
     e.attrib['name'] = name
     if default and value:
@@ -42,6 +69,10 @@ def create_arg(parent, name, default=None, value=None):
         e.attrib['value'] = str(value)
 
 def update_launch(server):
+    """
+    Write a roslaunch file to `modules.launch` based on the software module
+    configuration read from the `couchdb.Server` instance `server`.
+    """
     module_db = server[DbName.SOFTWARE_MODULE]
     module_type_db = server[DbName.SOFTWARE_MODULE_TYPE]
 

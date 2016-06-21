@@ -5,7 +5,11 @@ from couchdb import Server
 from openag_brain.commands import init_db
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Initialize the database")
+    parser = argparse.ArgumentParser(description="""
+Initialize the CouchDB server by setting some configuration parameters given
+in the `couchdb.ini` file, creating the necessary databases, and pushing design
+documents to them.
+    """)
     parser.add_argument(
         "-D", "--database", help="Address of the database server",
          default="http://localhost:5984"

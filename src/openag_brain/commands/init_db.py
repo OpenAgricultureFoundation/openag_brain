@@ -10,6 +10,10 @@ from openag_brain.util import get_or_create, update_doc
 from openag_brain.db_names import DbName
 
 def folder_to_dict(path):
+    """
+    Recursively reads the files from the directory given by `path` and writes
+    their contents to a nested dictionary, which is then returned.
+    """
     res = {}
     for key in os.listdir(path):
         key_path = os.path.join(path, key)
@@ -22,6 +26,12 @@ def folder_to_dict(path):
     return res
 
 def init_db(server, hostname):
+    """
+    Initializes database given by the `couchdb.Server` object `server` assuming
+    that the hostname of this machine is given by `hostname`. In particular, it
+    sets some couchdb configuration parameters given in the `couchdb.ini` file,
+    creates the necessary databases, and pushes design documents to them.
+    """
     # Copy the couchdb config file into the correct directory
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('openag_brain')

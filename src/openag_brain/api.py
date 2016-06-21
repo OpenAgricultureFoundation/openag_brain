@@ -137,9 +137,9 @@ def get_topic_info(topic_name):
     Returns a JSON response with the following fields (or error):
 
     {
-        "type": "...",   // topic type,
-        "subs": [...],   // a list of subscribers
-        "pubs": [...]    // a list of publishers
+        "type": "...",   // topic type, \n
+        "subs": [...],   // a list of subscribers \n
+        "pubs": [...]    // a list of publishers \n
     }
     """
     topic_name = "/" + topic_name

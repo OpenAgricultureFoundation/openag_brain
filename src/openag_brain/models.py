@@ -21,7 +21,7 @@ class EnvironmentModel(Document):
 class EnvironmentalDataPointModel(Document):
     """
     An `environmental data point` represents a single measurement or event in
-    an `environment.
+    an `environment`.
     """
     environment = TextField()
     """ (str) The ID of the environment for which this point was measured """
@@ -86,7 +86,7 @@ class FirmwareModuleTypeModel(Document):
     """ (str) Description of the library """
     parameters = ListField(TextField())
     """
-    (array) A list of parameters that must be defined for `firmware module`s of
+    (array) A list of parameters that must be defined for `firmware modules` of
     this type and passed into the constructor of the top-level class of this
     library
     """

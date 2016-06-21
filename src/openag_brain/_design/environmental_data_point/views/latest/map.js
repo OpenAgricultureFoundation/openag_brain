@@ -6,5 +6,5 @@ function (doc) {
   else {
     point_type = 'measured';
   }
-  emit([doc.environment, doc.variable, point_type, doc.timestamp], doc);
+  emit([doc.environment, doc.variable, point_type], doc);
 }

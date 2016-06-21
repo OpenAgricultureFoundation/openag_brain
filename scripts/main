@@ -18,10 +18,6 @@ def kill_children():
         modules.wait()
 
 def main(database, hostname, fixture=None, development=False):
-    # Install platformio
-    print "Installing PlatformIO"
-    subprocess.call(["rosrun", "openag_brain",  "install_pio"])
-
     # Initialize the database
     print "Initializing the database"
     server = Server(database)
@@ -68,7 +64,13 @@ def main(database, hostname, fixture=None, development=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description="Run the API and software modules for openag_brain",
+        description="""
+Runs the entire software project. In particular, it initializes the
+database (init_db), optionally applies a fixture to the database
+(load_fixture), generates a roslaunch file for the software modules
+(update_launch), runs the roslaunch file, and respawns if there is a change to
+the configuration of the software modules
+        """,
     )
     parser.add_argument(
         "-D", "--database", help="Address of the database server",
@@ -83,7 +85,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "-d", "--development", action="store_true",
-        help="Disables automatic module updates"
+        help="Disables automatic module updates for both software and firmware"
     )
     args = parser.parse_args()
     main(args.database, args.hostname, args.fixture, args.development)

@@ -5,6 +5,11 @@ from openag_brain import fixtures
 from openag_brain.util import get_or_create, update_doc
 
 def load_fixture(server, fixture_name):
+    """
+    Given a `couchdb.Server` instance `server` and a `fixture_name`, this
+    function reads in the fixture and creates the corresponding objects on the
+    server.
+    """
     fixture_file_name = os.path.join(
         os.path.dirname(fixtures.__file__), fixture_name + ".json"
     )

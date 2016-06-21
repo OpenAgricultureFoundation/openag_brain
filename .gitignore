@@ -6,3 +6,4 @@ __pycache__
 modules.launch
 doc/html
 doc/manifest.yaml
+doc/_build

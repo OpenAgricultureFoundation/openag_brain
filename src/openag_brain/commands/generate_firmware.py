@@ -5,6 +5,12 @@ from openag_brain.models import FirmwareModuleTypeModel, FirmwareModuleModel
 from openag_brain.db_names import DbName
 
 def read_module_data(module_db, module_type_db):
+    """
+    Pulls all of the relevant modules and module types from the database.
+    Returns 1 dictionary mapping module IDs to `FirmwareModuleModel` instances
+    and 1 dictionary mapping module type IDs to `FirmwareModuleTypeModel`
+    instances.
+    """
     modules = {
         module_id: FirmwareModuleModel.load(module_db, module_id) for module_id
         in module_db if not module_id.startswith('_')
@@ -16,10 +22,19 @@ def read_module_data(module_db, module_type_db):
     return modules, module_types
 
 def download_libs(module_types):
+    """
+    Downloads the libraries for all of the module_types from platformio
+    """
     for module_type_id, module_type in module_types.items():
         subprocess.call(["pio", "lib", "install", module_type.pio_id])
 
 def write_code(modules, module_types, f):
+    """
+    Writes firmware code to the file given by the file desriptor `f` using the
+    modules given by `modules` and the module types given by `module_types`.
+    Assumes the libraries for the module types are already installed (i.e.
+    `download_libs` was fun.
+    """
     # Include the ros library
     f.write("#include <ros.h>\n\n")
 
@@ -103,6 +118,10 @@ def write_code(modules, module_types, f):
 
 
 def generate_firmware(server):
+    """
+    Generates firmware based on the configuration read from `server`, which
+    should be a `couchdb.Server` instance
+    """
     home = os.path.expanduser("~")
     openag_folder = os.path.join(home, ".openag")
     if not os.path.isdir(openag_folder):
