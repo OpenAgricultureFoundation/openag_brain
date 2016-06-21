@@ -59,7 +59,9 @@ def write_code(modules, module_types, f):
         module_type = module_types[module.type]
         parameters_name = module.id + "_parameters"
         f.write("String {}[] = {{{}}};\n".format(
-            parameters_name, ", ".join(module.parameters)
+            parameters_name, "\"" + "\", \"".join(
+                module.parameters[param] for param in module_type.parameters
+            ) + "\""
         ))
         f.write('{class_name} {id}("{id}", {parameters});\n\n'.format(
             class_name=module_type.class_name, id=module.id,
