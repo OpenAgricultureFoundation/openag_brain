@@ -15,10 +15,18 @@ def read_module_data(module_db, module_type_db):
         module_id: FirmwareModuleModel.load(module_db, module_id) for module_id
         in module_db if not module_id.startswith('_')
     }
-    module_types = {
-        module.type: FirmwareModuleTypeModel.load(module_type_db, module.type)
-        for module in modules.values()
-    }
+    module_types = {}
+    for module in modules.values():
+        if not module.type in module_types:
+            module_types[module.type] = FirmwareModuleTypeModel.load(
+                module_type_db, module.type
+            )
+        if module_types[module.type] is None:
+            raise RuntimeError(
+                'Module "{}" references nonexistant module type "{}"'.format(
+                    module.id, module.type
+                )
+            )
     return modules, module_types
 
 def download_libs(module_types):
@@ -60,7 +68,8 @@ def write_code(modules, module_types, f):
         parameters_name = module.id + "_parameters"
         f.write("String {}[] = {{{}}};\n".format(
             parameters_name, "\"" + "\", \"".join(
-                module.parameters[param] for param in module_type.parameters
+                str(module.parameters[param]) for param in
+                module_type.parameters
             ) + "\""
         ))
         f.write('{class_name} {id}("{id}", {parameters});\n\n'.format(

@@ -133,7 +133,7 @@ class RecipeHandler(object):
 
         # Run the recipe
         self.start_recipe(
-            ChangeString._request_class(start_doc["value"]),
+            StartRecipe._request_class(start_doc["value"]),
             start_doc["timestamp"]
         )
 

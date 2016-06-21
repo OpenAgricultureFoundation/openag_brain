@@ -54,7 +54,9 @@ def init_db(server, hostname):
                 time.sleep(1)
                 if not res.status_code == 200:
                     raise RuntimeError(
-                        'Failed to set configuration parameter "{}"'.format(param)
+                        'Failed to set configuration parameter "{}": {}'.format(
+                            param, res.content
+                        )
                     )
 
     # Create all of the databases
