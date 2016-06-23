@@ -5,7 +5,7 @@ from couchdb.mapping import Document
 
 __all__ = [
     'get_or_create', 'update_doc', 'resolve_message_type',
-    'get_database_changes'
+    'get_database_changes', 'read_module_data'
 ]
 
 def get_or_create(db, doc_id, Model=Document):
@@ -87,3 +87,31 @@ def pio_build_path():
     if not os.path.isdir(build_folder):
         os.mkdir(build_folder)
     return build_folder
+
+def read_module_data(module_db, module_cls, module_type_db, module_type_cls):
+    """
+    Pulls all of modules from `module_db` and all of the module types for which
+    there exists modules from `module_type_db`. Assumes modules have a `type`
+    attribute that stores the ID of their module type. Returns one dictionary
+    mapping module IDs to `module_cls` instances and one dictionary mapping
+    module type IDs to `module_type_cls` instances. This function is used in
+    generating both the roslaunch file and the firmware code.
+    """
+    modules = {
+        module_id: module_cls.load(module_db, module_id) for module_id in
+        module_db if not module_id.startswith('_')
+    }
+    module_types = {}
+    for module in modules.values():
+        if not module.type in module_types:
+            module_types[module.type] = module_type_cls.load(
+                module_type_db, module.type
+            )
+        if module_types[module.type] is None:
+            raise ValueError(
+                'Module "{}" references nonexistant module type "{}"'.format(
+                    module.id, module.type
+                )
+            )
+    return modules, module_types
+

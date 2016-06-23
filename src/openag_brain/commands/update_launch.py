@@ -3,6 +3,7 @@ import rospkg
 import lxml.etree as ET
 
 from openag_brain import params
+from openag_brain.util import read_module_data
 from openag_brain.models import SoftwareModuleModel, SoftwareModuleTypeModel
 from openag_brain.db_names import DbName
 
@@ -74,30 +75,28 @@ def update_launch(server):
     Write a roslaunch file to `modules.launch` based on the software module
     configuration read from the `couchdb.Server` instance `server`.
     """
-    module_db = server[DbName.SOFTWARE_MODULE]
-    module_type_db = server[DbName.SOFTWARE_MODULE_TYPE]
-
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
-    create_node(root, 'openag_brain', 'api.py', 'api')
-    create_node(root, 'openag_brain', 'topic_connector.py', 'topic_connector')
-    create_node(root, 'openag_brain', 'handle_arduino.py', 'handle_arduino')
     create_param(root, params.DB_SERVER, server.resource.url, 'str')
     create_arg(root, params.DEVELOPMENT, default=False)
     create_param(
         root, params.DEVELOPMENT, '$(arg {})'.format(params.DEVELOPMENT), 'str'
     )
     groups = {None: root}
-    for module_id in module_db:
-        if module_id.startswith('_'):
+
+    modules, module_types = read_module_data(
+        server[DbName.SOFTWARE_MODULE], SoftwareModuleModel,
+        server[DbName.SOFTWARE_MODULE_TYPE], SoftwareModuleTypeModel
+    )
+    for module in modules.values():
+        if module.id.startswith('_'):
             continue
-        module = SoftwareModuleModel.load(module_db, module_id)
         if not module.environment in groups:
             group = create_group(root, module.environment)
             groups[module.environment] = group
         else:
             group = groups[module.environment]
-        module_type = SoftwareModuleTypeModel.load(module_type_db, module.type)
+        module_type = module_types[module.type]
         node = create_node(
             group, module_type.package, module_type.executable, module.id
         )

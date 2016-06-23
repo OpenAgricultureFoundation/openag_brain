@@ -1,34 +1,9 @@
 import os
 import subprocess
 
-from openag_brain.util import pio_build_path
+from openag_brain.util import pio_build_path, read_module_data
 from openag_brain.models import FirmwareModuleTypeModel, FirmwareModuleModel
 from openag_brain.db_names import DbName
-
-def read_module_data(module_db, module_type_db):
-    """
-    Pulls all of the relevant modules and module types from the database.
-    Returns 1 dictionary mapping module IDs to `FirmwareModuleModel` instances
-    and 1 dictionary mapping module type IDs to `FirmwareModuleTypeModel`
-    instances.
-    """
-    modules = {
-        module_id: FirmwareModuleModel.load(module_db, module_id) for module_id
-        in module_db if not module_id.startswith('_')
-    }
-    module_types = {}
-    for module in modules.values():
-        if not module.type in module_types:
-            module_types[module.type] = FirmwareModuleTypeModel.load(
-                module_type_db, module.type
-            )
-        if module_types[module.type] is None:
-            raise RuntimeError(
-                'Module "{}" references nonexistant module type "{}"'.format(
-                    module.id, module.type
-                )
-            )
-    return modules, module_types
 
 def download_libs(module_types):
     """
@@ -154,11 +129,9 @@ def generate_firmware(server):
             shutil.rmtree(ros_lib_path)
             raise RuntimeError("Failed to make rosserial arduino libraries.")
 
-    module_db = server[DbName.FIRMWARE_MODULE]
-    module_type_db = server[DbName.FIRMWARE_MODULE_TYPE]
-
     modules, module_types = read_module_data(
-        module_db, module_type_db
+        server[DbName.FIRMWARE_MODULE], FirmwareModuleModel,
+        server[DbName.FIRMWARE_MODULE_TYPE], FirmwareModuleTypeModel
     )
     download_libs(module_types)
     src_folder = os.path.join(build_folder, "src")

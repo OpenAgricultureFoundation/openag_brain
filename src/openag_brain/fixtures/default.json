@@ -6,6 +6,26 @@
   ],
   "software_module_type": [
     {
+      "_id": "openag_brain:api.py",
+      "package": "openag_brain",
+      "executable": "api.py",
+      "description": "HTTP API for interacting with ROS",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": []
+    },
+    {
+      "_id": "openag_brain:handle_arduino.py",
+      "package": "openag_brain",
+      "executable": "handle_arduino.py",
+      "description": "Handles generating code for, flashing, and reading from the Arduino",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": []
+    },
+    {
       "_id": "openag_brain:on_off_control.py",
       "package": "openag_brain",
       "executable": "on_off_control.py",
@@ -34,9 +54,31 @@
       "inputs": [],
       "outputs": [],
       "services": ["start_recipe", "stop_recipe"]
+    },
+    {
+      "_id": "openag_brain:topic_connector.py",
+      "package": "openag_brain",
+      "executable": "topic_connector.py",
+      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways",
+      "parameters": [],
+      "inputs": [],
+      "outputs": [],
+      "services": []
     }
   ],
   "software_module": [
+    {
+      "_id": "api",
+      "type": "openag_brain:api.py"
+    },
+    {
+      "_id": "topic_connector",
+      "type": "openag_brain:topic_connector.py"
+    },
+    {
+      "_id": "arduino_handler",
+      "type": "openag_brain:handle_arduino.py"
+    },
     {
       "_id": "recipe_handler_1",
       "type": "openag_brain:recipe_handler.py",
