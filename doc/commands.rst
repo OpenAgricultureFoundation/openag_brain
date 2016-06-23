@@ -5,6 +5,8 @@ The project contains several execuables for interacting with the system. In
 most cases, just running the `init_db` and `main` commands is sufficient, but the
 others may prove useful for developers.
 
+.. _OpenagCmdInitDb:
+
 Initialize Database
 -------------------
 
@@ -14,6 +16,8 @@ Initialize Database
 
 .. program-output:: rosrun openag_brain init_db -h
 
+.. _OpenagCmdMain:
+
 Main
 ----
 
@@ -22,6 +26,8 @@ Main
     rosrun openag_brain main
 
 .. program-output:: rosrun openag_brain main -h
+
+.. _OpenagCmdInstallPio:
 
 Install PlatformIO
 ------------------
@@ -34,6 +40,8 @@ environment. This script automates that process.
 .. code-block:: bash
 
     rosrun openag_brain install_pio
+
+.. _OpenagCmdLoadFixture:
 
 Load Fixture
 ------------
@@ -48,6 +56,8 @@ system.
 
 .. program-output:: rosrun openag_brain load_fixture -h
 
+.. _OpenagCmdUpdateLaunch:
+
 Update Roslaunch File
 ---------------------
 
@@ -56,6 +66,8 @@ Update Roslaunch File
     rosrun openag_brain update_launch
 
 .. program-output:: rosrun openag_brain update_launch -h
+
+.. _OpenagCmdFlashArduino:
 
 Flash Arduino
 -------------
@@ -66,6 +78,8 @@ Flash Arduino
 
 Compiles the firmware project contained in `~/.openag/build` and flashes a
 connected Arduino with it (if one exists).
+
+.. _OpenagCmdGenerateFirmware:
 
 Generate Firmware
 -----------------

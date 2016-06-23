@@ -2,7 +2,7 @@ OpenAg Brain
 ============
 
 This repository hold code that runs on the main computing board of an OpenAg
-food computer (usually a Raspberry Pi). It runs on top on [ROS](www.ros.org)
+food computer (usually a Raspberry Pi). It runs on top on [ROS](http://www.ros.org)
 and uses [CouchDB](http://couchdb.apache.org/) for data storage.
 
 Installation (Raspberry Pi)
@@ -14,7 +14,7 @@ Most people should use this image. To set it up, follow the instructions in
 
 If you plan to modify the code in this repository, it might make more sense to
 install the software directly on your machine instead of running everything in
-a Docker container. For Raspberry Pi, this can be done by following hte
+a Docker container. For Raspberry Pi, this can be done by following the
 instructions in [this
 repo](https://github.com/OpenAgInitiative/openag_brain_install_rpi.git).
 

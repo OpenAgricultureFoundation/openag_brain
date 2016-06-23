@@ -1,4 +1,15 @@
 #!/usr/bin/python
+"""
+By convention, firmware modules publish sensor data to ROS topics in the
+namespace `/sensors` and listen to actuator commands on ROS topics in the
+namespace `/actuators`. This is very useful for low level tasks such as
+debugging/testing your hardware but not so useful for getting a high level
+overview of the environmental conditions of your system. For this, we would
+like to use topics namespaced by the ID of the environment on which the piece
+of hardware acts (e.g. /environment_1/air_temperature). This module connects
+topics so as to ensure that both of these system views work as expected. There
+should be exactly one instance of this module in the system
+"""
 import sys
 import time
 import rospy

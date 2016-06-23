@@ -1,22 +1,29 @@
-.. openag_brain documentation master file, created by
-   sphinx-quickstart on Fri Jun 17 16:07:12 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 OpenAg Brain
 ============
 
-Contents:
+This project contains the code that runs on the Raspberry Pi of an OpenAg food
+computer. It consists of a single `ROS <http://wiki.ros.org>`_ package that is
+responsible for generating code for and flashing the Arduino responsible for
+controlling the hardware, running control loops to maintain some given
+environmental conditions, running recipes that define the desired environmental
+conditions over time, and writing data to a `CouchDB
+<http://couchdb.apache.org>`_ instance.
+
+Contents
+--------
 
 .. toctree::
     :maxdepth: 2
 
+    getting_started
+    module_configuration
     commands
-    api
     object_model
+    database_queries
+    api
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

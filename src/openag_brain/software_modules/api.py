@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+"""
+The `api.py` module defines an API that allows clients to interact with ROS
+over HTTP. It is accessible at `<hostname>:5984/_openag/` when the project is
+running. There should always be exactly one instance of this module in the
+system.
+"""
+import gevent.monkey; gevent.monkey.patch_all()
+
 import socket
 
 import rospy
@@ -6,6 +15,7 @@ import rosgraph
 import rosservice
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
+from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
 
 API_VER = "0.0.1"
@@ -231,3 +241,10 @@ def get_node_info(node_name):
         "subs": subs,
         "srvs": srvs
     })
+
+if __name__ == '__main__':
+    server = WSGIServer(('', 5000), app)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.stop()

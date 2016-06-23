@@ -1,4 +1,16 @@
 #!/usr/bin/python
+"""
+The `recipe_handler.py` module is in charge of running recipes. It provides a
+service `/<environment_id>/start_recipe` which takes as input a recipe ID and
+starts the recipe. It also provides a service `/<environment_id>/stop_recipe`
+which takes no inputs and stops the currently running recipe. It defines a
+parameter `current_recipe` which stores the ID of the currently running recipe.
+It also defines a parameter `current_recipe_start` which stores the UNIX
+timestamp at which the currently running recipe was started. If no recipe is
+running, `current_recipe` will be set to an empty string and
+`current_recipe_start` will be set to 0. There should always be exactly one
+instance of this module per environment in the system.
+"""
 
 import sys
 import time
