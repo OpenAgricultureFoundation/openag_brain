@@ -17,7 +17,13 @@ CORS(app)
 @app.errorhandler(socket.error)
 @app.errorhandler(rosservice.ROSServiceIOException)
 def socket_error_handler(error):
-    return jsonify({"error": "Unable to communicate with master"}), 400
+    return error("Unable to communicate with master")
+
+def error(msg, status_code=400):
+    return jsonify({"error": str(msg)}), status_code
+
+rostopic_master = rosgraph.Master("/rostopic")
+rosnode_master = rosgraph.Master("/rosnode")
 
 @app.route("/api/{v}/param".format(v=API_VER), methods=["GET"])
 def list_params():
@@ -40,11 +46,11 @@ def get_param(param_name):
     Parameter Server.
 
     Parameter value is in the "result" field of the JSON response body. If
-    parameter does not exist, a JSON document with "error" field will
+    parameter does not exist, a JSON document with ERROR field will
     be returned.
     """
     if not rospy.has_param(param_name):
-        return jsonify({"error": "No such parameter exists"}), 400
+        return error("No such parameter exists")
     return jsonify({"result": str(rospy.get_param(param_name))})
 
 @app.route("/api/{v}/param/<path:param_name>".format(v=API_VER), methods=["POST"])
@@ -56,7 +62,7 @@ def set_param(param_name):
     of the request body.
     """
     if not "value" in request.values:
-        return jsonify({"error": "No value supplied"}), 400
+        return error("No value supplied")
     rospy.set_param(param_name, request.values["value"])
     return "", 204
 
@@ -81,7 +87,7 @@ def get_service_info(service_name):
     service_name = "/" + service_name
     service_type = rosservice.get_service_type(service_name)
     if not service_type:
-        return jsonify({"error": "No such service exists"}), 404
+        return error("No such service exists")
     return jsonify({
         "request_type": service_type,
         "node": rosservice.get_service_node(service_name),
@@ -109,7 +115,7 @@ def perform_service_call(service_name):
     try:
         res = rosservice.call_service(service_name, [args])[1]
     except rosservice.ROSServiceException as e:
-        return jsonify({"error": str(e)}), 400
+        return error(e)
     status_code = 200 if getattr(res, "success", True) else 400
     data = {k: getattr(res, k) for k in res.__slots__}
     return jsonify(data), status_code
@@ -121,8 +127,7 @@ def list_topics():
 
     GET the list of published ROS topics.
     """
-    master = rosgraph.Master("/rostopic")
-    state = master.getSystemState()
+    state = rostopic_master.getSystemState()
     pubs, subs, _ = state
     topics = set(x[0] for x in subs) | set(x[0] for x in pubs)
     return jsonify({"results": list(topics)})
@@ -143,8 +148,7 @@ def get_topic_info(topic_name):
     }
     """
     topic_name = "/" + topic_name
-    master = rosgraph.Master("/rostopic")
-    state = master.getSystemState()
+    state = rostopic_master.getSystemState()
     pubs, subs, _ = state
     topic_exists = 2
     try:
@@ -158,7 +162,7 @@ def get_topic_info(topic_name):
         topic_exists -= 1
         pubs = []
     if not topic_exists:
-        return jsonify({"error": "Topic does not exist"}), 404
+        return error("Topic does not exist", 404)
     topic_type = next(
         x for name, x in master.getTopicTypes() if name == topic_name
     )
@@ -178,10 +182,10 @@ def stream_topic(topic_name):
     topic_name = "/" + topic_name
     try:
         msg_class, real_topic, _ = rostopic.get_topic_class(topic_name)
-    except rostopic.ROSTopicIOException:
-        return jsonify({"error": "Unable to communicate with master"}), 400
+    except rostopic.ROSTopicIOException as e:
+        raise e
     if not real_topic:
-        return jsonify({"error": "Topic does not exist"}), 404
+        return error("Topic does not exist", 404)
     queue = Queue(5)
     def callback(data, queue=queue):
         data = getattr(data, "data", None)
@@ -202,8 +206,7 @@ def list_nodes():
 
     List all active ROS nodes
     """
-    master = rosgraph.Master("/rosnode")
-    state = master.getSystemState()
+    state = rosnode_master.getSystemState()
     nodes = []
     for s in state:
         for t, l in s:
@@ -218,8 +221,7 @@ def get_node_info(node_name):
     Get information about a ROS node
     """
     node_name = "/" + node_name
-    master = rosgraph.Master("/rosnode")
-    state = master.getSystemState()
+    state = rosnode_master.getSystemState()
     pubs = [t for t, l in state[0] if node_name in l]
     subs = [t for t, l in state[1] if node_name in l]
     srvs = [t for t, l in state[2] if node_name in l]

@@ -3,16 +3,15 @@ import argparse
 
 from couchdb import Server
 
+from openag_brain import args
+from openag_brain.util import *
 from openag_brain.commands import generate_firmware
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate firmware code to flash to the Arduino"
     )
-    parser.add_argument(
-        "-D", "--database", help="Address of the database server",
-        default="http://localhost:5984"
-    )
-    args = parser.parse_args()
-    server = Server(args.database)
+    args.add_db_server_arg(parser)
+    vals = parser.parse_args()
+    server = Server(vals.db_server)
     generate_firmware(server)

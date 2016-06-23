@@ -9,13 +9,11 @@ import rospy
 from couchdb import Server
 from std_msgs.msg import Float64
 
+from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.db_names import DbName
 from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.var_types import EnvironmentalVariable
-
-CURRENT_RECIPE = 'current_recipe'
-CURRENT_RECIPE_START = 'current_recipe_start'
 
 class Recipe(object):
     def __init__(self, _id, operations, start_time):
@@ -101,21 +99,27 @@ class RecipeHandler(object):
 
         rospy.init_node('recipe_handler')
         self.publishers = PublisherDict()
-        rospy.Service('start_recipe', StartRecipe, self.start_recipe)
-        rospy.Service('stop_recipe', Empty, self.stop_recipe)
+        rospy.Service(services.START_RECIPE, StartRecipe, self.start_recipe)
+        rospy.Service(services.STOP_RECIPE, Empty, self.stop_recipe)
         rospy.set_param(
-            'supported_recipe_formats', ','.join(self.recipe_class_map.keys())
+            params.SUPPORTED_RECIPE_FORMATS,
+            ','.join(self.recipe_class_map.keys())
         )
 
         self.current_recipe = None
         self.current_set_points = {}
 
+        rospy.set_param(params.CURRENT_RECIPE, "")
+        rospy.set_param(params.CURRENT_RECIPE_START, 0)
+
         # Start publishing set points
         self.publish_set_points()
 
         # Get the recipe that has been started most recently
-        start_view = self.env_data_db.view("openag/latest", key=[
+        start_view = self.env_data_db.view("openag/by_variable", startkey=[
             self.environment, EnvironmentalVariable.RECIPE_START, "desired"
+        ], endkey=[
+            self.environment, EnvironmentalVariable.RECIPE_START, "desired", {}
         ])
         if len(start_view) == 0:
             return
@@ -123,8 +127,10 @@ class RecipeHandler(object):
 
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
-        end_view = self.env_data_db.view("openag/latest", key=[
+        end_view = self.env_data_db.view("openag/by_variable", startkey=[
             self.environment, EnvironmentalVariable.RECIPE_END, "desired"
+        ], endkey=[
+            self.environment, EnvironmentalVariable.RECIPE_END, "desired", {}
         ])
         if len(end_view):
             end_doc = end_view.rows[0].value
@@ -166,8 +172,8 @@ class RecipeHandler(object):
         )
         point.id = self.gen_doc_id(start_time)
         point.store(self.env_data_db)
-        rospy.set_param(CURRENT_RECIPE, recipe_id)
-        rospy.set_param(CURRENT_RECIPE_START, start_time)
+        rospy.set_param(params.CURRENT_RECIPE, recipe_id)
+        rospy.set_param(params.CURRENT_RECIPE_START, start_time)
         self.current_recipe = self.recipe_class_map[
             getattr(recipe, "format", "simple")
         ](
@@ -200,15 +206,15 @@ class RecipeHandler(object):
             )
             point.id = self.gen_doc_id(curr_time)
             point.store(self.env_data_db)
-            rospy.delete_param(CURRENT_RECIPE)
-            rospy.delete_param(CURRENT_RECIPE_START)
+            rospy.set_param(params.CURRENT_RECIPE, "")
+            rospy.set_param(params.CURRENT_RECIPE_START, 0)
             self.recipe_flag.clear()
 
     def gen_doc_id(self, curr_time):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
 if __name__ == '__main__':
-    server = Server(rospy.get_param("/database"))
+    server = Server(rospy.get_param('/' + params.DB_SERVER))
     mod = RecipeHandler(server)
     try:
         mod.run()

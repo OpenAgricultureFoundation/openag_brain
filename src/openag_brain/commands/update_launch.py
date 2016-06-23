@@ -2,6 +2,7 @@ import os
 import rospkg
 import lxml.etree as ET
 
+from openag_brain import params
 from openag_brain.models import SoftwareModuleModel, SoftwareModuleTypeModel
 from openag_brain.db_names import DbName
 
@@ -81,9 +82,11 @@ def update_launch(server):
     create_node(root, 'openag_brain', 'api.py', 'api')
     create_node(root, 'openag_brain', 'topic_connector.py', 'topic_connector')
     create_node(root, 'openag_brain', 'handle_arduino.py', 'handle_arduino')
-    create_param(root, 'database', server.resource.url, 'str')
-    create_arg(root, 'development', default=False)
-    create_param(root, 'development', '$(arg development)', 'str')
+    create_param(root, params.DB_SERVER, server.resource.url, 'str')
+    create_arg(root, params.DEVELOPMENT, default=False)
+    create_param(
+        root, params.DEVELOPMENT, '$(arg {})'.format(params.DEVELOPMENT), 'str'
+    )
     groups = {None: root}
     for module_id in module_db:
         if module_id.startswith('_'):

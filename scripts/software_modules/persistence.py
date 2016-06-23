@@ -10,12 +10,13 @@ import rospy
 import rostopic
 from couchdb import Server
 
+from openag_brain import params
 from openag_brain.util import resolve_message_type
 from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.db_names import DbName
 
 class Persistence:
-    def __init__(self):
+    def __init__(self, server):
         self.subscribers = {}
         rospy.init_node('persistence')
         self.namespace = rospy.get_namespace()
@@ -25,7 +26,6 @@ class Persistence:
                 "Please designate an environment for this module."
             )
         self.environment = self.namespace.split('/')[-2]
-        server = Server(rospy.get_param("/database"))
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
         self.update_subscribers()
         self.last_desired_data = {}
@@ -90,5 +90,6 @@ class Persistence:
 
 
 if __name__ == '__main__':
-    mod = Persistence()
+    server = Server(rospy.get_param('/' + params.DB_SERVER))
+    mod = Persistence(server)
     rospy.spin()

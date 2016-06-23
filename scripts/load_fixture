@@ -3,16 +3,14 @@ import argparse
 
 from couchdb import Server
 
+from openag_brain import args
 from openag_brain.commands import load_fixture
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Populate the database with "
     "objects from the designated fixture")
     parser.add_argument('fixture')
-    parser.add_argument(
-        "-d", "--database", help="Address of the database server",
-        default="http://localhost:5984"
-    )
-    args = parser.parse_args()
-    server = Server(args.database)
-    load_fixture(server, args.fixture)
+    args.add_db_server_arg(parser)
+    vals = parser.parse_args()
+    server = Server(vals.db_server)
+    load_fixture(server, vals.fixture)

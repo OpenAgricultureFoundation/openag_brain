@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+from openag_brain.util import pio_build_path
 from openag_brain.models import FirmwareModuleTypeModel, FirmwareModuleModel
 from openag_brain.db_names import DbName
 
@@ -133,13 +134,7 @@ def generate_firmware(server):
     Generates firmware based on the configuration read from `server`, which
     should be a `couchdb.Server` instance
     """
-    home = os.path.expanduser("~")
-    openag_folder = os.path.join(home, ".openag")
-    if not os.path.isdir(openag_folder):
-        os.mkdir(openag_folder)
-    build_folder = os.path.join(openag_folder, "build")
-    if not os.path.isdir(build_folder):
-        os.mkdir(build_folder)
+    build_folder = pio_build_path()
     src_path = os.path.join(build_folder, "src")
     lib_path = os.path.join(build_folder, "lib")
     if not os.path.isdir(src_path) or not os.path.isdir(lib_path):

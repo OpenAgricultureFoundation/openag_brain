@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import sys
+import time
 import rospy
 import rosgraph
 import rostopic
 from couchdb import Server
 
+from openag_brain import params
 from openag_brain.srv import Empty
-from openag_brain.util import resolve_message_type
+from openag_brain.util import resolve_message_type, get_database_changes
 from openag_brain.models import FirmwareModuleModel, FirmwareModuleTypeModel
 from openag_brain.db_names import DbName
 
@@ -55,13 +57,22 @@ def connect_all_topics(module_db, module_type_db):
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
-    server = Server(rospy.get_param("/database"))
+    db_server = rospy.get_param(params.DB_SERVER)
+    server = Server(db_server)
     module_db = server[DbName.FIRMWARE_MODULE]
     module_type_db = server[DbName.FIRMWARE_MODULE_TYPE]
-    def restart(data):
-        for topic in restart.topics:
-            topic.unregister()
-        restart.topics = connect_all_topics(module_db, module_type_db)
-    restart.topics = connect_all_topics(module_db, module_type_db)
-    service = rospy.Service('~restart', Empty, restart)
-    rospy.spin()
+    topics = connect_all_topics(module_db, module_type_db)
+    last_seq = get_database_changes(
+        db_server, DbName.FIRMWARE_MODULE
+    )['last_seq']
+    while True:
+        time.sleep(5)
+        changes = get_database_changes(
+            db_server, DbName.FIRMWARE_MODULE, last_seq
+        )
+        last_seq = changes['last_seq']
+        if len(changes['results']):
+            for topic in topics:
+                topic.unregister()
+            topics = connect_all_topics(module_db, module_type_db)
+

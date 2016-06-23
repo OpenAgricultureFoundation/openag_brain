@@ -2,6 +2,7 @@
 import argparse
 from couchdb import Server
 
+from openag_brain import args
 from openag_brain.commands import init_db
 
 if __name__ == '__main__':
@@ -10,14 +11,8 @@ Initialize the CouchDB server by setting some configuration parameters given
 in the `couchdb.ini` file, creating the necessary databases, and pushing design
 documents to them.
     """)
-    parser.add_argument(
-        "-D", "--database", help="Address of the database server",
-         default="http://localhost:5984"
-    )
-    parser.add_argument(
-        "-H", "--hostname", help="Hostame of the machine running this file",
-        default="localhost"
-    )
-    args = parser.parse_args()
-    server = Server(args.database)
-    init_db(server, args.hostname)
+    args.add_db_server_arg(parser)
+    args.add_hostname_arg(parser)
+    vals = parser.parse_args()
+    server = Server(vals.db_server)
+    init_db(server, vals.hostname)

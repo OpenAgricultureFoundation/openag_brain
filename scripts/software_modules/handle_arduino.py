@@ -1,20 +1,20 @@
 #!/usr/bin/env python
+import sys
 import time
 import rospy
-import atexit
 import requests
 import argparse
 import subprocess
 from couchdb import Server
 
-from openag_brain import commands
+from openag_brain import commands, params
+from openag_brain.util import get_database_changes
 from openag_brain.db_names import DbName
 
 serial_node = None
 
-@atexit.register
 def kill_children():
-    if serial_node is not None:
+    if serial_node is not None and serial_node.poll():
         serial_node.terminate()
         serial_node.wait()
 
@@ -27,8 +27,8 @@ def update(server):
     except Exception as e:
         rospy.logerr("Failed to update Arduino: %s", e)
 
-def handle_arduino(database, development=False):
-    server = Server(database)
+def handle_arduino(db_server, development=False):
+    server = Server(db_server)
 
     # Flash the arduino
     if not development:
@@ -43,33 +43,37 @@ def handle_arduino(database, development=False):
 
     if development:
         while True:
-            time.sleep(10)
+            if rospy.is_shutdown():
+                kill_children()
+                sys.exit(0)
+            time.sleep(5)
 
     # Whenever the firmware module configuration changes, reflash the arduino
-    last_firmware_seq = requests.get(
-        database + "/{db}/_changes".format(db=DbName.FIRMWARE_MODULE)
-    ).json()['last_seq']
+    last_seq = get_database_changes(
+        db_server, DbName.FIRMWARE_MODULE
+    )['last_seq']
     while True:
-        time.sleep(2)
-        firmware_changes = requests.get(
-            database + "/{db}/_changes?last-event-id={last_seq}".format(
-                db=DbName.FIRMWARE_MODULE, last_seq=last_firmware_seq
-            )
-        ).json()
-        last_firmware_seq = firmware_changes['last_seq']
-        if len(firmware_changes['results']):
+        if rospy.is_shutdown():
+            break
+        time.sleep(5)
+        changes = get_database_changes(
+            db_server, DbName.FIRMWARE_MODULE, last_seq
+        )
+        last_seq = changes['last_seq']
+        if len(changes['results']):
             serial_node.terminate()
             serial_node.wait()
             update(server)
             serial_node = subprocess.Popen([
                 "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
             ])
+    kill_children()
 
 if __name__ == '__main__':
     rospy.init_node("handle_arduino")
-    if rospy.has_param("/development"):
-        development = rospy.get_param("/development")
+    if rospy.has_param(params.DEVELOPMENT):
+        development = rospy.get_param(params.DEVELOPMENT)
         development = development == "True"
     else:
         development = False
-    handle_arduino(rospy.get_param("/database"), development)
+    handle_arduino(rospy.get_param(params.DB_SERVER), development)
