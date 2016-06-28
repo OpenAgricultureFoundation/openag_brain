@@ -37,9 +37,9 @@ def write_code(modules, module_types, f):
     msg_types.add("std_msgs/String") # For publishing errors
     for module_type in module_types.values():
         for x in module_type.inputs.values():
-            msg_types.add(x)
+            msg_types.add(x["type"])
         for x in module_type.outputs.values():
-            msg_types.add(x)
+            msg_types.add(x["type"])
     for msg_type in msg_types:
         f.write("""\
 #include <{msg_type}.h>
@@ -49,16 +49,26 @@ def write_code(modules, module_types, f):
     # Define all of the modules
     for module in modules.values():
         module_type = module_types[module.type]
-        parameters = ", ".join(
-            repr(module.parameters[param]) for param in module_type.parameters
+        parameters = []
+        for param, param_info in module_type.parameters.items():
+            val = module.parameters.get(param, param_info.get("default", None))
+            if val is None:
+                raise RuntimeError(
+                    'Parameter "{param}" is not defined for module '
+                    '"{mod_id}"'.format(param=param, mod_id=module.id)
+                )
+            parameters.append(val)
+        parameters_str = ", ".join(
+            repr(param) if not isinstance(param, bool) else repr(param).lower()
+            for param in parameters
         )
         if len(module_type.parameters):
-            parameters = "(" + parameters + ")"
+            parameters_str = "(" + parameters_str + ")"
         f.write("""\
 {mod_cls} {mod_id}{mod_params};
 """.format(
-            mod_cls=module_type.class_name, mod_id=module.id, mod_params=parameters
-        ));
+    mod_cls=module_type.class_name, mod_id=module.id, mod_params=parameters_str
+));
     f.write("\n")
 
     # Define the ROS node handle
@@ -71,7 +81,8 @@ ros::NodeHandle nh;
     publishers = []
     for module in modules.values():
         module_type = module_types[module.type]
-        for output, output_type in module_type.outputs.items():
+        for output, output_info in module_type.outputs.items():
+            output_type = output_info["type"]
             output_id = module.id + "_" + output
             msg_class = "::".join(output_type.split("/"))
             msg_name = output_id + "_msg"
@@ -93,7 +104,28 @@ ros::Publisher pub_peripheral_errors("/peripheral_errors", &peripheral_error_msg
 """
     )
 
-    # TODO: Define subscribers from module inputs
+    # Define subscribers from module inputs
+    subscribers = []
+    for module in modules.values():
+        module_type = module_types[module.type]
+        for input_name, input_info in module_type.inputs.items():
+            input_type = input_info["type"]
+            input_id = module.id + "_" + input_name
+            callback_name = input_id + "_callback"
+            msg_class = "::".join(input_type.split("/"))
+            topic_name = "/actuators/" + input_id
+            sub_name = "sub_" + input_id
+            subscribers.append(sub_name)
+            f.write("""\
+void {callback_name}(const {msg_class} &msg) {{
+  {mod_id}.set_{input_name}(msg);
+}}
+ros::Subscriber<{msg_class}> {sub_name}("{topic_name}", {callback_name});
+
+""".format(
+    mod_id=module.id, input_name=input_name, callback_name=callback_name,
+    msg_class=msg_class, topic_name=topic_name, sub_name=sub_name
+))
 
     # Write the setup function
     f.write("""\
@@ -113,7 +145,12 @@ void setup() {
 
 """)
 
-    # TODO: Register subscribers
+    # Register subscribers
+    for subscriber in subscribers:
+        f.write("""\
+  nh.subscribe({subscriber});
+""".format(subscriber=subscriber))
+    f.write("\n")
 
     # Initialize the modules
     for module_id in modules.keys():
@@ -146,16 +183,17 @@ void loop() {
 ))
         f.write("""
   if ({mod_id}.has_error) {{
+    char buf[{mod_id_len}+1+sizeof({mod_id}.error_msg)];
+    sprintf(buf, "{mod_id};%s", {mod_id}.error_msg);
     peripheral_error_msg.data = {mod_id}.error_msg;
     pub_peripheral_errors.publish(&peripheral_error_msg);
+    {mod_id}.has_error = false;
     nh.spinOnce();
   }}
-""".format(mod_id=module.id))
+""".format(mod_id=module.id, mod_id_len=len(module.id)))
     f.write("""\
 }
 """)
-
-
 
 def generate_firmware(server):
     """
