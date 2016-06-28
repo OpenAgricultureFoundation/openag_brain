@@ -49,25 +49,28 @@ def write_code(modules, module_types, f):
     # Define all of the modules
     for module in modules.values():
         module_type = module_types[module.type]
-        parameters = []
-        for param, param_info in module_type.parameters.items():
-            val = module.parameters.get(param, param_info.get("default", None))
+        arguments = []
+        for arg_info in module_type.arguments:
+            arg_name = arg_info["name"]
+            val = module.arguments.get(
+                arg_name, arg_info.get("default", None)
+            )
             if val is None:
                 raise RuntimeError(
-                    'Parameter "{param}" is not defined for module '
-                    '"{mod_id}"'.format(param=param, mod_id=module.id)
+                    'Argument "{arg}" is not defined for firmware module '
+                    '"{mod_id}"'.format(arg=arg_name, mod_id=module.id)
                 )
-            parameters.append(val)
-        parameters_str = ", ".join(
-            repr(param) if not isinstance(param, bool) else repr(param).lower()
-            for param in parameters
+            arguments.append(val)
+        args_str = ", ".join(
+            repr(arg) if not isinstance(arg, bool) else repr(arg).lower()
+            for arg in arguments
         )
-        if len(module_type.parameters):
-            parameters_str = "(" + parameters_str + ")"
+        if len(module_type.arguments):
+            args_str = "(" + args_str + ")"
         f.write("""\
-{mod_cls} {mod_id}{mod_params};
+{mod_cls} {mod_id}{mod_args};
 """.format(
-    mod_cls=module_type.class_name, mod_id=module.id, mod_params=parameters_str
+    mod_cls=module_type.class_name, mod_id=module.id, mod_args=args_str
 ));
     f.write("\n")
 

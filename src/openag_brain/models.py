@@ -62,11 +62,11 @@ class FirmwareModuleModel(Document):
     """
     (str, required) The ID of the firmware module type of this object
     """
-    parameters = DictField()
+    arguments = DictField()
     """
-    (dict) A dictionary mapping parameter names to parameter values. There
-    should be an entry in this dictionary for every `parameter` in the firmware
-    module type of this firmware module that doesn't have a default value.
+    (dict) A dictionary mapping argument names to argument values. There must
+    be an entry in this dictionary for every `argument` in the firmware module
+    type of this firmware module that doesn't have a default value.
     """
     mappings = DictField()
     """
@@ -95,13 +95,12 @@ class FirmwareModuleTypeModel(Document):
     """ (str, required) The name of the top-level class in the library """
     description = TextField()
     """ (str, required) Description of the library """
-    parameters = DictField()
+    arguments = ListField(DictField())
     """
-    (dict, required) A nested dictionary mapping parameter names to
-    dictionaries containing information about those parameters. The inner
-    dictionaries must contain the field "type" (e.g. "int", "float") and can
-    contain the fields "description" and "default". The parameter values will
-    be passed into the constructor of the top-level class of this library.
+    (array, required) An array of dictionaries describing the arguments to be
+    passed to the constructor of the top-level class of this module. The
+    dictionaries must contain the fields "name" and "type" (e.g. "int",
+    "float") and can contain the fields "description" and "default".
     """
     inputs = DictField()
     """
@@ -149,10 +148,10 @@ class SoftwareModuleModel(Document):
     """
     type = TextField()
     """ (str, required) The ID of the software module type of this object """
-    parameters = DictField()
+    arguments = DictField()
     """
-    (dict) A dictionary mapping parameter names to parameter values. There
-    should be an entry in this dictionary for every `parameter` in the software
+    (dict) A dictionary mapping argument names to argument values. There
+    should be an entry in this dictionary for every `argument` in the software
     module type of this software modules
     """
     mappings = DictField()
@@ -180,32 +179,10 @@ class SoftwareModuleTypeModel(Document):
     """ (str, required) The name of the executable for this object """
     description = TextField()
     """ (str, required) Description of the library """
-    parameters = DictField()
+    arguments = ListField(DictField())
     """
-    (dict, required) A nested dictionary mapping ROS parameter names required by this
-    type of module to dictionaries containing information about those
-    parameters. The inner dictionaries must contain the field "type" (e.g.
-    "int", "float") and can contain the fields "description" and "default".
-    """
-    inputs = DictField()
-    """
-    (dict, required) A nested dictionary mapping names of ROS topics to which
-    this type of module subscribes to dictionaries containing information about
-    those topics. The inner dictionary must contain the field "type", which is
-    the ROS message type for the topic and can contain the field "description"
-    """
-    outputs = DictField()
-    """
-    (dict, required) A nested dictionary mapping names of ROS topics to which
-    this type of module publishes to dictionaries containing information about
-    those topics.  The inner dictionary must contain the field "type", which is
-    the ROS message type for the topic and can contain the field "description".
-    """
-    services = DictField()
-    """
-    (dict, required) A nested dictionary mapping names of ROS services
-    advertised by modules of this type to dictionaries containing information
-    about those services. The inner dictionary must contain the field "type",
-    which is the ROS service type for the service and can contain the field
-    "description".
+    (array, required) An array of dictionaries describing the command line
+    arguments to be passed to this module. The dictionaries must contain the
+    fields "name" and "type" (e.g. "int" or "float") and can contain the fields
+    "description" and "default".
     """

@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "y" | pio run -d ~/.openag/build -t upload
+echo "y" | pio run -d ~/.openag/build -t upload --upload-port $1

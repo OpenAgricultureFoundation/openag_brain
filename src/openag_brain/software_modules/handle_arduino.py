@@ -28,27 +28,33 @@ def kill_children():
         serial_node.terminate()
         serial_node.wait()
 
-def update(server):
+def update(server, serial_port):
     try:
         rospy.loginfo("Generating firmware")
         commands.generate_firmware(server)
         rospy.loginfo("Flashing Arduino")
-        subprocess.call(["rosrun", "openag_brain", "flash_arduino"])
+        res = subprocess.call([
+            "rosrun", "openag_brain", "flash_arduino", serial_port
+        ])
+        if res:
+            raise Exception("Flashing failed")
     except Exception as e:
         rospy.logerr("Failed to update Arduino: %s", e)
+        kill_children()
+        sys.exit(1)
 
-def handle_arduino(db_server, development=False):
+def handle_arduino(db_server, serial_port, development=False):
     server = Server(db_server)
 
     # Flash the arduino
     if not development:
-        update(server)
+        update(server, serial_port)
 
     # Start reading from the arduino
     print "Starting to read from Arduino"
     global serial_node
     serial_node = subprocess.Popen([
-        "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
+        "rosrun", "rosserial_python", "serial_node.py", serial_port
     ])
 
     if development:
@@ -73,9 +79,9 @@ def handle_arduino(db_server, development=False):
         if len(changes['results']):
             serial_node.terminate()
             serial_node.wait()
-            update(server)
+            update(server, serial_port)
             serial_node = subprocess.Popen([
-                "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
+                "rosrun", "rosserial_python", "serial_node.py", serial_port
             ])
     kill_children()
 
@@ -86,4 +92,11 @@ if __name__ == '__main__':
         development = development == "True"
     else:
         development = False
-    handle_arduino(rospy.get_param(params.DB_SERVER), development)
+    parser = argparse.ArgumentParser(
+        "Handles generating code for, flashing, and reading from the Arduino"
+    )
+    parser.add_argument("serial_port")
+    args, _ = parser.parse_known_args()
+    handle_arduino(
+        rospy.get_param(params.DB_SERVER), args.serial_port, development
+    )

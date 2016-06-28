@@ -19,11 +19,14 @@ from couchdb import Server
 
 from openag_brain import params
 from openag_brain.srv import Empty
-from openag_brain.util import resolve_message_type, get_database_changes
+from openag_brain.util import (
+    resolve_message_type, get_database_changes, read_module_data
+)
 from openag_brain.models import FirmwareModuleModel, FirmwareModuleTypeModel
 from openag_brain.db_names import DbName
 
 def connect_topics(src_topic, dest_topic):
+    rospy.logwarn("Mapping %s to %s", src_topic, dest_topic)
     master = rosgraph.Master('/rostopic')
     state = master.getSystemState()
     while True:
@@ -50,19 +53,27 @@ def connect_topics(src_topic, dest_topic):
     return sub, pub
 
 def connect_all_topics(module_db, module_type_db):
+    modules, module_types = read_module_data(
+        module_db, FirmwareModuleModel, module_type_db, FirmwareModuleTypeModel
+    )
     topics = []
-    for module_id in module_db:
-        if module_id.startswith('_'):
+    for module in modules.values():
+        if module.id.startswith('_'):
             continue
-        module = FirmwareModuleModel.load(module_db, module_id)
-        module_type = FirmwareModuleTypeModel.load(module_type_db, module.type)
+        module_type = module_types[module.type]
         for input_name in module_type.inputs.keys():
-            src_topic = "/{}/{}".format(module.environment, input_name)
-            dest_topic = "/actuators/{}_{}".format(module_id, input_name)
+            mapped_input_name = module.get("mappings",{}).get(
+                input_name, input_name
+            )
+            src_topic = "/{}/{}".format(module.environment, mapped_input_name)
+            dest_topic = "/actuators/{}_{}".format(module.id, input_name)
             topics.extend(connect_topics(src_topic, dest_topic))
         for output_name in module_type.outputs:
-            src_topic = "/sensors/{}_{}".format(module_id, output_name)
-            dest_topic = "/{}/{}".format(module.environment, output_name)
+            mapped_output_name = module_type.get("mappings", {}).get(
+                output_name, output_name
+            )
+            src_topic = "/sensors/{}_{}".format(module.id, output_name)
+            dest_topic = "/{}/{}".format(module.environment, mapped_output_name)
             topics.extend(connect_topics(src_topic, dest_topic))
     return topics
 
