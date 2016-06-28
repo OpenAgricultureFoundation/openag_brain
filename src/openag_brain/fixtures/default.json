@@ -71,7 +71,7 @@
           "type": "int",
           "description": "Index of the serial port to which this sensor is connected"
         }
-      }
+      },
       "inputs": {},
       "outputs": {
         "light_illuminance": {
@@ -146,7 +146,7 @@
       },
       "outputs": {}
     }
-  ]
+  ],
   "software_module_type": [
     {
       "_id": "openag_brain:api.py",
@@ -177,7 +177,7 @@
         "~default_set_point": {
           "type": "float"
         }
-      }
+      },
       "inputs": {
         "set_point": {
           "type": "std_msgs/Float32"
@@ -190,7 +190,7 @@
         "state": {
           "type": "std_msgs/Bool"
         }
-      }
+      },
       "services": {}
     },
     {

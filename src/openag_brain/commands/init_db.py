@@ -16,6 +16,8 @@ def folder_to_dict(path):
     """
     res = {}
     for key in os.listdir(path):
+        if key.startswith('.'):
+            continue
         key_path = os.path.join(path, key)
         if os.path.isfile(key_path):
             val = open(key_path).read()
