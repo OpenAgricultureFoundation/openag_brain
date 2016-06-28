@@ -49,7 +49,7 @@ class EnvironmentalDataPointModel(Document):
 class FirmwareModuleModel(Document):
     """
     A `firmware module` typically drives a single physical peripheral (sensor
-    actuator) in the system
+    or actuator) in the system
     """
     environment = TextField()
     """ (str) The ID of the environment on which this peripheral acts """
@@ -59,7 +59,14 @@ class FirmwareModuleModel(Document):
     """
     (dict) A dictionary mapping parameter names to parameter values. There
     should be an entry in this dictionary for every `parameter` in the firmware
-    module type of this firmware module.
+    module type of this firmware module that doesn't have a default value.
+    """
+    mappings = DictField()
+    """
+    (dict) A dictionary mapping ROS names to different ROS names. Keys are the
+    names defined in the firmware module type and values are the names that
+    should be used instead. This can be used, for example, to route the correct
+    input into an actuator module with a generic input name such as `state`.
     """
 
 class FirmwareModuleTypeModel(Document):
@@ -68,10 +75,7 @@ class FirmwareModuleTypeModel(Document):
     a particular system peripheral. It is essentially a driver for a sensor or
     actuator. The code itself should be registered with `platformio
     <platformio.org>`_ and metadata about it should be stored in the OpenAg
-    database. `Firmware module type`s must define a class that inherits from
-    the superclass defined in `openag_peripheral
-    <http://github.com/OpenAgInitiative/openag_peripheral>`_, and this object
-    must descibe the exact location of that class.
+    database.
     """
     pio_id = TextField()
     """ (str) The platformio ID of the uploaded library """
@@ -84,21 +88,27 @@ class FirmwareModuleTypeModel(Document):
     """ (str) The name of the top-level class in the library """
     description = TextField()
     """ (str) Description of the library """
-    parameters = ListField(TextField())
+    parameters = DictField()
     """
-    (array) A list of parameters that must be defined for `firmware modules` of
-    this type and passed into the constructor of the top-level class of this
-    library
+    (dict) A nested dictionary mapping parameter names to dictionaries
+    containing information about those parameters. The inner dictionaries must
+    contain the field "type" (e.g. "int", "float") and can contain the fields
+    "description" and "default". The parameter values will be passed  into the
+    constructor of the top-level class of this library.
     """
     inputs = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which this library
-    subscribes to ROS message types for those libraries
+    (dict) A nested dictionary mapping names of ROS topics to which this
+    library subscribes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic.
     """
     outputs = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which top library
-    publishes to ROS message types for those libraries
+    (dict) A nested dictionary mapping names of ROS topics to which this
+    library publishes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic.
     """
 
 class RecipeModel(Document):
@@ -163,24 +173,32 @@ class SoftwareModuleTypeModel(Document):
     """ (str) The name of the executable for this object """
     description = TextField()
     """ (str) Description of the library """
-    parameters = ListField(TextField())
+    parameters = DictField()
     """
-    (array) A list of parameters that must be defined for `software modules` of
-    this type. They should follow the `ROS naming conventions
-    <http://wiki.ros.org/Names>`_.
+    (dict) A nested dictionary mapping ROS parameter names required by this
+    type of module to dictionaries containing information about those
+    parameters. The inner dictionaries must contain the field "type" (e.g.
+    "int", "float") and can contain the fields "description" and "default".
     """
-    inputs = ListField(TextField())
+    inputs = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which this library
-    subscribes to ROS message types for those libraries
+    (dict) A nested dictionary mapping names of ROS topics to which this type
+    of module subscribes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic and can contain the field "description"
     """
-    outputs = ListField(TextField())
+    outputs = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which top library
-    publishes to ROS message types for those libraries
+    (dict) A nested dictionary mapping names of ROS topics to which this type
+    of module publishes to dictionaries containing information about those
+    topics.  The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic and can contain the field "description".
     """
-    services = ListField(TextField())
+    services = DictField()
     """
-    (array) A list of names of services advertized by this program
+    (dict) A nested dictionary mapping names of ROS services advertised by modules of
+    this type to dictionaries containing information about those services. The
+    inner dictionary must contain the field "type", which is the ROS service
+    type for the service and can contain the field "description".
     """
 

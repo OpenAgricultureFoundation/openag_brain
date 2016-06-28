@@ -4,66 +4,231 @@
       "_id": "environment_1"
     }
   ],
+  "firmware_module_type": [
+    {
+      "_id": "am2315",
+      "pio_id": "336",
+      "header_file": "openag_am2315.h",
+      "class_name": "Am2315",
+      "description": "Driver for the am2315 sensor",
+      "parameters": {},
+      "inputs": {},
+      "outputs": {
+        "air_temperature": {
+          "type": "std_msgs/Float32"
+        },
+        "air_humidity": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_ec",
+      "pio_id": "338",
+      "header_file": "openag_atlas_ec.h",
+      "class_name": "AtlasEc",
+      "description": "Driver for the Atlas Scientific electrical conductivity sensor",
+      "parameters": {
+        "i2c_address": {
+          "type": "int",
+          "default": 100
+        }
+      },
+      "inputs": {},
+      "outputs": {
+        "electrical_conductivity": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_ph",
+      "pio_id": "339",
+      "header_file": "openag_atlas_ph.h",
+      "class_name": "AtlasPh",
+      "description": "Driver for the Atlas Scientific pH sensor",
+      "parameters": {
+        "i2c_address": {
+          "type": "int",
+          "default": 99
+        }
+      },
+      "inputs": {},
+      "outputs": {
+        "potential_hydrogen": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_rgb",
+      "pio_id": "340",
+      "header_file": "openag_atlas_rgb.h",
+      "class_name": "AtlasRgb",
+      "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
+      "parameters": {
+        "serial_port": {
+          "type": "int",
+          "description": "Index of the serial port to which this sensor is connected"
+        }
+      }
+      "inputs": {},
+      "outputs": {
+        "light_illuminance": {
+          "type": "std_msgs/UInt16"
+        },
+        "light_spectrum": {
+          "type": "std_msgs/UInt8MultiArray",
+          "description": "3-element array with red, green, and blue values"
+        }
+      }
+    },
+    {
+      "_id": "binary_actuator",
+      "pio_id": "349",
+      "header_file": "openag_binary_actuator.h",
+      "class_name": "BinaryActuator",
+      "description": "Driver for an actuator that can only be set ot binary values",
+      "parameters": {
+        "pin": {
+          "type": "int"
+        },
+        "is_active_low": {
+          "type": "bool",
+          "default": false
+        }
+      },
+      "inputs": {
+        "state": {
+          "type": "std_msgs/Bool"
+        }
+      },
+      "outputs": {}
+    },
+    {
+      "_id": "gc0012",
+      "pio_id": "337",
+      "header_file": "openag_gc0012.h",
+      "class_name": "Gc0012",
+      "description": "Driver for the gc0012 sensor",
+      "parameters": {
+        "serial_port": {
+          "type": "int",
+          "description": "Index of the serial port to which the sensor is connected"
+        }
+      },
+      "inputs": {},
+      "outputs": {
+        "air_carbon_dioxide": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "percent_actuator",
+      "pio_id": "348",
+      "header_file": "openag_percent_actuator.h",
+      "class_name": "PercentActuator",
+      "description": "Driver for an actuator that can take any value between 0 and 1",
+      "parameters": {
+        "pin": {
+          "type": "int"
+        },
+        "is_active_low": {
+          "type": "bool",
+          "default": false
+        }
+      },
+      "inputs": {
+        "state": {
+          "type": "std_msgs/Float32"
+        }
+      },
+      "outputs": {}
+    }
+  ]
   "software_module_type": [
     {
       "_id": "openag_brain:api.py",
       "package": "openag_brain",
       "executable": "api.py",
       "description": "HTTP API for interacting with ROS",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "parameters": {},
+      "inputs": {},
+      "outputs": {},
+      "services": {}
     },
     {
       "_id": "openag_brain:handle_arduino.py",
       "package": "openag_brain",
       "executable": "handle_arduino.py",
       "description": "Handles generating code for, flashing, and reading from the Arduino",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "parameters": {},
+      "inputs": {},
+      "outputs": {},
+      "services": {}
     },
     {
       "_id": "openag_brain:on_off_control.py",
       "package": "openag_brain",
       "executable": "on_off_control.py",
       "description": "Performs simple on/off control given a sensor reading and a set point",
-      "parameters": ["~default_set_point"],
-      "inputs": ["set_point", "measured"],
-      "outputs": ["state"],
-      "services": []
+      "parameters": {
+        "~default_set_point": {
+          "type": "float"
+        }
+      }
+      "inputs": {
+        "set_point": {
+          "type": "std_msgs/Float32"
+        },
+        "measured": {
+          "type": "std_msgs/Float32"
+        }
+      },
+      "outputs": {
+        "state": {
+          "type": "std_msgs/Bool"
+        }
+      }
+      "services": {}
     },
     {
       "_id": "openag_brain:persistence.py",
       "package": "openag_brain",
       "executable": "persistence.py",
       "description": "Listens to topic on the environment and writes their data to CouchDB",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "parameters": {},
+      "inputs": {},
+      "outputs": {},
+      "services": {}
     },
     {
       "_id": "openag_brain:recipe_handler.py",
       "package": "openag_brain",
       "executable": "recipe_handler.py",
       "description": "Runs recipes and outputs set points for the environment",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": ["start_recipe", "stop_recipe"]
+      "parameters": {},
+      "inputs": {},
+      "outputs": {},
+      "services": {
+        "start_recipe": {
+          "type": "openag_brain/StartRecipe"
+        },
+        "stop_recipe": {
+          "type": "openag_brain/Empty"
+        }
+      }
     },
     {
       "_id": "openag_brain:topic_connector.py",
       "package": "openag_brain",
       "executable": "topic_connector.py",
       "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "parameters": {},
+      "inputs": {},
+      "outputs": {},
+      "services": {}
     }
   ],
   "software_module": [
@@ -88,69 +253,6 @@
       "_id": "persistence_1",
       "type": "openag_brain:persistence.py",
       "environment": "environment_1"
-    }
-  ],
-  "firmware_module_type": [
-    {
-      "_id": "am2315",
-      "pio_id": "336",
-      "header_file": "openag_am2315.h",
-      "class_name": "Am2315",
-      "description": "Driver for the am2315 sensor",
-      "parameters": [],
-      "inputs": {},
-      "outputs": {
-        "air_temperature": "std_msgs/Float32",
-        "air_humidity": "std_msgs/Float32"
-      }
-    },
-    {
-      "_id": "gc0012",
-      "pio_id": "337",
-      "header_file": "openag_gc0012.h",
-      "class_name": "Gc0012",
-      "description": "Driver for the gc0012 sensor",
-      "parameters": ["serial_port"],
-      "inputs": {},
-      "outputs": {
-        "carbon_dioxide": "std_msgs/Float32"
-      }
-    },
-    {
-      "_id": "atlas_ec",
-      "pio_id": "338",
-      "header_file": "openag_atlas_ec.h",
-      "class_name": "AtlasEc",
-      "description": "Driver for the Atlas Scientific electrical conductivity sensor",
-      "parameters": ["i2c_address"],
-      "inputs": {},
-      "outputs": {
-        "electrical_conductivity": "std_msgs/Float32"
-      }
-    },
-    {
-      "_id": "atlas_ph",
-      "pio_id": "339",
-      "header_file": "openag_atlas_ph.h",
-      "class_name": "AtlasPh",
-      "description": "Driver for the Atlas Scientific pH sensor",
-      "parameters": ["i2c_address"],
-      "inputs": {},
-      "outputs": {
-        "potential_hydrogen": "std_msgs/Float32"
-      }
-    },
-    {
-      "_id": "atlas_rgb",
-      "pio_id": "340",
-      "header_file": "openag_atlas_rgb.h",
-      "class_name": "AtlasRgb",
-      "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
-      "parameters": ["serial_port"],
-      "inputs": {},
-      "outputs": {
-        "illuminance": "std_msgs/Float32"
-      }
     }
   ]
 }
