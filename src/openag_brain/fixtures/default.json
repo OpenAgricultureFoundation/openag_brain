@@ -7,7 +7,7 @@
   "firmware_module_type": [
     {
       "_id": "am2315",
-      "pio_id": "336",
+      "pio_id": 336,
       "header_file": "openag_am2315.h",
       "class_name": "Am2315",
       "description": "Driver for the am2315 sensor",
@@ -22,7 +22,7 @@
     },
     {
       "_id": "atlas_ec",
-      "pio_id": "338",
+      "pio_id": 338,
       "header_file": "openag_atlas_ec.h",
       "class_name": "AtlasEc",
       "description": "Driver for the Atlas Scientific electrical conductivity sensor",
@@ -41,7 +41,7 @@
     },
     {
       "_id": "atlas_ph",
-      "pio_id": "339",
+      "pio_id": 339,
       "header_file": "openag_atlas_ph.h",
       "class_name": "AtlasPh",
       "description": "Driver for the Atlas Scientific pH sensor",
@@ -61,7 +61,7 @@
     },
     {
       "_id": "atlas_rgb",
-      "pio_id": "340",
+      "pio_id": 340,
       "header_file": "openag_atlas_rgb.h",
       "class_name": "AtlasRgb",
       "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
@@ -84,7 +84,7 @@
     },
     {
       "_id": "binary_actuator",
-      "pio_id": "349",
+      "pio_id": 349,
       "header_file": "openag_binary_actuator.h",
       "class_name": "BinaryActuator",
       "description": "Driver for an actuator that can only be set ot binary values",
@@ -107,7 +107,7 @@
     },
     {
       "_id": "pwm_actuator",
-      "pio_id": "348",
+      "pio_id": 348,
       "header_file": "openag_pwm_actuator.h",
       "class_name": "PwmActuator",
       "description": "Driver for an actuator that can take any value between 0 and 1",
@@ -126,6 +126,34 @@
           "type": "float",
           "default": 0,
           "description": "Command threshold at which the actuator turns on"
+        }
+      ],
+      "inputs": {
+        "cmd": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "software_pwm_actuator",
+      "pio_id": 0,
+      "header_file": "openag_software_pwm_actuator.h",
+      "class_name": "SoftwarePwmActuator",
+      "description": "OpenAg driver for an actuator. Does pwm in software to allow for more flexibility in configuration: particularly to allow for longer periods for actuators that exhibit a nonlinear response to normal pwm.",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
+        },
+        {
+          "name": "is_active_low",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "period",
+          "type": "int",
+          "default": 1000
         }
       ],
       "inputs": {

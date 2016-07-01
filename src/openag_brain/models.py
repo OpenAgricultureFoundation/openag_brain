@@ -1,5 +1,6 @@
 from couchdb.mapping import (
-    Document, TextField, FloatField, DictField, BooleanField, ListField
+    Document, TextField, FloatField, DictField, BooleanField, ListField,
+    IntegerField
 )
 
 __all__ = [
@@ -84,8 +85,8 @@ class FirmwareModuleTypeModel(Document):
     <platformio.org>`_ and metadata about it should be stored in the OpenAg
     database.
     """
-    pio_id = TextField()
-    """ (str, required) The platformio ID of the uploaded library """
+    pio_id = IntegerField()
+    """ (int, required) The platformio ID of the uploaded library """
     header_file = TextField()
     """
     (str, required) The name of the header file containing the top-level class

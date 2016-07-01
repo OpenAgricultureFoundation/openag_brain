@@ -28,14 +28,14 @@ def spawn_modules(development=False, screen=False):
         roslaunch_command.append("--screen")
     return subprocess.Popen(roslaunch_command)
 
-def main(db_server, hostname, fixture=None, development=False, screen=False):
+def main(db_server, hostname, fixtures=[], development=False, screen=False):
     # Initialize the database
     print "Initializing the database"
     server = Server(db_server)
     commands.init_db(server, hostname)
 
     # Load the fixture
-    if fixture:
+    for fixture in fixtures:
         print "Applying fixture {}".format(fixture)
         commands.load_fixture(server, fixture)
 
@@ -84,7 +84,8 @@ the configuration of the software modules
     args.add_db_server_arg(parser)
     args.add_hostname_arg(parser)
     parser.add_argument(
-        '-f', '--fixture', help="Name of the fixture to apply to the database"
+        '-f', '--fixture', help="Name of the fixture to apply to the database",
+        default=[], action='append'
     )
     parser.add_argument(
         "-d", "--development", action="store_true",

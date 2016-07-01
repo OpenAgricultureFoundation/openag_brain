@@ -1,4 +1,5 @@
 import os
+import rospy
 import subprocess
 
 from openag_brain.util import pio_build_path, read_module_data
@@ -10,7 +11,20 @@ def download_libs(module_types):
     Downloads the libraries for all of the module_types from platformio
     """
     for module_type_id, module_type in module_types.items():
-        subprocess.call(["pio", "lib", "install", module_type.pio_id])
+        if module_type.pio_id == 0:
+            rospy.loginfo(
+                "Library for {lib_name} will not be download. We will "
+                "assume it is already installed".format(
+                    lib_name=module_type.id
+                )
+            )
+            continue
+        if subprocess.call(["pio", "lib", "install", str(module_type.pio_id)]):
+            raise RuntimeError(
+                "Failed to download {lib_name} library".format(
+                    lib_name=module_type.id
+                )
+            )
 
 def write_code(modules, module_types, f):
     """
@@ -191,9 +205,9 @@ void loop() {
 ))
         f.write("""
   if ({mod_id}.has_error) {{
-    char buf[{mod_id_len}+1+sizeof({mod_id}.error_msg)];
+    char buf[{mod_id_len}+2+strlen({mod_id}.error_msg)];
     sprintf(buf, "{mod_id};%s", {mod_id}.error_msg);
-    peripheral_error_msg.data = {mod_id}.error_msg;
+    peripheral_error_msg.data = buf;
     pub_peripheral_errors.publish(&peripheral_error_msg);
     {mod_id}.has_error = false;
     nh.spinOnce();
