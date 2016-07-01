@@ -116,6 +116,21 @@ def update_launch(server):
             group, module_type.package, module_type.executable, module.id,
             args_str
         )
+        for param_name, param_info in module_type.parameters.items():
+            param_value = module.parameters.get(
+                param_name, param_info.get("default", None)
+            )
+            param_value = str(param_value) \
+                    if not isinstance(param_value, bool) else str(param_value)
+            param_type = str(param_info["type"])
+            if param_value is None:
+                if param_info.get("required", False):
+                    raise RuntimeError(
+                        'Parameter "{param}" is not defined for software '
+                        'module "{mod_id}"'.format(param_name, module.id)
+                    )
+            else:
+                create_param(node, param_name, param_value, param_type)
         for k,v in module.mappings.items():
             create_remap(node, k, v)
     doc = ET.ElementTree(root)

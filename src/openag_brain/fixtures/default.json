@@ -11,8 +11,6 @@
       "header_file": "openag_am2315.h",
       "class_name": "Am2315",
       "description": "Driver for the am2315 sensor",
-      "arguments": [],
-      "inputs": {},
       "outputs": {
         "air_temperature": {
           "type": "std_msgs/Float32"
@@ -35,9 +33,8 @@
           "default": 100
         }
       ],
-      "inputs": {},
       "outputs": {
-        "electrical_conductivity": {
+        "water_electrical_conductivity": {
           "type": "std_msgs/Float32"
         }
       }
@@ -57,7 +54,7 @@
       ],
       "inputs": {},
       "outputs": {
-        "potential_hydrogen": {
+        "water_potential_hydrogen": {
           "type": "std_msgs/Float32"
         }
       }
@@ -75,7 +72,6 @@
           "description": "Index of the serial port to which this sensor is connected"
         }
       ],
-      "inputs": {},
       "outputs": {
         "light_illuminance": {
           "type": "std_msgs/UInt16"
@@ -107,27 +103,6 @@
         "state": {
           "type": "std_msgs/Bool"
         }
-      },
-      "outputs": {}
-    },
-    {
-      "_id": "gc0012",
-      "pio_id": "337",
-      "header_file": "openag_gc0012.h",
-      "class_name": "Gc0012",
-      "description": "Driver for the gc0012 sensor",
-      "arguments": [
-        {
-          "name": "serial_port",
-          "type": "int",
-          "description": "Index of the serial port to which the sensor is connected"
-        }
-      ],
-      "inputs": {},
-      "outputs": {
-        "air_carbon_dioxide": {
-          "type": "std_msgs/Float32"
-        }
       }
     },
     {
@@ -157,8 +132,7 @@
         "state": {
           "type": "std_msgs/Float32"
         }
-      },
-      "outputs": {}
+      }
     }
   ],
   "software_module_type": [
@@ -166,8 +140,13 @@
       "_id": "openag_brain:api.py",
       "package": "openag_brain",
       "executable": "api.py",
-      "description": "HTTP API for interacting with ROS",
-      "arguments": []
+      "description": "HTTP API for interacting with ROS"
+    },
+    {
+      "_id": "openag_brain:image_persistence.py",
+      "package": "openag_brain",
+      "executable": "image_persistence.py",
+      "description": "Persists image data to CouchDB"
     },
     {
       "_id": "openag_brain:handle_arduino.py",
@@ -198,22 +177,102 @@
       "_id": "openag_brain:persistence.py",
       "package": "openag_brain",
       "executable": "persistence.py",
-      "description": "Listens to topic on the environment and writes their data to CouchDB",
-      "arguments": []
+      "description": "Listens to topic on the environment and writes their data to CouchDB"
     },
     {
       "_id": "openag_brain:recipe_handler.py",
       "package": "openag_brain",
       "executable": "recipe_handler.py",
-      "description": "Runs recipes and outputs set points for the environment",
-      "arguments": []
+      "description": "Runs recipes and outputs set points for the environment"
     },
     {
       "_id": "openag_brain:topic_connector.py",
       "package": "openag_brain",
       "executable": "topic_connector.py",
-      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways",
-      "arguments": []
+      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways"
+    },
+    {
+      "_id": "usb_cam:usb_cam_node",
+      "package": "usb_cam",
+      "executable": "usb_cam_node",
+      "description": "The usb_cam_node interfaces with standard USB cameras (e.g. the Logitech Quickcam) using libusb_cam and publishes images as sensor_msgs::Image. Uses the image_transport library to allow compressed image transport.",
+      "parameters": {
+        "video_device": {
+          "type": "str",
+          "description": "The device the camera is on",
+          "default": "/dev/video0"
+        },
+        "image_width": {
+          "type": "int",
+          "description": "Image width",
+          "default": 640
+        },
+        "image_height": {
+          "type": "int",
+          "description": "Image height",
+          "default": 480
+        },
+        "pixel_format": {
+          "type": "str",
+          "description": "Possible values are mjpeg, yuyv, uyvy",
+          "default": "mjpeg"
+        },
+        "io_method": {
+          "type": "string",
+          "default": "mmap",
+          "description": "Possible values are mmap, read, userptr"
+        },
+        "camera_frame_id": {
+          "type": "str",
+          "description": "The camera's tf frame",
+          "default": "head_camera"
+        },
+        "framerate": {
+          "type": "int",
+          "description": "The required framerate",
+          "default": 30
+        },
+        "contrast": {
+          "type": "int",
+          "default": 32,
+          "description": "Contrast of video image (0-255)"
+        },
+        "brightness": {
+          "type": "int",
+          "default": 32,
+          "description": "Brightness of video image (0-255)"
+        },
+        "saturation": {
+          "type": "int",
+          "default": 32,
+          "description": "Saturation of video image (0-255)"
+        },
+        "sharpness": {
+          "type": "int",
+          "default": 22,
+          "description": "Sharpness of video image (0-255)"
+        },
+        "autofocus": {
+          "type": "bool",
+          "default": false,
+          "description": "Enable camera's autofocus"
+        },
+        "focus": {
+          "type": "int",
+          "default": 51,
+          "description": "If autofocus is disabled, the focus of the camera (0=at infinity)"
+        },
+        "camera_info_url": {
+          "type": "str",
+          "default": "",
+          "description": "An url to the camera calibration file that will be read by the CameraInfoManager class"
+        },
+        "camera_name": {
+          "type": "str",
+          "default": "head_camera",
+          "description": "The camera name. This must match the name in the camera calibration"
+        }
+      }
     }
   ],
   "software_module": [
@@ -238,6 +297,27 @@
       "_id": "persistence_1",
       "type": "openag_brain:persistence.py",
       "environment": "environment_1"
+    },
+    {
+      "_id": "image_persistence_1",
+      "type": "openag_brain:image_persistence.py",
+      "environment": "environment_1"
+    },
+    {
+      "_id": "camera_1",
+      "type": "usb_cam:usb_cam_node",
+      "environment": "environment_1",
+      "parameters": {
+        "image_width": 1280,
+        "image_height": 960,
+        "pixel_format": "yuyv",
+        "framerate": 1,
+        "camera_frame_id": "top",
+        "camera_name": "top",
+        "autofocus": true,
+        "sharpness": 100,
+        "io_method": "mmap"
+      }
     }
   ]
 }

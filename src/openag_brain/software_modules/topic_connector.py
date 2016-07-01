@@ -25,26 +25,7 @@ from openag_brain.util import (
 from openag_brain.models import FirmwareModuleModel, FirmwareModuleTypeModel
 from openag_brain.db_names import DbName
 
-def connect_topics(src_topic, dest_topic):
-    rospy.logwarn("Mapping %s to %s", src_topic, dest_topic)
-    master = rosgraph.Master('/rostopic')
-    state = master.getSystemState()
-    while True:
-        try:
-            topic_types = rostopic._master_get_topic_types(master)
-            topic_type = next(
-                topic_type for topic_name, topic_type in topic_types if topic_name ==
-                src_topic
-            )
-            break
-        except StopIteration:
-            rospy.logwarn(
-                "{} does not seem to be published yet. "
-                "Waiting...".format(src_topic)
-            )
-            rospy.sleep(2)
-            if rospy.is_shutdown():
-                sys.exit()
+def connect_topics(src_topic, dest_topic, topic_type):
     topic_type = resolve_message_type(topic_type)
     pub = rospy.Publisher(dest_topic, topic_type, queue_size=10)
     def callback(item, publisher=pub):
@@ -61,20 +42,22 @@ def connect_all_topics(module_db, module_type_db):
         if module.id.startswith('_'):
             continue
         module_type = module_types[module.type]
-        for input_name in module_type.inputs.keys():
+        for input_name, input_info in module_type.inputs.items():
             mapped_input_name = module.get("mappings",{}).get(
                 input_name, input_name
             )
             src_topic = "/{}/{}".format(module.environment, mapped_input_name)
             dest_topic = "/actuators/{}_{}".format(module.id, input_name)
-            topics.extend(connect_topics(src_topic, dest_topic))
-        for output_name in module_type.outputs:
+            topic_type = input_info["type"]
+            topics.extend(connect_topics(src_topic, dest_topic, topic_type))
+        for output_name, output_info in module_type.outputs.items():
             mapped_output_name = module_type.get("mappings", {}).get(
                 output_name, output_name
             )
             src_topic = "/sensors/{}_{}".format(module.id, output_name)
             dest_topic = "/{}/{}".format(module.environment, mapped_output_name)
-            topics.extend(connect_topics(src_topic, dest_topic))
+            topic_type = output_info["type"]
+            topics.extend(connect_topics(src_topic, dest_topic, topic_type))
     return topics
 
 if __name__ == '__main__':
@@ -88,6 +71,8 @@ if __name__ == '__main__':
         db_server, DbName.FIRMWARE_MODULE
     )['last_seq']
     while True:
+        if rospy.is_shutdown():
+            break
         time.sleep(5)
         changes = get_database_changes(
             db_server, DbName.FIRMWARE_MODULE, last_seq
@@ -97,4 +82,3 @@ if __name__ == '__main__':
             for topic in topics:
                 topic.unregister()
             topics = connect_all_topics(module_db, module_type_db)
-

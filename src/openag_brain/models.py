@@ -154,6 +154,12 @@ class SoftwareModuleModel(Document):
     should be an entry in this dictionary for every `argument` in the software
     module type of this software modules
     """
+    parameters = DictField()
+    """
+    (dict) A dictionary mapping ROS parameter names to parameter values. These
+    parameters will be defined in the roslaunch XML file under the node for
+    this software module.
+    """
     mappings = DictField()
     """
     (dict) A dictionary mapping ROS names to different ROS names. Keys are the
@@ -184,5 +190,12 @@ class SoftwareModuleTypeModel(Document):
     (array, required) An array of dictionaries describing the command line
     arguments to be passed to this module. The dictionaries must contain the
     fields "name" and "type" (e.g. "int" or "float") and can contain the fields
-    "description" and "default".
+    "description", "default", and "required".
+    """
+    parameters = DictField()
+    """
+    (dict) A nested dictionary mapping names of ROS parameters read by this
+    module to dictionaries describing those parameters. The inner dictionaries
+    must contain the field "type" and can contain the fields "description" and
+    "default".
     """

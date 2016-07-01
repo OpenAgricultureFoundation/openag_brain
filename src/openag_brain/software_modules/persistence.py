@@ -8,7 +8,6 @@ should be exactly one instance of this module per environment in the system.
 import sys
 import time
 import random
-import threading
 from importlib import import_module
 
 import rospy
@@ -19,10 +18,10 @@ from openag_brain import params
 from openag_brain.util import resolve_message_type
 from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.db_names import DbName
+from openag_brain.var_types import EnvironmentalVariable
 
 class Persistence:
     def __init__(self, server):
-        self.subscribers = {}
         rospy.init_node('persistence')
         self.namespace = rospy.get_namespace()
         if self.namespace == '/':
@@ -32,63 +31,73 @@ class Persistence:
             )
         self.environment = self.namespace.split('/')[-2]
         self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
-        self.update_subscribers()
+        self.subscribers = {}
+        self.valid_variables = [
+            v for k,v in EnvironmentalVariable.__dict__.items() if k.isupper()
+        ]
         self.last_desired_data = {}
         self.last_measured_data = {}
 
+    def run(self):
+        while not rospy.is_shutdown():
+            self.update_subscribers()
+            time.sleep(5)
+
     def update_subscribers(self):
-        if rospy.is_shutdown():
-            return
+        # Look at all of the topics that are being published in the namespace
         for topic, topic_type in rospy.get_published_topics(self.namespace):
             topic_type = resolve_message_type(topic_type)
+
+            # Ignore topics we are already listening to
             if topic in self.subscribers:
                 continue
             variable = topic.split('/')[-1]
-            if variable.startswith('desired_'):
-                def callback(item, variable=variable[8:], mod=self):
-                    return mod.on_desired_data(item, variable)
-                self.subscribers[topic] = rospy.Subscriber(
-                    topic, topic_type, callback
-                )
-            else:
-                def callback(item, variable=variable, mod=self):
-                    return mod.on_measured_data(item, variable)
-                self.subscribers[topic] = rospy.Subscriber(
-                    topic, topic_type, callback
-                )
-        threading.Timer(5, self.update_subscribers).start()
 
-    def on_desired_data(self, item, variable):
+            # Ignore actuator commands
+            if variable.endswith('_cmd'):
+                continue
+
+            # Identify topics for set points
+            is_desired = False
+            if variable.startswith('desired_'):
+                variable = variable[8:]
+                is_desired = true
+
+            # Ignore topics that aren't named after valid variables
+            if not variable in self.valid_variables:
+                continue
+
+            # Subscribe to the topics
+            def callback(item, variable=variable, is_desired=is_desired):
+                return self.on_data(item, variable, is_desired)
+            self.subscribers[topic] = rospy.Subscriber(
+                topic, topic_type, callback
+            )
+
+    def on_data(self, item, variable, is_desired):
         curr_time = time.time()
         value = item.data
-        if self.last_desired_data.get(variable, None) == value:
+        # This is kind of a hack to correctly interpret UInt8MultiArray
+        # messages. There should be a better way to do this
+        if item._slot_types[item.__slots__.index('data')] == "uint8[]":
+            value = [ord(x) for x in value]
+        if is_desired and self.last_desired_data.get(variable, None) == value:
+            return
+        elif self.last_measured_data.get(variable, None) == value:
             return
         point = EnvironmentalDataPointModel(
             environment=self.environment,
             variable=variable,
-            is_desired=True,
+            is_desired=is_desired,
             value=value,
             timestamp=curr_time
         )
         point["_id"] = self.gen_doc_id(curr_time)
         point.store(self.db)
-        self.last_desired_data[variable] = value
-
-    def on_measured_data(self, item, variable):
-        curr_time = time.time()
-        value = item.data
-        if self.last_measured_data.get(variable, None) == value:
-            return
-        point = EnvironmentalDataPointModel(
-            environment=self.environment,
-            variable=variable,
-            is_desired=False,
-            value=item.data,
-            timestamp=curr_time
-        )
-        point["_id"] = self.gen_doc_id(curr_time)
-        point.store(self.db)
-        self.last_measured_data[variable] = value
+        if is_desired:
+            self.last_desired_data[variable] = value
+        else:
+            self.last_measured_data[variable] = value
 
     def gen_doc_id(self, curr_time):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
@@ -97,4 +106,4 @@ class Persistence:
 if __name__ == '__main__':
     server = Server(rospy.get_param('/' + params.DB_SERVER))
     mod = Persistence(server)
-    rospy.spin()
+    mod.run()

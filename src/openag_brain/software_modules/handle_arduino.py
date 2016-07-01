@@ -12,8 +12,10 @@ this module in the system.
 import sys
 import time
 import rospy
+import atexit
 import requests
 import argparse
+import traceback
 import subprocess
 from couchdb import Server
 
@@ -23,39 +25,37 @@ from openag_brain.db_names import DbName
 
 serial_node = None
 
+@atexit.register
 def kill_children():
     if serial_node is not None and serial_node.poll():
         serial_node.terminate()
         serial_node.wait()
 
 def update(server, serial_port):
+    rospy.loginfo("Updating arduino at %s", serial_port)
     try:
         rospy.loginfo("Generating firmware")
         commands.generate_firmware(server)
         rospy.loginfo("Flashing Arduino")
-        res = subprocess.call([
+        if subprocess.call([
             "rosrun", "openag_brain", "flash_arduino", serial_port
-        ])
-        if res:
+        ]):
             raise Exception("Flashing failed")
-    except Exception as e:
-        rospy.logerr("Failed to update Arduino: %s", e)
-        kill_children()
-        sys.exit(1)
+    except Exception:
+        rospy.logerr("Failed to update Arduino:\n%s", traceback.format_exc())
 
-def handle_arduino(db_server, serial_port, development=False):
-    server = Server(db_server)
-
-    # Flash the arduino
-    if not development:
-        update(server, serial_port)
-
-    # Start reading from the arduino
-    print "Starting to read from Arduino"
+def start_reading(serial_port):
+    rospy.loginfo("Starting to read from Arduino")
     global serial_node
     serial_node = subprocess.Popen([
         "rosrun", "rosserial_python", "serial_node.py", serial_port
     ])
+
+def handle_arduino(db_server, serial_port, development=False):
+    server = Server(db_server)
+    if not development:
+        update(server, serial_port)
+    start_reading(serial_port)
 
     if development:
         while True:
@@ -77,12 +77,11 @@ def handle_arduino(db_server, serial_port, development=False):
         )
         last_seq = changes['last_seq']
         if len(changes['results']):
+            rospy.loginfo("Firmware module configuration changed; Restarting")
             serial_node.terminate()
             serial_node.wait()
             update(server, serial_port)
-            serial_node = subprocess.Popen([
-                "rosrun", "rosserial_python", "serial_node.py", serial_port
-            ])
+            start_reading(serial_port)
     kill_children()
 
 if __name__ == '__main__':

@@ -19,7 +19,16 @@ def kill_children():
         modules.terminate()
         modules.wait()
 
-def main(db_server, hostname, fixture=None, development=False):
+def spawn_modules(development=False, screen=False):
+    roslaunch_command = [
+        "roslaunch", "openag_brain", "modules.launch",
+        "development:={}".format(development)
+    ]
+    if screen:
+        roslaunch_command.append("--screen")
+    return subprocess.Popen(roslaunch_command)
+
+def main(db_server, hostname, fixture=None, development=False, screen=False):
     # Initialize the database
     print "Initializing the database"
     server = Server(db_server)
@@ -35,10 +44,8 @@ def main(db_server, hostname, fixture=None, development=False):
         print "Generating launch file"
         commands.update_launch(server)
     global modules
-    modules = subprocess.Popen([
-        "roslaunch", "openag_brain", "modules.launch",
-        "development:={}".format(development)
-    ])
+    print "Spawning software modules"
+    modules = spawn_modules(development, screen)
 
     if development:
         while True:
@@ -56,11 +63,13 @@ def main(db_server, hostname, fixture=None, development=False):
         )
         last_seq = changes['last_seq']
         if len(changes['results']):
+            print "Software module configuration changed; Restarting"
             modules.terminate()
             print "Generating launch file"
             commands.update_launch(server)
             modules.wait()
-            modules = subprocess.Popen(["roslaunch", "openag_brain", "modules.launch"])
+            print "Spawning software modules"
+            modules = spawn_modules(screen)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -81,5 +90,14 @@ the configuration of the software modules
         "-d", "--development", action="store_true",
         help="Disables automatic module updates for both software and firmware"
     )
+    parser.add_argument(
+        "--screen", action="store_true",
+        help="""
+Passes the --screen flag to the roslaunch call, which forces all node output to
+the screen. Useful for debugging
+""")
     vals = parser.parse_args()
-    main(vals.db_server, vals.hostname, vals.fixture, vals.development)
+    main(
+        vals.db_server, vals.hostname, vals.fixture, vals.development,
+        vals.screen
+    )
