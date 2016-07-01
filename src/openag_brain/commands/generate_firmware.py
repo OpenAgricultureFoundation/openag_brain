@@ -170,7 +170,12 @@ void setup() {
     f.write("""\
 void loop() {
   nh.spinOnce();
+
 """)
+    for module in modules.values():
+        f.write("""\
+  {mod_id}.update();
+""".format(mod_id=module.id))
     for module in modules.values():
         module_type = module_types[module.type]
         for output in module_type.outputs.keys():

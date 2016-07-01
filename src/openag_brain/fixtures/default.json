@@ -100,16 +100,16 @@
         }
       ],
       "inputs": {
-        "state": {
+        "cmd": {
           "type": "std_msgs/Bool"
         }
       }
     },
     {
-      "_id": "percent_actuator",
+      "_id": "pwm_actuator",
       "pio_id": "348",
-      "header_file": "openag_percent_actuator.h",
-      "class_name": "PercentActuator",
+      "header_file": "openag_pwm_actuator.h",
+      "class_name": "PwmActuator",
       "description": "Driver for an actuator that can take any value between 0 and 1",
       "arguments": [
         {
@@ -129,7 +129,7 @@
         }
       ],
       "inputs": {
-        "state": {
+        "cmd": {
           "type": "std_msgs/Float32"
         }
       }
