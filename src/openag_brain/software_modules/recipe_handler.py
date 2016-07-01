@@ -132,7 +132,7 @@ class RecipeHandler(object):
             self.environment, EnvironmentalVariable.RECIPE_START, "desired"
         ], endkey=[
             self.environment, EnvironmentalVariable.RECIPE_START, "desired", {}
-        ])
+        ], group_level=3)
         if len(start_view) == 0:
             return
         start_doc = start_view.rows[0].value
@@ -143,7 +143,7 @@ class RecipeHandler(object):
             self.environment, EnvironmentalVariable.RECIPE_END, "desired"
         ], endkey=[
             self.environment, EnvironmentalVariable.RECIPE_END, "desired", {}
-        ])
+        ], group_level=3)
         if len(end_view):
             end_doc = end_view.rows[0].value
             if (end_doc["timestamp"] > start_doc["timestamp"]):

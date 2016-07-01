@@ -4,66 +4,303 @@
       "_id": "environment_1"
     }
   ],
+  "firmware_module_type": [
+    {
+      "_id": "am2315",
+      "pio_id": 336,
+      "header_file": "openag_am2315.h",
+      "class_name": "Am2315",
+      "description": "Driver for the am2315 sensor",
+      "outputs": {
+        "air_temperature": {
+          "type": "std_msgs/Float32"
+        },
+        "air_humidity": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_ec",
+      "pio_id": 338,
+      "header_file": "openag_atlas_ec.h",
+      "class_name": "AtlasEc",
+      "description": "Driver for the Atlas Scientific electrical conductivity sensor",
+      "arguments": [
+        {
+          "name": "i2c_address",
+          "type": "int",
+          "default": 100
+        }
+      ],
+      "outputs": {
+        "water_electrical_conductivity": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_ph",
+      "pio_id": 339,
+      "header_file": "openag_atlas_ph.h",
+      "class_name": "AtlasPh",
+      "description": "Driver for the Atlas Scientific pH sensor",
+      "arguments": [
+        {
+          "name": "i2c_address",
+          "type": "int",
+          "default": 99
+        }
+      ],
+      "inputs": {},
+      "outputs": {
+        "water_potential_hydrogen": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_rgb",
+      "pio_id": 340,
+      "header_file": "openag_atlas_rgb.h",
+      "class_name": "AtlasRgb",
+      "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
+      "arguments": [
+        {
+          "name": "serial_port",
+          "type": "int",
+          "description": "Index of the serial port to which this sensor is connected"
+        }
+      ],
+      "outputs": {
+        "light_illuminance": {
+          "type": "std_msgs/UInt16"
+        },
+        "light_spectrum": {
+          "type": "std_msgs/UInt8MultiArray",
+          "description": "3-element array with red, green, and blue values"
+        }
+      }
+    },
+    {
+      "_id": "binary_actuator",
+      "pio_id": 349,
+      "header_file": "openag_binary_actuator.h",
+      "class_name": "BinaryActuator",
+      "description": "Driver for an actuator that can only be set ot binary values",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
+        },
+        {
+          "name": "is_active_low",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "inputs": {
+        "cmd": {
+          "type": "std_msgs/Bool"
+        }
+      }
+    },
+    {
+      "_id": "pwm_actuator",
+      "pio_id": 348,
+      "header_file": "openag_pwm_actuator.h",
+      "class_name": "PwmActuator",
+      "description": "Driver for an actuator that can take any value between 0 and 1",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
+        },
+        {
+          "name": "is_active_low",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "threshold",
+          "type": "float",
+          "default": 0,
+          "description": "Command threshold at which the actuator turns on"
+        }
+      ],
+      "inputs": {
+        "cmd": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "software_pwm_actuator",
+      "pio_id": 0,
+      "header_file": "openag_software_pwm_actuator.h",
+      "class_name": "SoftwarePwmActuator",
+      "description": "OpenAg driver for an actuator. Does pwm in software to allow for more flexibility in configuration: particularly to allow for longer periods for actuators that exhibit a nonlinear response to normal pwm.",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
+        },
+        {
+          "name": "is_active_low",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "period",
+          "type": "int",
+          "default": 1000
+        }
+      ],
+      "inputs": {
+        "cmd": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    }
+  ],
   "software_module_type": [
     {
       "_id": "openag_brain:api.py",
       "package": "openag_brain",
       "executable": "api.py",
-      "description": "HTTP API for interacting with ROS",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "description": "HTTP API for interacting with ROS"
+    },
+    {
+      "_id": "openag_brain:image_persistence.py",
+      "package": "openag_brain",
+      "executable": "image_persistence.py",
+      "description": "Persists image data to CouchDB"
     },
     {
       "_id": "openag_brain:handle_arduino.py",
       "package": "openag_brain",
       "executable": "handle_arduino.py",
       "description": "Handles generating code for, flashing, and reading from the Arduino",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "arguments": [
+        {
+          "name": "serial_port",
+          "type": "str",
+          "default": "/dev/ttyACM0"
+        }
+      ]
     },
     {
       "_id": "openag_brain:on_off_control.py",
       "package": "openag_brain",
       "executable": "on_off_control.py",
       "description": "Performs simple on/off control given a sensor reading and a set point",
-      "parameters": ["~default_set_point"],
-      "inputs": ["set_point", "measured"],
-      "outputs": ["state"],
-      "services": []
+      "arguments": [
+        {
+          "name": "default_set_point",
+          "type": "float"
+        }
+      ]
     },
     {
       "_id": "openag_brain:persistence.py",
       "package": "openag_brain",
       "executable": "persistence.py",
-      "description": "Listens to topic on the environment and writes their data to CouchDB",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "description": "Listens to topic on the environment and writes their data to CouchDB"
     },
     {
       "_id": "openag_brain:recipe_handler.py",
       "package": "openag_brain",
       "executable": "recipe_handler.py",
-      "description": "Runs recipes and outputs set points for the environment",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": ["start_recipe", "stop_recipe"]
+      "description": "Runs recipes and outputs set points for the environment"
     },
     {
       "_id": "openag_brain:topic_connector.py",
       "package": "openag_brain",
       "executable": "topic_connector.py",
-      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways",
-      "parameters": [],
-      "inputs": [],
-      "outputs": [],
-      "services": []
+      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways"
+    },
+    {
+      "_id": "usb_cam:usb_cam_node",
+      "package": "usb_cam",
+      "executable": "usb_cam_node",
+      "description": "The usb_cam_node interfaces with standard USB cameras (e.g. the Logitech Quickcam) using libusb_cam and publishes images as sensor_msgs::Image. Uses the image_transport library to allow compressed image transport.",
+      "parameters": {
+        "video_device": {
+          "type": "str",
+          "description": "The device the camera is on",
+          "default": "/dev/video0"
+        },
+        "image_width": {
+          "type": "int",
+          "description": "Image width",
+          "default": 640
+        },
+        "image_height": {
+          "type": "int",
+          "description": "Image height",
+          "default": 480
+        },
+        "pixel_format": {
+          "type": "str",
+          "description": "Possible values are mjpeg, yuyv, uyvy",
+          "default": "mjpeg"
+        },
+        "io_method": {
+          "type": "string",
+          "default": "mmap",
+          "description": "Possible values are mmap, read, userptr"
+        },
+        "camera_frame_id": {
+          "type": "str",
+          "description": "The camera's tf frame",
+          "default": "head_camera"
+        },
+        "framerate": {
+          "type": "int",
+          "description": "The required framerate",
+          "default": 30
+        },
+        "contrast": {
+          "type": "int",
+          "default": 32,
+          "description": "Contrast of video image (0-255)"
+        },
+        "brightness": {
+          "type": "int",
+          "default": 32,
+          "description": "Brightness of video image (0-255)"
+        },
+        "saturation": {
+          "type": "int",
+          "default": 32,
+          "description": "Saturation of video image (0-255)"
+        },
+        "sharpness": {
+          "type": "int",
+          "default": 22,
+          "description": "Sharpness of video image (0-255)"
+        },
+        "autofocus": {
+          "type": "bool",
+          "default": false,
+          "description": "Enable camera's autofocus"
+        },
+        "focus": {
+          "type": "int",
+          "default": 51,
+          "description": "If autofocus is disabled, the focus of the camera (0=at infinity)"
+        },
+        "camera_info_url": {
+          "type": "str",
+          "default": "",
+          "description": "An url to the camera calibration file that will be read by the CameraInfoManager class"
+        },
+        "camera_name": {
+          "type": "str",
+          "default": "head_camera",
+          "description": "The camera name. This must match the name in the camera calibration"
+        }
+      }
     }
   ],
   "software_module": [
@@ -88,68 +325,26 @@
       "_id": "persistence_1",
       "type": "openag_brain:persistence.py",
       "environment": "environment_1"
-    }
-  ],
-  "firmware_module_type": [
-    {
-      "_id": "am2315",
-      "pio_id": "336",
-      "header_file": "openag_am2315.h",
-      "class_name": "Am2315",
-      "description": "Driver for the am2315 sensor",
-      "parameters": [],
-      "inputs": {},
-      "outputs": {
-        "air_temperature": "std_msgs/Float32",
-        "air_humidity": "std_msgs/Float32"
-      }
     },
     {
-      "_id": "gc0012",
-      "pio_id": "337",
-      "header_file": "openag_gc0012.h",
-      "class_name": "Gc0012",
-      "description": "Driver for the gc0012 sensor",
-      "parameters": ["serial_port"],
-      "inputs": {},
-      "outputs": {
-        "carbon_dioxide": "std_msgs/Float32"
-      }
+      "_id": "image_persistence_1",
+      "type": "openag_brain:image_persistence.py",
+      "environment": "environment_1"
     },
     {
-      "_id": "atlas_ec",
-      "pio_id": "338",
-      "header_file": "openag_atlas_ec.h",
-      "class_name": "AtlasEc",
-      "description": "Driver for the Atlas Scientific electrical conductivity sensor",
-      "parameters": ["i2c_address"],
-      "inputs": {},
-      "outputs": {
-        "electrical_conductivity": "std_msgs/Float32"
-      }
-    },
-    {
-      "_id": "atlas_ph",
-      "pio_id": "339",
-      "header_file": "openag_atlas_ph.h",
-      "class_name": "AtlasPh",
-      "description": "Driver for the Atlas Scientific pH sensor",
-      "parameters": ["i2c_address"],
-      "inputs": {},
-      "outputs": {
-        "potential_hydrogen": "std_msgs/Float32"
-      }
-    },
-    {
-      "_id": "atlas_rgb",
-      "pio_id": "340",
-      "header_file": "openag_atlas_rgb.h",
-      "class_name": "AtlasRgb",
-      "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
-      "parameters": ["serial_port"],
-      "inputs": {},
-      "outputs": {
-        "illuminance": "std_msgs/Float32"
+      "_id": "camera_1",
+      "type": "usb_cam:usb_cam_node",
+      "environment": "environment_1",
+      "parameters": {
+        "image_width": 1280,
+        "image_height": 960,
+        "pixel_format": "yuyv",
+        "framerate": 1,
+        "camera_frame_id": "top",
+        "camera_name": "top",
+        "autofocus": true,
+        "sharpness": 100,
+        "io_method": "mmap"
       }
     }
   ]

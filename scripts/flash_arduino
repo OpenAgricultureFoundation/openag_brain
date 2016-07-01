@@ -1,2 +1,6 @@
 #!/bin/bash
-echo "y" | pio run -d ~/.openag/build -t upload
+if [ "$#" -gt 0 ]; then
+    echo "y" | pio run -d ~/.openag/build -t upload --upload-port $1
+else
+    echo "y" | pio run -d ~/.openag/build -t upload
+fi

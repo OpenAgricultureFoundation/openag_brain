@@ -1,0 +1,81 @@
+{
+  "firmware_module": [
+    {
+      "_id": "am2315_1",
+      "environment": "environment_1",
+      "type": "am2315"
+    },
+    {
+      "_id": "atlas_ec_1",
+      "environment": "environment_1",
+      "type": "atlas_ec"
+    },
+    {
+      "_id": "atlas_ph_1",
+      "environment": "environment_1",
+      "type": "atlas_ph"
+    },
+    {
+      "_id": "atlas_rgb_1",
+      "environment": "environment_1",
+      "type": "atlas_rgb",
+      "arguments": {"serial_port": 3}
+    },
+    {
+      "_id": "ph_up_pump_1",
+      "environment": "environment_1",
+      "type": "software_pwm_actuator",
+      "mappings": {"cmd": "water_potential_hydrogen_up_cmd"},
+      "arguments": {"pin": 4}
+    },
+    {
+      "_id": "ph_down_pump_1",
+      "environment": "environment_1",
+      "type": "software_pwm_actuator",
+      "mappings": {"cmd": "water_potential_hydrogen_down_cmd"},
+      "arguments": {"pin": 5}
+    },
+    {
+      "_id": "heater_1",
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "mappings": {"cmd": "air_temperature_up_cmd"},
+      "arguments": {"pin": 12}
+    },
+    {
+      "_id": "humidifier_1",
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "mappings": {"cmd": "air_humidity_up_cmd"},
+      "arguments": {"pin": 11}
+    },
+    {
+      "_id": "dehumidifier_1",
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "mappings": {"cmd": "air_humidity_down_cmd"},
+      "arguments": {"pin": 9}
+    },
+    {
+      "_id": "white_light_1",
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "mappings": {"cmd": "white_light_cmd"},
+      "arguments": {"pin": 6}
+    },
+    {
+      "_id": "blue_light_1",
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "mappings": {"cmd": "blue_light_cmd"},
+      "arguments": {"pin": 7}
+    },
+    {
+      "_id": "red_light_1",
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "mappings": {"cmd": "red_light_cmd"},
+      "arguments": {"pin": 8}
+    }
+  ]
+}

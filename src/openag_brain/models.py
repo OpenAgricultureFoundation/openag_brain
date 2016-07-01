@@ -1,5 +1,6 @@
 from couchdb.mapping import (
-    Document, TextField, FloatField, DictField, BooleanField, ListField
+    Document, TextField, FloatField, DictField, BooleanField, ListField,
+    IntegerField
 )
 
 __all__ = [
@@ -24,42 +25,56 @@ class EnvironmentalDataPointModel(Document):
     an `environment`.
     """
     environment = TextField()
-    """ (str) The ID of the environment for which this point was measured """
+    """
+    (str, required) The ID of the environment for which this point was measured
+    """
     variable = TextField()
     """
-    (str) The type of measurement of event this represents (e.g.
+    (str, required) The type of measurement of event this represents (e.g.
     "air_temperature")
     """
     is_desired = BooleanField()
     """
-    (bool) This should be true if the data point represents the desired state
-    of the environment (e.g. the set points of a recipe) and false if it
-    represents the measured state of the environment.
+    (bool, required) This should be true if the data point represents the
+    desired state of the environment (e.g. the set points of a recipe) and
+    false if it represents the measured state of the environment.
     """
     value = TextField()
     """
-    (str) The value associated with the measurement or event. The exact use of
-    this field may very depending on the `variable` field.
+    (str, required) The value associated with the measurement or event. The
+    exact use of this field may very depending on the `variable` field.
     """
     timestamp = FloatField()
     """
-    (float) A UNIX timestamp reflecting when this data point was generated.
+    (float, required) A UNIX timestamp reflecting when this data point was
+    generated.
     """
 
 class FirmwareModuleModel(Document):
     """
     A `firmware module` typically drives a single physical peripheral (sensor
-    actuator) in the system
+    or actuator) in the system
     """
     environment = TextField()
-    """ (str) The ID of the environment on which this peripheral acts """
-    type = TextField()
-    """ (str) The ID of the firmware module type of this object """
-    parameters = DictField()
     """
-    (dict) A dictionary mapping parameter names to parameter values. There
-    should be an entry in this dictionary for every `parameter` in the firmware
-    module type of this firmware module.
+    (str, required) The ID of the environment on which this peripheral acts
+    """
+    type = TextField()
+    """
+    (str, required) The ID of the firmware module type of this object
+    """
+    arguments = DictField()
+    """
+    (dict) A dictionary mapping argument names to argument values. There must
+    be an entry in this dictionary for every `argument` in the firmware module
+    type of this firmware module that doesn't have a default value.
+    """
+    mappings = DictField()
+    """
+    (dict) A dictionary mapping ROS names to different ROS names. Keys are the
+    names defined in the firmware module type and values are the names that
+    should be used instead. This can be used, for example, to route the correct
+    input into an actuator module with a generic input name such as `state`.
     """
 
 class FirmwareModuleTypeModel(Document):
@@ -68,37 +83,39 @@ class FirmwareModuleTypeModel(Document):
     a particular system peripheral. It is essentially a driver for a sensor or
     actuator. The code itself should be registered with `platformio
     <platformio.org>`_ and metadata about it should be stored in the OpenAg
-    database. `Firmware module type`s must define a class that inherits from
-    the superclass defined in `openag_peripheral
-    <http://github.com/OpenAgInitiative/openag_peripheral>`_, and this object
-    must descibe the exact location of that class.
+    database.
     """
-    pio_id = TextField()
-    """ (str) The platformio ID of the uploaded library """
+    pio_id = IntegerField()
+    """ (int, required) The platformio ID of the uploaded library """
     header_file = TextField()
     """
-    (str) The name of the header file containing the top-level class in the
-    library
+    (str, required) The name of the header file containing the top-level class
+    in the library
     """
     class_name = TextField()
-    """ (str) The name of the top-level class in the library """
+    """ (str, required) The name of the top-level class in the library """
     description = TextField()
-    """ (str) Description of the library """
-    parameters = ListField(TextField())
+    """ (str, required) Description of the library """
+    arguments = ListField(DictField())
     """
-    (array) A list of parameters that must be defined for `firmware modules` of
-    this type and passed into the constructor of the top-level class of this
-    library
+    (array, required) An array of dictionaries describing the arguments to be
+    passed to the constructor of the top-level class of this module. The
+    dictionaries must contain the fields "name" and "type" (e.g. "int",
+    "float") and can contain the fields "description" and "default".
     """
     inputs = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which this library
-    subscribes to ROS message types for those libraries
+    (dict, required) A nested dictionary mapping names of ROS topics to which
+    this library subscribes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic and can contain the field "description".
     """
     outputs = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which top library
-    publishes to ROS message types for those libraries
+    (dict, required) A nested dictionary mapping names of ROS topics to which this
+    library publishes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic and can contain the field "description".
     """
 
 class RecipeModel(Document):
@@ -112,11 +129,11 @@ class RecipeModel(Document):
     existing system as is.
     """
     format = TextField()
-    """ (str) The format of the recipe """
+    """ (str, required) The format of the recipe """
     operations = TextField()
     """
-    The actual content of the recipe, organized as specified for the format of
-    this recipe
+    (required) The actual content of the recipe, organized as specified for the
+    format of this recipe
     """
 
 class SoftwareModuleModel(Document):
@@ -128,16 +145,21 @@ class SoftwareModuleModel(Document):
     """
     environment = TextField()
     """
-    (str) The ID of the environment on which this software module acts. Can be
-    null
+    (str) The ID of the environment on which this software module acts.
     """
     type = TextField()
-    """ (str) The ID of the software module type of this object """
+    """ (str, required) The ID of the software module type of this object """
+    arguments = DictField()
+    """
+    (dict) A dictionary mapping argument names to argument values. There
+    should be an entry in this dictionary for every `argument` in the software
+    module type of this software modules
+    """
     parameters = DictField()
     """
-    (dict) A dictionary mapping parameter names to parameter values. There
-    should be an entry in this dictionary for every `parameter` in the spftware
-    module type of this software modules
+    (dict) A dictionary mapping ROS parameter names to parameter values. These
+    parameters will be defined in the roslaunch XML file under the node for
+    this software module.
     """
     mappings = DictField()
     """
@@ -157,30 +179,24 @@ class SoftwareModuleTypeModel(Document):
     """
     package = TextField()
     """
-    (str) The name of the ROS package containing the code for this object
+    (str, required) The name of the ROS package containing the code for this
+    object
     """
     executable = TextField()
-    """ (str) The name of the executable for this object """
+    """ (str, required) The name of the executable for this object """
     description = TextField()
-    """ (str) Description of the library """
-    parameters = ListField(TextField())
+    """ (str, required) Description of the library """
+    arguments = ListField(DictField())
     """
-    (array) A list of parameters that must be defined for `software modules` of
-    this type. They should follow the `ROS naming conventions
-    <http://wiki.ros.org/Names>`_.
+    (array, required) An array of dictionaries describing the command line
+    arguments to be passed to this module. The dictionaries must contain the
+    fields "name" and "type" (e.g. "int" or "float") and can contain the fields
+    "description", "default", and "required".
     """
-    inputs = ListField(TextField())
+    parameters = DictField()
     """
-    (dict) A dictionary mapping names of ROS topics to which this library
-    subscribes to ROS message types for those libraries
+    (dict) A nested dictionary mapping names of ROS parameters read by this
+    module to dictionaries describing those parameters. The inner dictionaries
+    must contain the field "type" and can contain the fields "description" and
+    "default".
     """
-    outputs = ListField(TextField())
-    """
-    (dict) A dictionary mapping names of ROS topics to which top library
-    publishes to ROS message types for those libraries
-    """
-    services = ListField(TextField())
-    """
-    (array) A list of names of services advertized by this program
-    """
-

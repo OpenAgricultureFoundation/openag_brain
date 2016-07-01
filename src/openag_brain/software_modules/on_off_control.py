@@ -4,8 +4,8 @@ import rospy
 from std_msgs.msg import Float64, Bool
 
 class OnOffControl(object):
-    def __init__(self):
-        self.current_set_point = rospy.get_param("~default_set_point")
+    def __init__(self, default):
+        self.current_set_point = default
         self.current_measured = self.current_set_point
         rospy.Subscriber('set_point', Float, self.on_set_point)
         rospy.Subscriber('measured', Float, self.on_measured)
@@ -26,5 +26,12 @@ class OnOffControl(object):
             self.state.publish(False)
 
 if __name__ == '__main__':
-    c = OnOffControl()
+    parser = argparse.ArgumentParser(
+        "Performs on/off control given a set point and a stream of "
+        "measurements by outputing a stream of commands to an actuator that "
+        "is assumed to raise the value of the parameter being measured"
+    )
+    paresr.add_argument("default")
+    args, _ = parser.parse_known_args()
+    c = OnOffControl(args.default)
     rospy.spin()

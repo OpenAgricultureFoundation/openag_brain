@@ -245,6 +245,7 @@ def get_node_info(node_name):
 if __name__ == '__main__':
     server = WSGIServer(('', 5000), app)
     try:
+        rospy.loginfo("API now listening on http://0.0.0.0:5000")
         server.serve_forever()
     except KeyboardInterrupt:
         server.stop()

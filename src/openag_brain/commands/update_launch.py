@@ -7,7 +7,7 @@ from openag_brain.util import read_module_data
 from openag_brain.models import SoftwareModuleModel, SoftwareModuleTypeModel
 from openag_brain.db_names import DbName
 
-def create_node(parent, pkg, type, name):
+def create_node(parent, pkg, type, name, args=None):
     """
     Creates an xml node for the launch file that represents a ROS node.
     `parent` is the parent xml node. `pkg` is the ROS package of the node.
@@ -18,6 +18,8 @@ def create_node(parent, pkg, type, name):
     e.attrib['pkg'] = pkg
     e.attrib['type'] = type
     e.attrib['name'] = name
+    if args:
+        e.attrib['args'] = args
     return e
 
 def create_param(parent, name, value, type):
@@ -97,22 +99,40 @@ def update_launch(server):
         else:
             group = groups[module.environment]
         module_type = module_types[module.type]
+        arguments = []
+        for arg_info in module_type.arguments:
+            arg_name = arg_info["name"]
+            val = module.arguments.get(
+                arg_name, arg_info.get("default", None)
+            )
+            if val is None:
+                raise RuntimeError(
+                    'Argument "{arg}" is not defined for software module '
+                    '"{mod_id}"'.format(arg=arg_name, mod_id=module.id)
+                )
+            arguments.append(val)
+        args_str = ", ".join(arguments)
         node = create_node(
-            group, module_type.package, module_type.executable, module.id
+            group, module_type.package, module_type.executable, module.id,
+            args_str
         )
+        for param_name, param_info in module_type.parameters.items():
+            param_value = module.parameters.get(
+                param_name, param_info.get("default", None)
+            )
+            param_value = str(param_value) \
+                    if not isinstance(param_value, bool) else str(param_value)
+            param_type = str(param_info["type"])
+            if param_value is None:
+                if param_info.get("required", False):
+                    raise RuntimeError(
+                        'Parameter "{param}" is not defined for software '
+                        'module "{mod_id}"'.format(param_name, module.id)
+                    )
+            else:
+                create_param(node, param_name, param_value, param_type)
         for k,v in module.mappings.items():
             create_remap(node, k, v)
-        for k,v in module.parameters.items():
-            param = ET.SubElement(node, 'param')
-            if k.startswith('~'):
-                param.attrib['name'] = k[1:]
-            else:
-                raise RuntimeException()
-            param.attrib['value'] = str(v)
-            if isinstance(v, int):
-                param.attrib['type'] = "int"
-            else:
-                raise RuntimeException()
     doc = ET.ElementTree(root)
 
     # Figure out where to write the launch file
