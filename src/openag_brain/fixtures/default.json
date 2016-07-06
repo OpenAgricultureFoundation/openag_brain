@@ -123,7 +123,7 @@
         },
         {
           "name": "threshold",
-          "type": "float",
+          "type": "double",
           "default": 0,
           "description": "Command threshold at which the actuator turns on"
         }
@@ -136,7 +136,7 @@
     },
     {
       "_id": "software_pwm_actuator",
-      "pio_id": 0,
+      "pio_id": 351,
       "header_file": "openag_software_pwm_actuator.h",
       "class_name": "SoftwarePwmActuator",
       "description": "OpenAg driver for an actuator. Does pwm in software to allow for more flexibility in configuration: particularly to allow for longer periods for actuators that exhibit a nonlinear response to normal pwm.",
@@ -190,18 +190,6 @@
       ]
     },
     {
-      "_id": "openag_brain:on_off_control.py",
-      "package": "openag_brain",
-      "executable": "on_off_control.py",
-      "description": "Performs simple on/off control given a sensor reading and a set point",
-      "arguments": [
-        {
-          "name": "default_set_point",
-          "type": "float"
-        }
-      ]
-    },
-    {
       "_id": "openag_brain:persistence.py",
       "package": "openag_brain",
       "executable": "persistence.py",
@@ -218,6 +206,78 @@
       "package": "openag_brain",
       "executable": "topic_connector.py",
       "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways"
+    },
+    {
+      "_id": "openag_brain:pid.py",
+      "package": "openag_brain",
+      "executable": "pid.py",
+      "description": "PID Controller",
+      "parameters": {
+        "Kp": {
+          "type": "double",
+          "description": "Proportional control gain",
+          "default": 0
+        },
+        "Ki": {
+          "type": "double",
+          "description": "Integral control gain",
+          "default": 0
+        },
+        "Kd": {
+          "type": "double",
+          "description": "Derivative control gain",
+          "default": 0
+        },
+        "upper_limit": {
+          "type": "double",
+          "description": "The maximum limit for control_effort",
+          "default": 1
+        },
+        "lower_limit": {
+          "type": "double",
+          "description": "The minimum limit for control_effort",
+          "default": -1
+        },
+        "windup_limit": {
+          "type": "double",
+          "description": "The maximum limit for error integral",
+          "default": 1000
+        },
+        "deadband_width": {
+          "type": "double",
+          "description": "Control efforts with an absolute value below this values will be ignored and a 0 will be sent instead",
+          "default": 0
+        },
+        "variable": {
+          "type": "str",
+          "description": "The variable on which this loop operates. This parameter is used to rename the input and outputs of this module. For example if the variable were air_temperature, the cmd output would be changed to air_temperature_cmd",
+          "required": true
+        }
+      },
+      "inputs": {
+        "desired": {
+          "type": "std_msgs/Float64",
+          "description": "The message data element must contain the desired value of the state measurement of the controlled process. This topic can be renamed by the variable parameter"
+        },
+        "state": {
+          "type": "std_msgs/Float64",
+          "description": "The message data element must contain the current value of the controlled plant property. The controller publishes std_msgs/Float64 messages on the control_effort topic each time it receives a message on the state topic. Thus the rate at which the plant publishes state governs the control-loop rate - the plant should publish state at the desired loop rate. This topic can be renamed by the topic_from_plant parameter"
+        }
+      },
+      "outputs": {
+        "cmd": {
+          "type": "std_msgs/Float64",
+          "description": "The control_effort message data element contains the control effort to be applied to the process to drive state/data to equal setpoint/data. This topic can be renamed by the topic_from_controller parameter"
+        },
+        "up_cmd": {
+          "type": "std_msgs/Float64",
+          "description": ""
+        },
+        "down_cmd": {
+          "type": "std_msgs/Float64",
+          "description": ""
+        }
+      }
     },
     {
       "_id": "usb_cam:usb_cam_node",
@@ -330,22 +390,6 @@
       "_id": "image_persistence_1",
       "type": "openag_brain:image_persistence.py",
       "environment": "environment_1"
-    },
-    {
-      "_id": "camera_1",
-      "type": "usb_cam:usb_cam_node",
-      "environment": "environment_1",
-      "parameters": {
-        "image_width": 1280,
-        "image_height": 960,
-        "pixel_format": "yuyv",
-        "framerate": 1,
-        "camera_frame_id": "top",
-        "camera_name": "top",
-        "autofocus": true,
-        "sharpness": 100,
-        "io_method": "mmap"
-      }
     }
   ]
 }

@@ -26,14 +26,14 @@
       "environment": "environment_1",
       "type": "software_pwm_actuator",
       "mappings": {"cmd": "water_potential_hydrogen_up_cmd"},
-      "arguments": {"pin": 4}
+      "arguments": {"pin": 4, "period": 10000}
     },
     {
       "_id": "ph_down_pump_1",
       "environment": "environment_1",
       "type": "software_pwm_actuator",
       "mappings": {"cmd": "water_potential_hydrogen_down_cmd"},
-      "arguments": {"pin": 5}
+      "arguments": {"pin": 5, "period": 10000}
     },
     {
       "_id": "heater_1",
@@ -76,6 +76,38 @@
       "type": "pwm_actuator",
       "mappings": {"cmd": "red_light_cmd"},
       "arguments": {"pin": 8}
+    }
+  ],
+  "software_module": [
+    {
+      "_id": "ph_control",
+      "type": "openag_brain:pid.py",
+      "environment": "environment_1",
+      "parameters": {
+        "Kp": 0.1,
+        "Ki": 0,
+        "Kd": 0,
+        "upper_limit": 0.1,
+        "lower_limit": -0.1,
+        "deadband_width": 0.01,
+        "variable": "water_potential_hydrogen"
+      }
+    },
+    {
+      "_id": "camera_1",
+      "type": "usb_cam:usb_cam_node",
+      "environment": "environment_1",
+      "parameters": {
+        "image_width": 1280,
+        "image_height": 960,
+        "pixel_format": "yuyv",
+        "framerate": 1,
+        "camera_frame_id": "top",
+        "camera_name": "top",
+        "autofocus": true,
+        "sharpness": 100,
+        "io_method": "mmap"
+      }
     }
   ]
 }

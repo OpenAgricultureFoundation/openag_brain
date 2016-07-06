@@ -120,16 +120,20 @@ def update_launch(server):
             param_value = module.parameters.get(
                 param_name, param_info.get("default", None)
             )
-            param_value = str(param_value) \
-                    if not isinstance(param_value, bool) else str(param_value)
-            param_type = str(param_info["type"])
+            param_type = param_info["type"]
             if param_value is None:
                 if param_info.get("required", False):
                     raise RuntimeError(
                         'Parameter "{param}" is not defined for software '
-                        'module "{mod_id}"'.format(param_name, module.id)
+                        'module "{mod_id}"'.format(
+                            param=param_name, mod_id=module.id
+                        )
                     )
             else:
+                param_value = str(param_value) \
+                        if not isinstance(param_value, bool) else \
+                        str(param_value).lower()
+                param_type = str(param_type)
                 create_param(node, param_name, param_value, param_type)
         for k,v in module.mappings.items():
             create_remap(node, k, v)

@@ -25,12 +25,18 @@ from openag_brain.util import (
 from openag_brain.models import FirmwareModuleModel, FirmwareModuleTypeModel
 from openag_brain.db_names import DbName
 
-def connect_topics(src_topic, dest_topic, topic_type):
-    topic_type = resolve_message_type(topic_type)
-    pub = rospy.Publisher(dest_topic, topic_type, queue_size=10)
-    def callback(item, publisher=pub):
-        publisher.publish(item)
-    sub = rospy.Subscriber(src_topic, topic_type, callback)
+Float32 = resolve_message_type("std_msgs/Float32")
+Float64 = resolve_message_type("std_msgs/Float64")
+
+def connect_topics(src_topic, dest_topic, src_topic_type, dest_topic_type):
+    pub = rospy.Publisher(dest_topic, dest_topic_type, queue_size=10)
+    def callback(src_item, publisher=pub, src_type=src_topic_type,
+            dest_type=dest_topic_type):
+        dest_item = dest_type(*[
+            getattr(src_item, slot) for slot in src_item.__slots__
+        ])
+        publisher.publish(dest_item)
+    sub = rospy.Subscriber(src_topic, src_topic_type, callback)
     return sub, pub
 
 def connect_all_topics(module_db, module_type_db):
@@ -48,16 +54,24 @@ def connect_all_topics(module_db, module_type_db):
             )
             src_topic = "/{}/{}".format(module.environment, mapped_input_name)
             dest_topic = "/actuators/{}_{}".format(module.id, input_name)
-            topic_type = input_info["type"]
-            topics.extend(connect_topics(src_topic, dest_topic, topic_type))
+            dest_topic_type = resolve_message_type(input_info["type"])
+            src_topic_type = Float64 if dest_topic_type is Float32 else \
+                    dest_topic_type
+            topics.extend(connect_topics(
+                src_topic, dest_topic, src_topic_type, dest_topic_type
+            ))
         for output_name, output_info in module_type.outputs.items():
             mapped_output_name = module_type.get("mappings", {}).get(
                 output_name, output_name
             )
             src_topic = "/sensors/{}_{}".format(module.id, output_name)
             dest_topic = "/{}/{}".format(module.environment, mapped_output_name)
-            topic_type = output_info["type"]
-            topics.extend(connect_topics(src_topic, dest_topic, topic_type))
+            src_topic_type = resolve_message_type(output_info["type"])
+            dest_topic_type = Float64 if src_topic_type is Float32 else \
+                    src_topic_type
+            topics.extend(connect_topics(
+                src_topic, dest_topic, src_topic_type, dest_topic_type
+            ))
     return topics
 
 if __name__ == '__main__':

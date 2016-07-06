@@ -200,3 +200,17 @@ class SoftwareModuleTypeModel(Document):
     must contain the field "type" and can contain the fields "description" and
     "default".
     """
+    inputs = DictField()
+    """
+    (dict) A nested dictionary mapping names of ROS topics to which this
+    library subscribes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic and can contain the field "description".
+    """
+    outputs = DictField()
+    """
+    (dict) A nested dictionary mapping names of ROS topics to which this
+    library publishes to dictionaries containing information about those
+    topics. The inner dictionary must contain the field "type", which is the
+    ROS message type for the topic and can contain the field "description".
+    """

@@ -159,7 +159,7 @@ class RecipeHandler(object):
         if rospy.is_shutdown():
             return
         for variable, value in self.current_set_points.items():
-            self.publishers["desired_" + variable].publish(value)
+            self.publishers[variable+"_desired"].publish(value)
         Timer(5, self.publish_set_points).start()
 
     def start_recipe(self, data, start_time=None):
@@ -207,7 +207,7 @@ class RecipeHandler(object):
             self.current_set_points = {}
             for timestamp, variable, value in self.current_recipe.set_points():
                 self.current_set_points[variable] = value
-                self.publishers["desired_"+ variable].publish(value)
+                self.publishers[variable+"_desired"].publish(value)
             curr_time = time.time()
             point = EnvironmentalDataPointModel(
                 environment=self.environment,

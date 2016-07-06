@@ -61,7 +61,7 @@ class Persistence:
             is_desired = False
             if variable.startswith('desired_'):
                 variable = variable[8:]
-                is_desired = true
+                is_desired = True
 
             # Ignore topics that aren't named after valid variables
             if not variable in self.valid_variables:
