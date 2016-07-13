@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 """
 The `image_persistence.py` module listens for image data from an environment,
-converts the images to PNG format and stored them in the CouchDB instance as
+converts the images to PNG format and stores them in the CouchDB instance as
 attachments to environmental data points. There should be example one instance
 of this module for every environment in the system that has camera(s) connected
 to it.
+
+It assumes all topics of the type `sensor_msgs/Image` under the namespace
+for the environment are streams of images from connected webcams.
 """
 import time
 import rospy
@@ -19,8 +22,9 @@ from openag_brain.models import EnvironmentalDataPointModel
 from openag_brain.db_names import DbName
 
 class ImagePersistence:
-    def __init__(self, server):
-        rospy.init_node('image_persistence')
+    def __init__(self, server, min_update_interval):
+        self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
+        self.min_update_interval = min_update_interval
         self.namespace = rospy.get_namespace()
         if self.namespace == '/':
             raise RuntimeError(
@@ -28,9 +32,8 @@ class ImagePersistence:
                 "namespace. Please designate an environment for this module."
             )
         self.environment = self.namespace.split('/')[-2]
-        self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
-        self.db_server = server.resource.url
         self.subscribers = {}
+        self.last_update = {}
         # Maps image encodings from ROS format to numpy format
         self.image_format_mapping = {
             "rgb8": "RGB",
@@ -63,6 +66,15 @@ class ImagePersistence:
             )
 
     def on_image(self, item, camera_id):
+        # Rate limit
+        curr_time = time.time()
+        if (curr_time - self.last_update.get(camera_id, 0)) < \
+                self.min_update_interval:
+            return
+        self.last_update[camera_id] = curr_time
+
+        rospy.logwarn("Posting image")
+
         image_format = self.image_format_mapping.get(item.encoding, None)
         if image_format is None:
             raise ValueError()
@@ -94,6 +106,8 @@ class ImagePersistence:
             )
 
 if __name__ == '__main__':
+    rospy.init_node('image_persistence_1')
     server = Server(rospy.get_param('/' + params.DB_SERVER))
-    mod = ImagePersistence(server)
+    min_update_interval = rospy.get_param("~min_update_interval")
+    mod = ImagePersistence(server, min_update_interval)
     mod.run()

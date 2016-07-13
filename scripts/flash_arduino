@@ -1,4 +1,5 @@
 #!/bin/bash
+pio lib update
 if [ "$#" -gt 0 ]; then
     echo "y" | pio run -d ~/.openag/build -t upload --upload-port $1
 else

@@ -191,14 +191,14 @@ class SoftwareModuleTypeModel(Document):
     (array, required) An array of dictionaries describing the command line
     arguments to be passed to this module. The dictionaries must contain the
     fields "name" and "type" (e.g. "int" or "float") and can contain the fields
-    "description", "default", and "required".
+    "description" and "default".
     """
     parameters = DictField()
     """
     (dict) A nested dictionary mapping names of ROS parameters read by this
     module to dictionaries describing those parameters. The inner dictionaries
-    must contain the field "type" and can contain the fields "description" and
-    "default".
+    must contain the field "type" and can contain the fields "description",
+    "default", and "required".
     """
     inputs = DictField()
     """

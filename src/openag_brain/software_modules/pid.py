@@ -1,4 +1,33 @@
 #!/usr/bin/env python
+"""
+The `pid.py` module is a Python implementation of a
+Proportional-Integral-Derivative controller for ROS. By default, it listens on
+a topic "desired" for the current set point and a topic "state" for the current
+state of the plant being controller. It then writes to a topic "cmd" with the
+output of the PID controller as well as 2 commands "up_cmd" and "down_cmd"
+which are the positive and negative components of the command. This is useful
+when there are separate physical actuators for applying positive and negative
+control effort to the plant (e.g. a separate heater and cooler for air
+temperature). If the parameter `variable` is defined, these topics will be
+renamed as follows. This makes it easy to integrate this PID controller with
+ROS topics from firmware modules without remapping each of the topics
+individually.
+
+    desired -> <variable>_desired
+    state -> <variable>
+    cmd -> <variable>_cmd
+    up_cmd -> <variable>_up_cmd
+    down_cmd -> <variable>_down_cmd
+
+
+It also reads configuration from a number of other ROS parameters as well. The
+controller gains are passed in as parameters `Kp`, `Ki`, and `Kd`. It also
+accepts an `upper_limit` and `lower_limit` to bound the control effort output.
+`windup_limit` defines a limit for the integrator of the control loop.
+`deadband_width` can be used to apply a deadband to the control effors.
+Specifically, commands with absolute value less than `deadband_width` will be
+changed to 0.
+"""
 import rospy
 from std_msgs.msg import Float64
 
@@ -54,10 +83,19 @@ if __name__ == '__main__':
 
     pid = PID(**param_values)
 
-    variable = rospy.get_param("~variable")
-    pub_name = "{}_cmd".format(variable)
-    up_pub_name = "{}_up_cmd".format(variable)
-    down_pub_name = "{}_down_cmd".format(variable)
+    pub_name = "cmd"
+    up_pub_name = "up_cmd"
+    down_pub_name = "down_cmd"
+    state_sub_name = "state"
+    desired_sub_name = "desired"
+
+    variable = rospy.get_param("~variable", None)
+    if variable is not None:
+        pub_name = "{}_cmd".format(variable)
+        up_pub_name = "{}_up_cmd".format(variable)
+        down_pub_name = "{}_down_cmd".format(variable)
+        state_sub_name = variable
+        desired_sub_name = "{}_desired".format(variable)
 
     pub = rospy.Publisher(pub_name, Float64, queue_size=10)
     up_pub = rospy.Publisher(up_pub_name, Float64, queue_size=10)
@@ -80,8 +118,9 @@ if __name__ == '__main__':
     def set_point_callback(item):
         pid.set_point = item.data
 
-    state_sub = rospy.Subscriber(variable, Float64, state_callback)
-    sub_name = "{}_desired".format(variable)
-    set_point_sub = rospy.Subscriber(sub_name, Float64, set_point_callback)
+    state_sub = rospy.Subscriber(state_sub_name, Float64, state_callback)
+    set_point_sub = rospy.Subscriber(
+        desired_sub_name, Float64, set_point_callback
+    )
 
     rospy.spin()

@@ -1,8 +1,9 @@
 #!/usr/bin/python
 """
-The `persistence.py` module listens for measurements of the ambient conditions
-of an environment and writes those measurements to the CouchDB instance. There
-should be exactly one instance of this module per environment in the system.
+The `sensor_persistence.py` module listens for measurements of the ambient
+conditions of an environment and writes those measurements to the CouchDB
+instance. There should be exactly one instance of this module per environment
+in the system.
 """
 
 import sys

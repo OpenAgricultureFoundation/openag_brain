@@ -46,27 +46,72 @@ Handle Arduino
 
 .. automodule:: openag_brain.software_modules.handle_arduino
 
-Persistence
-~~~~~~~~~~~
+Image Persistence
+~~~~~~~~~~~~~~~~~
 
-.. automodule:: openag_brain.software_modules.persistence
+.. automodule:: openag_brain.software_modules.image_persistence
+
+PID Controller
+~~~~~~~~~~~~~~
+
+.. automodule:: openag_brain.software_modules.pid
 
 Recipe Handler
 ~~~~~~~~~~~~~~
 
 .. automodule:: openag_brain.software_modules.recipe_handler
 
+Sensor Persistence
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: openag_brain.software_modules.sensor_persistence
+
 Topic Connector
 ~~~~~~~~~~~~~~~
 
 .. automodule:: openag_brain.software_modules.topic_connector
 
+Camera
+
 Firmware Modules
 ----------------
 
 Firmware modules are C++ classes that are generally drivers for individual
-pieces of hardware. They must inherit from the :cpp:class:`Peripheral` class in
-`openag_peripheral <http://github.com/OpenAgInitiative/openag_peripheral>`_.
+pieces of hardware. They must follow a specific format so that this project can
+programmatically generate Arduino code that leverages them. The classes must
+define the following properties and functions:
+
+.. cpp:member:: bool has_error
+
+  This attribute should be set to True to indicate that the firmware module
+  encountered an error in operation.
+
+.. cpp:member:: char* error_msg
+
+  This attribute should hold a string describing the error that occurred
+  whenever `has_error` is true.
+
+.. cpp:function:: void begin()
+
+  This function can be used to initialize the module and its attributes.
+
+.. cpp:function:: void update()
+
+  This function is called once per loop and should do the bulk of the work for
+  the module. For example, if the module is a driver for a sensor, this
+  function should read from the sensor and store the read data somewhere
+  internally.
+
+.. cpp:function:: bool get_<variable>(<msg_type> &msg)
+
+  The module must define a getter in this format for every variable it outputs.
+  For example, if a module outputs air_temperature as a 32-bit floating point
+  number, it should define a function `get_air_temperature(std_msgs::Float32
+  &msg)`. The function should populate the message object that is passed in
+  with the value read from the sensor and return a boolean value indicating
+  whether or not the message should be sent out to the Raspberry Pi.
+
+
 The `firmware_module_type` database contains a repository of all of the types
 of firmware modules that can be run in the system. The `firmware_module`
 database contains the current conifiguration of firmware modules in the system.
@@ -81,7 +126,8 @@ The following is a list of peripherals for which firmware modules already
 exist:
 
 * AM2315 Temperature/Humidity Sensor
-* GC0012 Ambient CO2 Sensor
 * Atlas Scientific EC Sensor
 * Atlas Scientific pH Sensor
 * Atlas Scientific RGB Sensor
+* Generic binary actuator
+* Generic analog (pwm) actuator

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-The `handle_arduino.py` modules is in charge of managing the Arduino. It
+The `handle_arduino.py` module is in charge of managing the Arduino. It
 generates firmware with which to flash the Arduino using the
 :ref:`OpenagCmdGenerateFirmware` command based on the configuration of firmware
 modules in the database. It then flashes the arduino and spawns an instance of
@@ -8,6 +8,9 @@ modules in the database. It then flashes the arduino and spawns an instance of
 Whenever the configuration of firmware modules changes, it regenerates firmware
 code and reflashes the Arduino. There should always be exactly one instance of
 this module in the system.
+
+The module reads from a command line argument `serial_port` which is the UNIX
+path to the serial port to which the Arduino is connected (e.g. "/dev/ttyACM0")
 """
 import sys
 import time

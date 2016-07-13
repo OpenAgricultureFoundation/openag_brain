@@ -168,13 +168,7 @@
       "_id": "openag_brain:api.py",
       "package": "openag_brain",
       "executable": "api.py",
-      "description": "HTTP API for interacting with ROS"
-    },
-    {
-      "_id": "openag_brain:image_persistence.py",
-      "package": "openag_brain",
-      "executable": "image_persistence.py",
-      "description": "Persists image data to CouchDB"
+      "description": "HTTP API for interacting with ROS. Should be accessible at `<hostname>:5984/_openag/`"
     },
     {
       "_id": "openag_brain:handle_arduino.py",
@@ -190,28 +184,23 @@
       ]
     },
     {
-      "_id": "openag_brain:persistence.py",
+      "_id": "openag_brain:image_persistence.py",
       "package": "openag_brain",
-      "executable": "persistence.py",
-      "description": "Listens to topic on the environment and writes their data to CouchDB"
-    },
-    {
-      "_id": "openag_brain:recipe_handler.py",
-      "package": "openag_brain",
-      "executable": "recipe_handler.py",
-      "description": "Runs recipes and outputs set points for the environment"
-    },
-    {
-      "_id": "openag_brain:topic_connector.py",
-      "package": "openag_brain",
-      "executable": "topic_connector.py",
-      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways"
+      "executable": "image_persistence.py",
+      "description": "Listens for image data for a specific environment and stores it in CouchDB",
+      "parameters": {
+        "min_update_interval": {
+          "type": "int",
+          "description": "Minimum amount of time (in seconds) that must pass from the time one image from a given camera is written to the database to the time the next image from the same camera is written to the database.",
+          "default": 10
+        }
+      }
     },
     {
       "_id": "openag_brain:pid.py",
       "package": "openag_brain",
       "executable": "pid.py",
-      "description": "PID Controller",
+      "description": "A Python implementation of a Proportional-Integral-Derivative controller for ROS",
       "parameters": {
         "Kp": {
           "type": "double",
@@ -250,8 +239,7 @@
         },
         "variable": {
           "type": "str",
-          "description": "The variable on which this loop operates. This parameter is used to rename the input and outputs of this module. For example if the variable were air_temperature, the cmd output would be changed to air_temperature_cmd",
-          "required": true
+          "description": "The variable on which this loop operates. This parameter is used to rename the input and outputs of this module for easy integration for the inputs and outputs of firmware modules. For example if the `variable` were `air_temperature`, `desired` would become `air_temperature_desired`, `state` would become `air_temperature`, `cmd` would become `air_temperature_cmd`, `up_cmd` would become `air_temperature_up_cmd`, and `down_cmd` would become `air_temperature_down_cmd"
         }
       },
       "inputs": {
@@ -271,13 +259,37 @@
         },
         "up_cmd": {
           "type": "std_msgs/Float64",
-          "description": ""
+          "description": "The positive component of `cmd`"
         },
         "down_cmd": {
           "type": "std_msgs/Float64",
+          "description": "The negative component of `cmd`"
+        }
+      }
+    },
+    {
+      "_id": "openag_brain:recipe_handler.py",
+      "package": "openag_brain",
+      "executable": "recipe_handler.py",
+      "description": "Runs recipes and outputs set points for a given environment"
+    },
+    {
+      "_id": "openag_brain:sensor_persistence.py",
+      "package": "openag_brain",
+      "executable": "sensor_persistence.py",
+      "description": "Listens for measurements of environmental conditions for a specific environment and writes them to CouchDB",
+      "parameters": {
+        "max_update_interval": {
+          "type": "int",
           "description": ""
         }
       }
+    },
+    {
+      "_id": "openag_brain:topic_connector.py",
+      "package": "openag_brain",
+      "executable": "topic_connector.py",
+      "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways"
     },
     {
       "_id": "usb_cam:usb_cam_node",
@@ -382,8 +394,8 @@
       "environment": "environment_1"
     },
     {
-      "_id": "persistence_1",
-      "type": "openag_brain:persistence.py",
+      "_id": "sensor_persistence_1",
+      "type": "openag_brain:sensor_persistence.py",
       "environment": "environment_1"
     },
     {
