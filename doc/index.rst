@@ -18,8 +18,6 @@ Contents
     getting_started
     module_configuration
     commands
-    object_model
-    database_queries
     api
 
 Indices and tables

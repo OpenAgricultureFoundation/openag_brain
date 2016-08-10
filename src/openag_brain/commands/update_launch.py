@@ -3,9 +3,8 @@ import rospkg
 import lxml.etree as ET
 
 from openag_brain import params
-from openag_brain.util import read_module_data
-from openag_brain.models import SoftwareModuleModel, SoftwareModuleTypeModel
-from openag_brain.db_names import DbName
+from openag.models import SoftwareModule, SoftwareModuleType
+from openag.db_names import SOFTWARE_MODULE, SOFTWARE_MODULE_TYPE
 
 def create_node(parent, pkg, type, name, args=None):
     """
@@ -79,30 +78,31 @@ def update_launch(server):
     """
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
-    create_param(root, params.DB_SERVER, server.resource.url, 'str')
     create_arg(root, params.DEVELOPMENT, default=False)
     create_param(
         root, params.DEVELOPMENT, '$(arg {})'.format(params.DEVELOPMENT), 'str'
     )
     groups = {None: root}
 
-    modules, module_types = read_module_data(
-        server[DbName.SOFTWARE_MODULE], SoftwareModuleModel,
-        server[DbName.SOFTWARE_MODULE_TYPE], SoftwareModuleTypeModel
-    )
-    for module in modules.values():
-        if module.id.startswith('_'):
-            continue
-        if not module.environment in groups:
-            group = create_group(root, module.environment)
-            groups[module.environment] = group
+    module_db = server[SOFTWARE_MODULE]
+    module_types_db = server[SOFTWARE_MODULE_TYPE]
+    modules = {
+        module_id: SoftwareModule(module_db[module_id]) for module_id in
+        module_db if not module_id.startswith('_')
+    }
+
+    for module_id, module in modules.items():
+        mod_env = module.get("environment", None)
+        if not mod_env in groups:
+            group = create_group(root, mod_env)
+            groups[mod_env] = group
         else:
-            group = groups[module.environment]
-        module_type = module_types[module.type]
+            group = groups[mod_env]
+        module_type = SoftwareModuleType(module_types_db[module["type"]])
         arguments = []
-        for arg_info in module_type.arguments:
+        for arg_info in module_type["arguments"]:
             arg_name = arg_info["name"]
-            val = module.arguments.get(
+            val = module.get("arguments", {}).get(
                 arg_name, arg_info.get("default", None)
             )
             if val is None:
@@ -113,11 +113,11 @@ def update_launch(server):
             arguments.append(val)
         args_str = ", ".join(arguments)
         node = create_node(
-            group, module_type.package, module_type.executable, module.id,
-            args_str
+            group, module_type["package"], module_type["executable"],
+            module_id, args_str
         )
-        for param_name, param_info in module_type.parameters.items():
-            param_value = module.parameters.get(
+        for param_name, param_info in module_type["parameters"].items():
+            param_value = module.get("parameters", {}).get(
                 param_name, param_info.get("default", None)
             )
             param_type = param_info["type"]
@@ -135,7 +135,7 @@ def update_launch(server):
                         str(param_value).lower()
                 param_type = str(param_type)
                 create_param(node, param_name, param_value, param_type)
-        for k,v in module.mappings.items():
+        for k,v in module.get("mappings", {}).items():
             create_remap(node, k, v)
     doc = ET.ElementTree(root)
 

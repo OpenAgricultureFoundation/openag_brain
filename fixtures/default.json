@@ -123,7 +123,7 @@
         },
         {
           "name": "threshold",
-          "type": "double",
+          "type": "float",
           "default": 0,
           "description": "Command threshold at which the actuator turns on"
         }

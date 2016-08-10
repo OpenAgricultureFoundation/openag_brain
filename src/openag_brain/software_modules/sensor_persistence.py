@@ -15,27 +15,28 @@ import rospy
 import rostopic
 from couchdb import Server
 
+from openag.cli.config import config as cli_config
+from openag.models import EnvironmentalDataPoint
+from openag.db_names import ENVIRONMENTAL_DATA_POINT
+from openag.var_types import EnvVar
+
 from openag_brain import params
 from openag_brain.util import resolve_message_type
-from openag_brain.models import EnvironmentalDataPointModel
-from openag_brain.db_names import DbName
-from openag_brain.var_types import EnvironmentalVariable
 
 class Persistence:
     def __init__(self, server):
         rospy.init_node('persistence')
         self.namespace = rospy.get_namespace()
         if self.namespace == '/':
-            raise RuntimeError(
-                "Persistence module cannot be run in the global namespace. "
-                "Please designate an environment for this module."
-            )
+            pass
+            # raise RuntimeError(
+            #     "Persistence module cannot be run in the global namespace. "
+            #     "Please designate an environment for this module."
+            # )
         self.environment = self.namespace.split('/')[-2]
-        self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
+        self.db = server[ENVIRONMENTAL_DATA_POINT]
         self.subscribers = {}
-        self.valid_variables = [
-            v for k,v in EnvironmentalVariable.__dict__.items() if k.isupper()
-        ]
+        self.valid_variables = [var.name for var in EnvVar.items]
         self.last_desired_data = {}
         self.last_measured_data = {}
 
@@ -105,6 +106,9 @@ class Persistence:
 
 
 if __name__ == '__main__':
-    server = Server(rospy.get_param('/' + params.DB_SERVER))
+    db_server = cli_config["local_server"]["url"]
+    if not db_server:
+        raise RuntimeError("No local database specified")
+    server = Server(db_server)
     mod = Persistence(server)
     mod.run()

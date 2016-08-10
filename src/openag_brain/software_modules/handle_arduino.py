@@ -15,34 +15,43 @@ path to the serial port to which the Arduino is connected (e.g. "/dev/ttyACM0")
 import sys
 import time
 import rospy
+import shutil
 import atexit
-import requests
+import tempfile
 import argparse
 import traceback
 import subprocess
 from couchdb import Server
 
+from openag.cli.config import config as cli_config
+from openag.db_names import FIRMWARE_MODULE
+
 from openag_brain import commands, params
 from openag_brain.util import get_database_changes
-from openag_brain.db_names import DbName
 
+global serial_node
 serial_node = None
+global build_dir
+build_dir = None
 
 @atexit.register
 def kill_children():
     if serial_node is not None and serial_node.poll():
         serial_node.terminate()
         serial_node.wait()
+    global build_dir
+    if build_dir:
+        shutil.rmtree(build_dir)
+        build_dir = None
 
 def update(server, serial_port):
     rospy.loginfo("Updating arduino at %s", serial_port)
     try:
-        rospy.loginfo("Generating firmware")
-        commands.generate_firmware(server)
         rospy.loginfo("Flashing Arduino")
+        global build_dir
         if subprocess.call([
-            "rosrun", "openag_brain", "flash_arduino", serial_port
-        ]):
+            "openag", "firmware", "run", "-t", "upload"
+        ], cwd=build_dir):
             raise Exception("Flashing failed")
     except Exception:
         rospy.logerr("Failed to update Arduino:\n%s", traceback.format_exc())
@@ -68,16 +77,12 @@ def handle_arduino(db_server, serial_port, development=False):
             time.sleep(5)
 
     # Whenever the firmware module configuration changes, reflash the arduino
-    last_seq = get_database_changes(
-        db_server, DbName.FIRMWARE_MODULE
-    )['last_seq']
+    last_seq = get_database_changes(db_server, FIRMWARE_MODULE)['last_seq']
     while True:
         if rospy.is_shutdown():
             break
         time.sleep(5)
-        changes = get_database_changes(
-            db_server, DbName.FIRMWARE_MODULE, last_seq
-        )
+        changes = get_database_changes(db_server, FIRMWARE_MODULE, last_seq)
         last_seq = changes['last_seq']
         if len(changes['results']):
             rospy.loginfo("Firmware module configuration changed; Restarting")
@@ -99,6 +104,15 @@ if __name__ == '__main__':
     )
     parser.add_argument("serial_port")
     args, _ = parser.parse_known_args()
-    handle_arduino(
-        rospy.get_param(params.DB_SERVER), args.serial_port, development
-    )
+    db_server = cli_config["local_server"]["url"]
+    if not db_server:
+        raise RuntimeError(
+            "No local DB server specified. Run `openag db init` to select one"
+        )
+    global build_dir
+    build_dir = tempfile.mkdtemp()
+    if subprocess.call(["openag", "firmware", "init"], cwd=build_dir):
+        raise RuntimeError(
+            "Failed to iniailize OpenAg firmware project"
+        )
+    handle_arduino(db_server, args.serial_port, development)

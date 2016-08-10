@@ -17,13 +17,13 @@ import rosgraph
 import rostopic
 from couchdb import Server
 
+from openag.cli.config import config as cli_config
+from openag.models import FirmwareModule, FirmwareModuleType
+from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
+
 from openag_brain import params
 from openag_brain.srv import Empty
-from openag_brain.util import (
-    resolve_message_type, get_database_changes, read_module_data
-)
-from openag_brain.models import FirmwareModuleModel, FirmwareModuleTypeModel
-from openag_brain.db_names import DbName
+from openag_brain.util import resolve_message_type, get_database_changes
 
 Float32 = resolve_message_type("std_msgs/Float32")
 Float64 = resolve_message_type("std_msgs/Float64")
@@ -40,15 +40,14 @@ def connect_topics(src_topic, dest_topic, src_topic_type, dest_topic_type):
     return sub, pub
 
 def connect_all_topics(module_db, module_type_db):
-    modules, module_types = read_module_data(
-        module_db, FirmwareModuleModel, module_type_db, FirmwareModuleTypeModel
-    )
+    modules = {
+        module_id: FirmwareModule(module_db[module_id]) for module_id in
+        module_db if not module_id.startswith('_')
+    }
     topics = []
-    for module in modules.values():
-        if module.id.startswith('_'):
-            continue
-        module_type = module_types[module.type]
-        for input_name, input_info in module_type.inputs.items():
+    for module_id, module_info in modules.items():
+        module_type = module_type_db[module_info["type"]]
+        for input_name, input_info in module_type["inputs"].items():
             mapped_input_name = module.get("mappings",{}).get(
                 input_name, input_name
             )
@@ -76,21 +75,19 @@ def connect_all_topics(module_db, module_type_db):
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
-    db_server = rospy.get_param(params.DB_SERVER)
+    db_server = cli_config["local_server"]["url"]
+    if not db_server:
+        raise RuntimeError("No local server specified")
     server = Server(db_server)
-    module_db = server[DbName.FIRMWARE_MODULE]
-    module_type_db = server[DbName.FIRMWARE_MODULE_TYPE]
+    module_db = server[FIRMWARE_MODULE]
+    module_type_db = server[FIRMWARE_MODULE_TYPE]
     topics = connect_all_topics(module_db, module_type_db)
-    last_seq = get_database_changes(
-        db_server, DbName.FIRMWARE_MODULE
-    )['last_seq']
+    last_seq = get_database_changes(db_server, FIRMWARE_MODULE)['last_seq']
     while True:
         if rospy.is_shutdown():
             break
         time.sleep(5)
-        changes = get_database_changes(
-            db_server, DbName.FIRMWARE_MODULE, last_seq
-        )
+        changes = get_database_changes(db_server, FIRMWARE_MODULE, last_seq)
         last_seq = changes['last_seq']
         if len(changes['results']):
             for topic in topics:

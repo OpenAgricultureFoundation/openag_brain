@@ -17,13 +17,15 @@ from couchdb import Server
 from StringIO import StringIO
 from sensor_msgs.msg import Image as ImageMsg
 
+from openag.cli.config import config as cli_config
+from openag.models import EnvironmentalDataPoint
+from openag.db_names import ENVIRONMENTAL_DATA_POINT
+
 from openag_brain import params
-from openag_brain.models import EnvironmentalDataPointModel
-from openag_brain.db_names import DbName
 
 class ImagePersistence:
     def __init__(self, server, min_update_interval):
-        self.db = server[DbName.ENVIRONMENTAL_DATA_POINT]
+        self.db = server[ENVIRONMENTAL_DATA_POINT]
         self.min_update_interval = min_update_interval
         self.namespace = rospy.get_namespace()
         if self.namespace == '/':
@@ -107,7 +109,16 @@ class ImagePersistence:
 
 if __name__ == '__main__':
     rospy.init_node('image_persistence_1')
-    server = Server(rospy.get_param('/' + params.DB_SERVER))
-    min_update_interval = rospy.get_param("~min_update_interval")
+    db_server = cli_config["local_server"]["url"]
+    if not db_server:
+        raise RuntimeError("No database server specified")
+    server = Server(db_server)
+    try:
+        min_update_interval = rospy.get_param("~min_update_interval")
+    except KeyError:
+        rospy.logwarn(
+            "No minimum update interval specified for image persistence module"
+        )
+        min_update_interval = 60
     mod = ImagePersistence(server, min_update_interval)
     mod.run()

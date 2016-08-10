@@ -1,14 +1,17 @@
 #!/usr/bin/env python
+import os
 import time
+import rospkg
 import atexit
 import argparse
 import requests
 import subprocess
 
-from couchdb import Server
+from openag.couch import Server
+from openag.cli.config import config as cli_config
+from openag.db_names import SOFTWARE_MODULE
 
-from openag_brain import commands, args
-from openag_brain.db_names import DbName
+from openag_brain import commands
 from openag_brain.util import get_database_changes
 
 modules = None
@@ -28,16 +31,31 @@ def spawn_modules(development=False, screen=False):
         roslaunch_command.append("--screen")
     return subprocess.Popen(roslaunch_command)
 
-def main(db_server, hostname, fixtures=[], development=False, screen=False):
+def main(api_server, db_server, fixtures, development, screen):
     # Initialize the database
     print "Initializing the database"
+    db_server = db_server or cli_config["local_server"]["url"]
+    command = ["openag", "db", "init"]
+    if db_server:
+        command.extend(["--db_url", db_server])
+    db_server = db_server or "http://localhost:5984"
+    if api_server:
+        command.extend(["--api_url", api_server])
+    if subprocess.call(command):
+        raise RuntimeError("Failed to initialize database")
     server = Server(db_server)
-    commands.init_db(server, hostname)
 
     # Load the fixture
-    for fixture in fixtures:
-        print "Applying fixture {}".format(fixture)
-        commands.load_fixture(server, fixture)
+    rospack = rospkg.RosPack()
+    pkg_path = rospack.get_path('openag_brain')
+    fixtures_path = os.path.join(pkg_path, "fixtures")
+    for fixture_name in fixtures:
+        print "Applying fixture {}".format(fixture_name)
+        fixture_path = os.path.join(fixtures_path, fixture_name + ".json")
+        if subprocess.call(
+            ["openag", "db", "load_fixture", fixture_path]
+        ):
+            raise RuntimeError("Failed to load fixture " + fixture_name)
 
     # Start the software modules
     if not development:
@@ -53,14 +71,10 @@ def main(db_server, hostname, fixtures=[], development=False, screen=False):
 
     # Whenever the softwate module configuration changes, restart the software
     # modules
-    last_seq = get_database_changes(
-        db_server, DbName.SOFTWARE_MODULE
-    )['last_seq']
+    last_seq = get_database_changes(db_server, SOFTWARE_MODULE)['last_seq']
     while True:
         time.sleep(5)
-        changes = get_database_changes(
-            db_server, DbName.SOFTWARE_MODULE, last_seq
-        )
+        changes = get_database_changes(db_server, SOFTWARE_MODULE, last_seq)
         last_seq = changes['last_seq']
         if len(changes['results']):
             print "Software module configuration changed; Restarting"
@@ -81,11 +95,15 @@ database (init_db), optionally applies a fixture to the database
 the configuration of the software modules
         """,
     )
-    args.add_db_server_arg(parser)
-    args.add_hostname_arg(parser)
+    parser.add_argument(
+        "-A", "--api_server", help="Address of the API from the api module"
+    )
+    parser.add_argument(
+        "-D", "--db_server", help="Address of the database server"
+    )
     parser.add_argument(
         '-f', '--fixture', help="Name of the fixture to apply to the database",
-        default=[], action='append'
+        default=[], action='append', dest='fixtures'
     )
     parser.add_argument(
         "-d", "--development", action="store_true",
@@ -99,6 +117,7 @@ the screen. Useful for debugging
 """)
     vals = parser.parse_args()
     main(
-        vals.db_server, vals.hostname, vals.fixture, vals.development,
-        vals.screen
+        api_server=vals.api_server, db_server=vals.db_server,
+        fixtures=vals.fixtures, development=vals.development,
+        screen=vals.screen
     )

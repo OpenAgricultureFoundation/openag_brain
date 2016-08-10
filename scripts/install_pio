@@ -1,8 +1,12 @@
 #!/bin/bash
-type pio > /dev/null 2>&1 && echo "pio is already installed" && exit
+#type platformio > /dev/null 2>&1 && echo "pio is already installed" && exit
 sudo apt-get install -y python-virtualenv
 virtualenv ~/pio_env
 source ~/pio_env/bin/activate
 pip install platformio
-sudo ln -s ~/pio_env/bin/pio /usr/local/bin/pio
-sudo ln -s ~/pio_env/bin/platformio /usr/local/bin/platformio
+if [ ! -e /usr/local/bin/pio ]; then
+    sudo ln -s ~/pio_env/bin/pio /usr/local/bin/pio
+fi
+if [ ! -e /usr/local/bin/platformio ]; then
+    sudo ln -s ~/pio_env/bin/platformio /usr/local/bin/platformio
+fi

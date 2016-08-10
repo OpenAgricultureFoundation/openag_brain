@@ -21,11 +21,13 @@ import rospy
 from couchdb import Server
 from std_msgs.msg import Float64
 
+from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
+from openag.cli.config import config as cli_config
+from openag.models import EnvironmentalDataPoint
+from openag.var_types import RECIPE_START, RECIPE_END
+
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
-from openag_brain.db_names import DbName
-from openag_brain.models import EnvironmentalDataPointModel
-from openag_brain.var_types import EnvironmentalVariable
 
 class Recipe(object):
     def __init__(self, _id, operations, start_time):
@@ -100,8 +102,8 @@ class RecipeHandler(object):
     }
 
     def __init__(self, server):
-        self.env_data_db = server[DbName.ENVIRONMENTAL_DATA_POINT]
-        self.recipe_db = server[DbName.RECIPE]
+        self.env_data_db = server[ENVIRONMENTAL_DATA_POINT]
+        self.recipe_db = server[RECIPE]
 
         # Indicates whether or not a recipe is running
         self.recipe_flag = Event()
@@ -129,9 +131,9 @@ class RecipeHandler(object):
 
         # Get the recipe that has been started most recently
         start_view = self.env_data_db.view("openag/by_variable", startkey=[
-            self.environment, EnvironmentalVariable.RECIPE_START, "desired"
+            self.environment, RECIPE_START.name, "desired"
         ], endkey=[
-            self.environment, EnvironmentalVariable.RECIPE_START, "desired", {}
+            self.environment, RECIPE_START.name, "desired", {}
         ], group_level=3)
         if len(start_view) == 0:
             return
@@ -140,9 +142,9 @@ class RecipeHandler(object):
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view("openag/by_variable", startkey=[
-            self.environment, EnvironmentalVariable.RECIPE_END, "desired"
+            self.environment, RECIPE_END.name, "desired"
         ], endkey=[
-            self.environment, EnvironmentalVariable.RECIPE_END, "desired", {}
+            self.environment, RECIPE_END.name, "desired", {}
         ], group_level=3)
         if len(end_view):
             end_doc = end_view.rows[0].value
@@ -226,7 +228,10 @@ class RecipeHandler(object):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
 if __name__ == '__main__':
-    server = Server(rospy.get_param('/' + params.DB_SERVER))
+    db_server = cli_config["local_server"]["url"]
+    if not db_server:
+        raise RuntimeError("No local database specified")
+    server = Server(db_server)
     mod = RecipeHandler(server)
     try:
         mod.run()

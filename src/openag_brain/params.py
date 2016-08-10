@@ -3,8 +3,6 @@ This module stores some ROS parameter names used for passing information
 between modules in the system.
 """
 
-DB_SERVER = "db_server"
-""" Stores the address of the database server """
 DEVELOPMENT = "development"
 """ Flag that indicates whether development mode is enabled """
 CURRENT_RECIPE = "current_recipe"
