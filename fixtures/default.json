@@ -192,7 +192,7 @@
         "min_update_interval": {
           "type": "int",
           "description": "Minimum amount of time (in seconds) that must pass from the time one image from a given camera is written to the database to the time the next image from the same camera is written to the database.",
-          "default": 10
+          "default": "3600"
         }
       }
     },
@@ -318,7 +318,7 @@
           "default": "mjpeg"
         },
         "io_method": {
-          "type": "string",
+          "type": "str",
           "default": "mmap",
           "description": "Possible values are mmap, read, userptr"
         },
@@ -401,7 +401,10 @@
     {
       "_id": "image_persistence_1",
       "type": "openag_brain:image_persistence.py",
-      "environment": "environment_1"
+      "environment": "environment_1",
+      "parameters": {
+        "min_update_interval": 3600
+      }
     }
   ]
 }

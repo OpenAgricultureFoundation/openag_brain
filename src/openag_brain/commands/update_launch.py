@@ -92,6 +92,7 @@ def update_launch(server):
     }
 
     for module_id, module in modules.items():
+        print 'Processing module "{}" from server'.format(module_id)
         mod_env = module.get("environment", None)
         if not mod_env in groups:
             group = create_group(root, mod_env)

@@ -17,17 +17,16 @@ import time
 import rospy
 import shutil
 import atexit
+import select
 import tempfile
 import argparse
 import traceback
 import subprocess
-from couchdb import Server
-
 from openag.cli.config import config as cli_config
 from openag.db_names import FIRMWARE_MODULE
+from couchdb import Server
 
 from openag_brain import commands, params
-from openag_brain.util import get_database_changes
 
 global serial_node
 serial_node = None
@@ -44,17 +43,41 @@ def kill_children():
         shutil.rmtree(build_dir)
         build_dir = None
 
-def update(server, serial_port):
+def handle_process(proc, err):
+    """
+    Takes a running subprocess.Popen object `proc`, rosdebugs everything it
+    prints to stdout, roswarns everything it prints to stderr, and raises `err`
+    if it fails
+    """
+    poll = select.poll()
+    poll.register(proc.stdout)
+    poll.register(proc.stderr)
+    while proc.poll() is None:
+        res = poll.poll(1)
+        for fd, evt in res:
+            if not (evt & select.POLLIN):
+                continue
+            if fd == proc.stdout.fileno():
+                line = proc.stdout.readline().strip()
+                if line:
+                    rospy.logdebug(line)
+            elif fd == proc.stderr.fileno():
+                line = proc.stderr.readline().strip()
+                if line:
+                    rospy.logwarn(line)
+    if proc.returncode:
+        raise err
+
+def update(serial_port):
     rospy.loginfo("Updating arduino at %s", serial_port)
     try:
-        rospy.loginfo("Flashing Arduino")
         global build_dir
-        if subprocess.call([
-            "openag", "firmware", "run", "-t", "upload"
-        ], cwd=build_dir):
-            raise Exception("Flashing failed")
+        proc = subprocess.Popen([
+            "openag", "firmware", "run", "-p", "ros", "-t", "upload"
+        ], cwd=build_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        handle_process(proc, Exception())
     except Exception:
-        rospy.logerr("Failed to update Arduino:\n%s", traceback.format_exc())
+        rospy.logerr("Failed to update Arduino")
 
 def start_reading(serial_port):
     rospy.loginfo("Starting to read from Arduino")
@@ -64,9 +87,8 @@ def start_reading(serial_port):
     ])
 
 def handle_arduino(db_server, serial_port, development=False):
-    server = Server(db_server)
     if not development:
-        update(server, serial_port)
+        update(serial_port)
     start_reading(serial_port)
 
     if development:
@@ -77,18 +99,20 @@ def handle_arduino(db_server, serial_port, development=False):
             time.sleep(5)
 
     # Whenever the firmware module configuration changes, reflash the arduino
-    last_seq = get_database_changes(db_server, FIRMWARE_MODULE)['last_seq']
+    server = Server(db_server)
+    db = server[FIRMWARE_MODULE]
+    last_seq = db.changes()['last_seq']
     while True:
         if rospy.is_shutdown():
             break
         time.sleep(5)
-        changes = get_database_changes(db_server, FIRMWARE_MODULE, last_seq)
+        changes = db.changes(since=last_seq)
         last_seq = changes['last_seq']
         if len(changes['results']):
             rospy.loginfo("Firmware module configuration changed; Restarting")
             serial_node.terminate()
             serial_node.wait()
-            update(server, serial_port)
+            update(serial_port)
             start_reading(serial_port)
     kill_children()
 
@@ -109,10 +133,13 @@ if __name__ == '__main__':
         raise RuntimeError(
             "No local DB server specified. Run `openag db init` to select one"
         )
-    global build_dir
     build_dir = tempfile.mkdtemp()
-    if subprocess.call(["openag", "firmware", "init"], cwd=build_dir):
-        raise RuntimeError(
-            "Failed to iniailize OpenAg firmware project"
-        )
+    rospy.loginfo("Initializing firmware project")
+    proc = subprocess.Popen(
+        ["openag", "firmware", "init"], cwd=build_dir, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    handle_process(proc, RuntimeError(
+        "Failed to iniailize OpenAg firmware project"
+    ))
     handle_arduino(db_server, args.serial_port, development)

@@ -75,7 +75,7 @@ class ImagePersistence:
             return
         self.last_update[camera_id] = curr_time
 
-        rospy.logwarn("Posting image")
+        rospy.loginfo("Posting image")
 
         image_format = self.image_format_mapping.get(item.encoding, None)
         if image_format is None:
@@ -84,16 +84,16 @@ class ImagePersistence:
             image_format, (item.width, item.height), item.data
         )
         variable = "image:" + camera_id
-        point = EnvironmentalDataPointModel(
-            environment=self.environment,
-            variable=variable,
-            is_desired=False,
-            value=None,
-            timestamp=time.time()
-        )
-        point.store(self.db)
+        point = EnvironmentalDataPoint({
+            "environment": self.environment,
+            "variable": variable,
+            "is_desired": False,
+            "value": None,
+            "timestamp": time.time()
+        })
+        point_id, point_rev = self.db.save(point)
         url = "{db_url}/{point_id}/attachment?rev={rev}".format(
-            db_url=self.db.resource.url, point_id=point.id, rev=point["_rev"]
+            db_url=self.db.resource.url, point_id=point_id, rev=point_rev
         )
         buf = StringIO()
         img.save(buf, "PNG")

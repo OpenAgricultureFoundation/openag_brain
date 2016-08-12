@@ -1,19 +1,7 @@
 import requests
 from importlib import import_module
 
-__all__ = ['get_database_changes']
-
-def get_database_changes(server_url, db_name, last_seq=None):
-    """
-    Queries the change feed on the server at `server_url` for the database
-    given by `db_name`. Optional parameter `last_seq` is the sequence number of
-    the last update that has already been processed by the client. Returns a
-    dictionary containing a new 'last_seq' and a list of 'results'
-    """
-    query_url = server_url + "/{}/_changes".format(db_name)
-    if last_seq:
-        query_url += "?last-event-id={}".format(last_seq)
-    return requests.get(query_url).json()
+__all__ = ['resolve_message_type']
 
 def resolve_message_type(msg_type):
     """

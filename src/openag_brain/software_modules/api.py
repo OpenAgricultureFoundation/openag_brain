@@ -26,7 +26,7 @@ CORS(app)
 
 @app.errorhandler(socket.error)
 @app.errorhandler(rosservice.ROSServiceIOException)
-def socket_error_handler(error):
+def socket_error_handler(e):
     return error("Unable to communicate with master")
 
 def error(msg, status_code=400):

@@ -15,20 +15,22 @@ import time
 import rospy
 import rosgraph
 import rostopic
-from couchdb import Server
-
 from openag.cli.config import config as cli_config
 from openag.models import FirmwareModule, FirmwareModuleType
 from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
+from couchdb import Server
 
 from openag_brain import params
 from openag_brain.srv import Empty
-from openag_brain.util import resolve_message_type, get_database_changes
+from openag_brain.util import resolve_message_type
 
 Float32 = resolve_message_type("std_msgs/Float32")
 Float64 = resolve_message_type("std_msgs/Float64")
 
 def connect_topics(src_topic, dest_topic, src_topic_type, dest_topic_type):
+    rospy.loginfo("Connecting topic {} to topic {}".format(
+        src_topic, dest_topic
+    ))
     pub = rospy.Publisher(dest_topic, dest_topic_type, queue_size=10)
     def callback(src_item, publisher=pub, src_type=src_topic_type,
             dest_type=dest_topic_type):
@@ -46,25 +48,27 @@ def connect_all_topics(module_db, module_type_db):
     }
     topics = []
     for module_id, module_info in modules.items():
-        module_type = module_type_db[module_info["type"]]
+        module_type = FirmwareModuleType(module_type_db[module_info["type"]])
         for input_name, input_info in module_type["inputs"].items():
             mapped_input_name = module.get("mappings",{}).get(
                 input_name, input_name
             )
             src_topic = "/{}/{}".format(module.environment, mapped_input_name)
-            dest_topic = "/actuators/{}_{}".format(module.id, input_name)
+            dest_topic = "/actuators/{}/{}".format(module_id, input_name)
             dest_topic_type = resolve_message_type(input_info["type"])
             src_topic_type = Float64 if dest_topic_type is Float32 else \
                     dest_topic_type
             topics.extend(connect_topics(
                 src_topic, dest_topic, src_topic_type, dest_topic_type
             ))
-        for output_name, output_info in module_type.outputs.items():
+        for output_name, output_info in module_type["outputs"].items():
             mapped_output_name = module_type.get("mappings", {}).get(
                 output_name, output_name
             )
-            src_topic = "/sensors/{}_{}".format(module.id, output_name)
-            dest_topic = "/{}/{}".format(module.environment, mapped_output_name)
+            src_topic = "/sensors/{}/{}/raw".format(module_id, output_name)
+            dest_topic = "/{}/measured/{}".format(
+                module_info["environment"], mapped_output_name
+            )
             src_topic_type = resolve_message_type(output_info["type"])
             dest_topic_type = Float64 if src_topic_type is Float32 else \
                     src_topic_type
@@ -82,12 +86,12 @@ if __name__ == '__main__':
     module_db = server[FIRMWARE_MODULE]
     module_type_db = server[FIRMWARE_MODULE_TYPE]
     topics = connect_all_topics(module_db, module_type_db)
-    last_seq = get_database_changes(db_server, FIRMWARE_MODULE)['last_seq']
+    last_seq = module_db.changes()['last_seq']
     while True:
         if rospy.is_shutdown():
             break
         time.sleep(5)
-        changes = get_database_changes(db_server, FIRMWARE_MODULE, last_seq)
+        changes = module_db.changes(since=last_seq)
         last_seq = changes['last_seq']
         if len(changes['results']):
             for topic in topics:

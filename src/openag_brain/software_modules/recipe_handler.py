@@ -14,17 +14,15 @@ instance of this module per environment in the system.
 
 import sys
 import time
-import random
-from threading import Event, Timer
-
 import rospy
-from couchdb import Server
-from std_msgs.msg import Float64
-
+import random
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
-from openag.var_types import RECIPE_START, RECIPE_END
+from openag.var_types import RECIPE_START, RECIPE_END, EnvVar
+from couchdb import Server
+from std_msgs.msg import Float64
+from threading import Event, Timer
 
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
@@ -41,6 +39,10 @@ class Recipe(object):
 class SimpleRecipe(Recipe):
     def __init__(self, *args):
         super(SimpleRecipe, self).__init__(*args)
+        if not isinstance(self.operations, list):
+            raise ValueError(
+                "Invalid recipe. Operations should be an array of set points."
+            )
         self.current_index = 0
         self.is_running = True
 
@@ -91,7 +93,7 @@ class PublisherDict:
     def __getitem__(self, topic):
         if not topic in self.publishers:
             self.publishers[topic] = rospy.Publisher(
-                topic, Float64, queue_size=10
+                "desired/"+topic, Float64, queue_size=10
             )
         return self.publishers[topic]
 
@@ -122,6 +124,8 @@ class RecipeHandler(object):
 
         self.current_recipe = None
         self.current_set_points = {}
+
+        self.valid_variables = [var.name for var in EnvVar.items]
 
         rospy.set_param(params.CURRENT_RECIPE, "")
         rospy.set_param(params.CURRENT_RECIPE_START, 0)
@@ -161,7 +165,12 @@ class RecipeHandler(object):
         if rospy.is_shutdown():
             return
         for variable, value in self.current_set_points.items():
-            self.publishers[variable+"_desired"].publish(value)
+            if variable in self.valid_variables:
+                self.publishers[variable].publish(value)
+            else:
+                rospy.logwarn('Recipe references invalid variable "{}"'.format(
+                    variable
+                ))
         Timer(5, self.publish_set_points).start()
 
     def start_recipe(self, data, start_time=None):
@@ -169,30 +178,30 @@ class RecipeHandler(object):
         if not recipe_id:
             return False, "No recipe id was specified"
         if self.recipe_flag.is_set():
-            return False, "There is already a recipe running. Please stop it before "\
-            "attempting to start a new one"
+            return False, "There is already a recipe running. Please stop it "\
+                "before attempting to start a new one"
         try:
             recipe = self.recipe_db[recipe_id]
         except Exception as e:
             return False, "\"{}\" does not reference a valid "\
             "recipe".format(recipe_id)
         start_time = start_time or time.time()
-        point = EnvironmentalDataPointModel(
-            environment=self.environment,
-            variable=EnvironmentalVariable.RECIPE_START,
-            is_desired=True,
-            value=recipe_id,
-            timestamp=start_time
+        self.current_recipe = self.recipe_class_map[
+            recipe.get("format", "simple")
+        ](
+            recipe_id, recipe["operations"], start_time
         )
-        point.id = self.gen_doc_id(start_time)
-        point.store(self.env_data_db)
+        point = EnvironmentalDataPoint({
+            "environment": self.environment,
+            "variable": RECIPE_START.name,
+            "is_desired": True,
+            "value": recipe_id,
+            "timestamp": start_time
+        })
+        point_id = self.gen_doc_id(start_time)
+        self.env_data_db[point_id] = point
         rospy.set_param(params.CURRENT_RECIPE, recipe_id)
         rospy.set_param(params.CURRENT_RECIPE_START, start_time)
-        self.current_recipe = self.recipe_class_map[
-            getattr(recipe, "format", "simple")
-        ](
-            recipe.id, recipe["operations"], start_time
-        )
         self.recipe_flag.set()
         return True, "Success"
 
@@ -208,18 +217,23 @@ class RecipeHandler(object):
                 rospy.sleep(1)
             self.current_set_points = {}
             for timestamp, variable, value in self.current_recipe.set_points():
-                self.current_set_points[variable] = value
-                self.publishers[variable+"_desired"].publish(value)
+                if variable in self.valid_variables:
+                    self.current_set_points[variable] = value
+                    self.publishers[variable].publish(value)
+                else:
+                    rospy.logwarn('Recipe references invalid variable "{}"'.format(
+                        variable
+                    ))
             curr_time = time.time()
-            point = EnvironmentalDataPointModel(
-                environment=self.environment,
-                variable=EnvironmentalVariable.RECIPE_END,
-                is_desired=True,
-                value=self.current_recipe._id,
-                timestamp=curr_time
-            )
-            point.id = self.gen_doc_id(curr_time)
-            point.store(self.env_data_db)
+            point = EnvironmentalDataPoint({
+                "environment": self.environment,
+                "variable": RECIPE_END.name,
+                "is_desired": True,
+                "value": self.current_recipe._id,
+                "timestamp": curr_time
+            })
+            point_id = self.gen_doc_id(curr_time)
+            self.env_data_db[point_id] = point
             rospy.set_param(params.CURRENT_RECIPE, "")
             rospy.set_param(params.CURRENT_RECIPE_START, 0)
             self.recipe_flag.clear()

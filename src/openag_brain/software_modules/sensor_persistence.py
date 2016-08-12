@@ -34,6 +34,10 @@ class Persistence:
             #     "Please designate an environment for this module."
             # )
         self.environment = self.namespace.split('/')[-2]
+
+        self.namespace = "/environment_1"
+        self.environment = "environment_1"
+
         self.db = server[ENVIRONMENTAL_DATA_POINT]
         self.subscribers = {}
         self.valid_variables = [var.name for var in EnvVar.items]
@@ -53,20 +57,27 @@ class Persistence:
             # Ignore topics we are already listening to
             if topic in self.subscribers:
                 continue
-            variable = topic.split('/')[-1]
 
-            # Ignore actuator commands
-            if variable.endswith('_cmd'):
-                continue
-
-            # Identify topics for set points
-            is_desired = False
-            if variable.startswith('desired_'):
-                variable = variable[8:]
+            # Parse the topic name
+            topic_parts = topic.split('/')
+            if topic_parts[2] == "desired":
                 is_desired = True
+            elif topic_parts[2] == "measured":
+                is_desired = False
+            elif topic_parts[2] == "commanded":
+                continue
+            else:
+                rospy.logwarn(
+                    'Encountered invalid topic: "{}"'.format(topic)
+                )
+                continue
+            variable = topic_parts[3]
 
             # Ignore topics that aren't named after valid variables
             if not variable in self.valid_variables:
+                rospy.logwarn(
+                    'Topic references invalid variable "{}"'.format(variable)
+                )
                 continue
 
             # Subscribe to the topics
@@ -87,15 +98,15 @@ class Persistence:
             return
         elif self.last_measured_data.get(variable, None) == value:
             return
-        point = EnvironmentalDataPointModel(
-            environment=self.environment,
-            variable=variable,
-            is_desired=is_desired,
-            value=value,
-            timestamp=curr_time
-        )
-        point["_id"] = self.gen_doc_id(curr_time)
-        point.store(self.db)
+        point = EnvironmentalDataPoint({
+            "environment": self.environment,
+            "variable": variable,
+            "is_desired": is_desired,
+            "value": value,
+            "timestamp": curr_time
+        })
+        point_id = self.gen_doc_id(curr_time)
+        self.db[point_id] = point
         if is_desired:
             self.last_desired_data[variable] = value
         else:

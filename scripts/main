@@ -12,7 +12,6 @@ from openag.cli.config import config as cli_config
 from openag.db_names import SOFTWARE_MODULE
 
 from openag_brain import commands
-from openag_brain.util import get_database_changes
 
 modules = None
 
@@ -71,10 +70,11 @@ def main(api_server, db_server, fixtures, development, screen):
 
     # Whenever the softwate module configuration changes, restart the software
     # modules
-    last_seq = get_database_changes(db_server, SOFTWARE_MODULE)['last_seq']
+    db = server[SOFTWARE_MODULE]
+    last_seq = db.changes()['last_seq']
     while True:
         time.sleep(5)
-        changes = get_database_changes(db_server, SOFTWARE_MODULE, last_seq)
+        changes = db.changes(since=last_seq)
         last_seq = changes['last_seq']
         if len(changes['results']):
             print "Software module configuration changed; Restarting"
