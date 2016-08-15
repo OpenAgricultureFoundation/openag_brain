@@ -203,6 +203,7 @@ class RecipeHandler(object):
         rospy.set_param(params.CURRENT_RECIPE, recipe_id)
         rospy.set_param(params.CURRENT_RECIPE_START, start_time)
         self.recipe_flag.set()
+        rospy.loginfo('Starting recipe "{}"'.format(recipe_id))
         return True, "Success"
 
     def stop_recipe(self, data):

@@ -292,6 +292,12 @@
       "description": "Connects topics between the /sensors, /actuators and /<environment_id> namespaces in intuitive ways"
     },
     {
+      "_id": "openag_brain:topic_filter.py",
+      "package": "openag_brain",
+      "executable": "topic_filter.py",
+      "description": "Filters the /raw sensor outputs with an Exponentially Weighted Moving Average filter and creates /filtered topics with the filtered data"
+    },
+    {
       "_id": "usb_cam:usb_cam_node",
       "package": "usb_cam",
       "executable": "usb_cam_node",
@@ -379,6 +385,10 @@
     {
       "_id": "api",
       "type": "openag_brain:api.py"
+    },
+    {
+      "_id": "topic_filter",
+      "type": "openag_brain:topic_filter.py"
     },
     {
       "_id": "topic_connector",

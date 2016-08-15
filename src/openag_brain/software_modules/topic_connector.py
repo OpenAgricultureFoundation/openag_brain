@@ -32,12 +32,11 @@ def connect_topics(src_topic, dest_topic, src_topic_type, dest_topic_type):
         src_topic, dest_topic
     ))
     pub = rospy.Publisher(dest_topic, dest_topic_type, queue_size=10)
-    def callback(src_item, publisher=pub, src_type=src_topic_type,
-            dest_type=dest_topic_type):
-        dest_item = dest_type(*[
+    def callback(src_item):
+        dest_item = dest_topic_type(*[
             getattr(src_item, slot) for slot in src_item.__slots__
         ])
-        publisher.publish(dest_item)
+        pub.publish(dest_item)
     sub = rospy.Subscriber(src_topic, src_topic_type, callback)
     return sub, pub
 
@@ -65,7 +64,7 @@ def connect_all_topics(module_db, module_type_db):
             mapped_output_name = module_type.get("mappings", {}).get(
                 output_name, output_name
             )
-            src_topic = "/sensors/{}/{}/raw".format(module_id, output_name)
+            src_topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
             dest_topic = "/{}/measured/{}".format(
                 module_info["environment"], mapped_output_name
             )
