@@ -10,3 +10,4 @@ fi
 if [ ! -e /usr/local/bin/platformio ]; then
     sudo ln -s ~/pio_env/bin/platformio /usr/local/bin/platformio
 fi
+platformio platforms install atmelavr
