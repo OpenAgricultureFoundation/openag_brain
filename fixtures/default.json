@@ -336,7 +336,7 @@
         "framerate": {
           "type": "int",
           "description": "The required framerate",
-          "default": 30
+          "default": 1
         },
         "contrast": {
           "type": "int",

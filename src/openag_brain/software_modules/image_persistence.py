@@ -92,7 +92,7 @@ class ImagePersistence:
             "timestamp": time.time()
         })
         point_id, point_rev = self.db.save(point)
-        url = "{db_url}/{point_id}/attachment?rev={rev}".format(
+        url = "{db_url}/{point_id}/image?rev={rev}".format(
             db_url=self.db.resource.url, point_id=point_id, rev=point_rev
         )
         buf = StringIO()

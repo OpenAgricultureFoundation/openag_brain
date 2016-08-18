@@ -69,4 +69,4 @@ if __name__ == '__main__':
         if len(changes['results']):
             for topic in topics:
                 topic.unregister()
-            topics = connect_all_topics(module_db, module_type_db)
+            topics = filter_all_topics(module_db, module_type_db)

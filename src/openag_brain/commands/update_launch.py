@@ -93,26 +93,22 @@ def update_launch(server):
 
     for module_id, module in modules.items():
         print 'Processing module "{}" from server'.format(module_id)
-        mod_env = module.get("environment", None)
-        if not mod_env in groups:
-            group = create_group(root, mod_env)
-            groups[mod_env] = group
+        mod_ns = module.get("namespace", module.get("environment", None))
+        if not mod_ns in groups:
+            group = create_group(root, mod_ns)
+            groups[mod_ns] = group
         else:
-            group = groups[mod_env]
-        module_type = SoftwareModuleType(module_types_db[module["type"]])
-        arguments = []
-        for arg_info in module_type["arguments"]:
-            arg_name = arg_info["name"]
-            val = module.get("arguments", {}).get(
-                arg_name, arg_info.get("default", None)
-            )
-            if val is None:
-                raise RuntimeError(
-                    'Argument "{arg}" is not defined for software module '
-                    '"{mod_id}"'.format(arg=arg_name, mod_id=module.id)
+            group = groups[mod_ns]
+        if module["type"] in module_types_db:
+            module_type = SoftwareModuleType(module_types_db[module["type"]])
+        else:
+            raise RuntimeError(
+                'Module "{}" references nonexistant module type "{}'.format(
+                    module_id, module["type"]
                 )
-            arguments.append(val)
-        args_str = ", ".join(arguments)
+            )
+        args = module.get("arguments", [])
+        args_str = ", ".join(args)
         node = create_node(
             group, module_type["package"], module_type["executable"],
             module_id, args_str
