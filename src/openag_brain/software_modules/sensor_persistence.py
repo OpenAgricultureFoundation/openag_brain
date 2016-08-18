@@ -16,14 +16,18 @@ import rostopic
 from couchdb import Server
 
 from openag.cli.config import config as cli_config
-from openag.models import EnvironmentalDataPoint
-from openag.db_names import ENVIRONMENTAL_DATA_POINT
+from openag.models import (
+    FirmwareModule, FirmwareModuleType, EnvironmentalDataPoint
+)
+from openag.db_names import (
+    FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE, ENVIRONMENTAL_DATA_POINT
+)
 from openag.var_types import EnvVar
 
 from openag_brain import params
 from openag_brain.util import resolve_message_type
 
-class SinglePersistence:
+class TopicPersistence:
     def __init__(self, db, topic, topic_type, environment, variable, is_desired):
         self.db = db
         self.environment = environment
@@ -34,6 +38,9 @@ class SinglePersistence:
         self.sub = rospy.Subscriber(topic, topic_type, self.on_data)
         self.min_update_interval = 5
         self.max_update_interval = 600
+
+    def stop(self):
+        self.sub.unregister()
 
     def on_data(self, item):
         curr_time = time.time()
@@ -69,68 +76,48 @@ class SinglePersistence:
     def gen_doc_id(self, curr_time):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
-class EnvironmentPersistence:
-    def __init__(self, server, environment):
-        self.db = server[ENVIRONMENTAL_DATA_POINT]
-        self.environment = environment
-        self.children = {}
-        self.valid_variables = [var.name for var in EnvVar.items]
-
-    def run(self):
-        while not rospy.is_shutdown():
-            self.update_subscribers()
-            time.sleep(5)
-
-    def update_subscribers(self):
-        # Look at all of the topics that are being published in the namespace
-        namespace = "/{}/".format(self.environment)
-        for topic, topic_type in rospy.get_published_topics(namespace):
-            topic_type = resolve_message_type(topic_type)
-
-            # Ignore topics we are already listening to
-            if topic in self.children:
-                continue
-
-            # Parse the topic name
-            topic_parts = topic.split('/')
-            if topic_parts[2] == "desired":
-                is_desired = True
-            elif topic_parts[2] == "measured":
-                is_desired = False
-            elif topic_parts[2] == "commanded":
-                continue
-            else:
+def create_persistence_objects(server):
+    env_var_db = server[ENVIRONMENTAL_DATA_POINT]
+    module_db = server[FIRMWARE_MODULE]
+    module_type_db = server[FIRMWARE_MODULE_TYPE]
+    modules = {
+        module_id: FirmwareModule(module_db[module_id]) for module_id in
+        module_db if not module_id.startswith('_')
+    }
+    res = []
+    valid_vars = [var.name for var in EnvVar.items]
+    for module_id, module_info in modules.items():
+        module_type = FirmwareModuleType(module_type_db[module_info["type"]])
+        for output_name, output_info in module_type["outputs"].items():
+            if not output_name in valid_vars:
                 rospy.logwarn(
-                    'Encountered invalid topic: "{}"'.format(topic)
+                    'Encountered module output "{}" whose name is not an '
+                    "environmental variable".format(output_name)
                 )
-                continue
-            variable = topic_parts[3]
-
-            # Ignore topics that aren't named after valid variables
-            if not variable in self.valid_variables:
-                rospy.logwarn(
-                    'Topic references invalid variable "{}"'.format(variable)
-                )
-                continue
-
-            # Subscribe to the topics
-            self.children[topic] = SinglePersistence(
-                self.db, topic, topic_type, self.environment, variable,
-                is_desired
-            )
+            topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
+            topic_type = resolve_message_type(output_info["type"])
+            res.append(TopicPersistence(
+                topic=topic, topic_type=topic_type,
+                environment=module_info["environment"], variable=output_name,
+                is_desired=False, db=env_var_db
+            ))
+    return res
 
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No local database specified")
     server = Server(db_server)
+    topic_persistence_objects = create_persistence_objects(server)
     rospy.init_node('sensor_persistence')
-    namespace = rospy.get_namespace()
-    if namespace == '/':
-        raise RuntimeError(
-            "Persistence module cannot be run in the global namespace. "
-            "Please designate an environment for this module."
-        )
-    environment = namespace.split('/')[-2]
-    mod = EnvironmentPersistence(server, environment)
-    mod.run()
+    module_db = server[FIRMWARE_MODULE]
+    last_seq = module_db.changes(limit=1, descending=True)["last_seq"]
+    while True:
+        if rospy.is_shutdown():
+            break
+        time.sleep(5)
+        changes = module_db.changes(since=last_seq)
+        if len(changes["results"]):
+            for obj in topic_persistence_objects:
+                obj.stop()
+            topic_persistence_objects = create_persistence_objects(server)

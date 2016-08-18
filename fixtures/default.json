@@ -1,7 +1,8 @@
 {
   "environment": [
     {
-      "_id": "environment_1"
+      "_id": "environment_1",
+      "name": "Environment 1"
     }
   ],
   "firmware_module_type": [
@@ -383,8 +384,8 @@
   ],
   "software_module": [
     {
-      "_id": "api",
-      "type": "openag_brain:api.py"
+      "_id": "arduino_handler",
+      "type": "openag_brain:handle_arduino.py"
     },
     {
       "_id": "topic_filter",
@@ -395,8 +396,15 @@
       "type": "openag_brain:topic_connector.py"
     },
     {
-      "_id": "arduino_handler",
-      "type": "openag_brain:handle_arduino.py"
+      "_id": "sensor_persistence_1",
+      "type": "openag_brain:sensor_persistence.py"
+    },
+    {
+      "_id": "image_persistence_1",
+      "type": "openag_brain:image_persistence.py",
+      "parameters": {
+        "min_update_interval": 3600
+      }
     },
     {
       "_id": "recipe_handler_1",
@@ -404,17 +412,8 @@
       "environment": "environment_1"
     },
     {
-      "_id": "sensor_persistence_1",
-      "type": "openag_brain:sensor_persistence.py",
-      "environment": "environment_1"
-    },
-    {
-      "_id": "image_persistence_1",
-      "type": "openag_brain:image_persistence.py",
-      "environment": "environment_1",
-      "parameters": {
-        "min_update_interval": 3600
-      }
+      "_id": "api",
+      "type": "openag_brain:api.py"
     }
   ]
 }

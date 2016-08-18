@@ -85,7 +85,7 @@ if __name__ == '__main__':
     module_db = server[FIRMWARE_MODULE]
     module_type_db = server[FIRMWARE_MODULE_TYPE]
     topics = connect_all_topics(module_db, module_type_db)
-    last_seq = module_db.changes()['last_seq']
+    last_seq = module_db.changes(limit=1, descending=True)['last_seq']
     while True:
         if rospy.is_shutdown():
             break

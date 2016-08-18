@@ -22,7 +22,9 @@ class VideoWriter(object):
 
         # Initialize change feeds
         self.last_seq_by_var = {}
-        last_db_seq = self.data_db.changes(limit=1, descending=True)
+        last_db_seq = self.data_db.changes(
+            limit=1, descending=True
+        )['last_seq']
         for var in [RECIPE_START, RECIPE_END, self.variable]:
             self.last_seq_by_var[var] = last_db_seq
 

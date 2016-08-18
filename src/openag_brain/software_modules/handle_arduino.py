@@ -15,7 +15,6 @@ path to the serial port to which the Arduino is connected (e.g. "/dev/ttyACM0")
 import sys
 import time
 import rospy
-import shutil
 import atexit
 import select
 import tempfile
@@ -28,96 +27,86 @@ from couchdb import Server
 
 from openag_brain import commands, params
 
-global serial_node
-serial_node = None
-global build_dir
-build_dir = None
 
-@atexit.register
-def kill_children():
-    if serial_node is not None and serial_node.poll():
-        serial_node.terminate()
-        serial_node.wait()
-    global build_dir
-    if build_dir:
-        shutil.rmtree(build_dir)
-        build_dir = None
+class ArduinoHandler(object):
+    def __init__(self, serial_port=None, development=False):
+        self.serial_port = serial_port
+        self.development = development
+        self.serial_node = None
+        self.build_dir = tempfile.mkdtemp()
+        rospy.loginfo(
+            "Initializing firmware project for arduino at %s", self.serial_port
+        )
+        proc = subprocess.Popen(
+            ["openag", "firmware", "init"], cwd=self.build_dir,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        self.handle_process(proc, RuntimeError(
+            "Failed to iniailize OpenAg firmware project"
+        ))
 
-def handle_process(proc, err):
-    """
-    Takes a running subprocess.Popen object `proc`, rosdebugs everything it
-    prints to stdout, roswarns everything it prints to stderr, and raises `err`
-    if it fails
-    """
-    poll = select.poll()
-    poll.register(proc.stdout)
-    poll.register(proc.stderr)
-    while proc.poll() is None:
-        res = poll.poll(1)
-        for fd, evt in res:
-            if not (evt & select.POLLIN):
-                continue
-            if fd == proc.stdout.fileno():
-                line = proc.stdout.readline().strip()
-                if line:
-                    rospy.logdebug(line)
-            elif fd == proc.stderr.fileno():
-                line = proc.stderr.readline().strip()
-                if line:
-                    rospy.logwarn(line)
-    if proc.returncode:
-        raise err
+    def __del__(self):
+        if self.serial_node is not None and self.serial_node.poll():
+            self.serial_node.terminate()
+            self.serial_node.wait()
+        if self.build_dir:
+            import shutil
+            shutil.rmtree(self.build_dir)
 
-def update(serial_port):
-    rospy.loginfo("Updating arduino at %s", serial_port)
-    try:
-        global build_dir
-        proc = subprocess.Popen([
-            "openag", "firmware", "run", "-p", "ros", "-t", "upload"
-        ], cwd=build_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        handle_process(proc, Exception())
-    except Exception:
-        rospy.logerr("Failed to update Arduino")
+    def start(self):
+        if not self.development:
+            rospy.loginfo("Updating arduino at %s", self.serial_port)
+            try:
+                proc = subprocess.Popen(
+                    [
+                        "openag", "firmware", "run", "-p", "ros", "-t",
+                        "upload"
+                    ], cwd=self.build_dir, stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                self.handle_process(proc, Exception())
+            except Exception:
+                rospy.logerr("Failed to update Arduino")
+        rospy.loginfo("Starting to read from Arduino at %s", self.serial_port)
+        self.serial_node = subprocess.Popen([
+            "rosrun", "rosserial_python", "serial_node.py", self.serial_port
+        ])
 
-def start_reading(serial_port):
-    rospy.loginfo("Starting to read from Arduino")
-    global serial_node
-    serial_node = subprocess.Popen([
-        "rosrun", "rosserial_python", "serial_node.py", serial_port
-    ])
+    def stop(self):
+        self.serial_node.terminate()
+        self.serial_node.wait()
 
-def handle_arduino(db_server, serial_port, development=False):
-    if not development:
-        update(serial_port)
-    start_reading(serial_port)
+    def restart(self):
+        self.stop()
+        self.start()
 
-    if development:
-        while True:
-            if rospy.is_shutdown():
-                kill_children()
-                sys.exit(0)
-            time.sleep(5)
-
-    # Whenever the firmware module configuration changes, reflash the arduino
-    server = Server(db_server)
-    db = server[FIRMWARE_MODULE]
-    last_seq = db.changes()['last_seq']
-    while True:
-        if rospy.is_shutdown():
-            break
-        time.sleep(5)
-        changes = db.changes(since=last_seq)
-        last_seq = changes['last_seq']
-        if len(changes['results']):
-            rospy.loginfo("Firmware module configuration changed; Restarting")
-            serial_node.terminate()
-            serial_node.wait()
-            update(serial_port)
-            start_reading(serial_port)
-    kill_children()
+    def handle_process(self, proc, err):
+        """
+        Takes a running subprocess.Popen object `proc`, rosdebugs everything it
+        prints to stdout, roswarns everything it prints to stderr, and raises
+        `err` if it fails
+        """
+        poll = select.poll()
+        poll.register(proc.stdout)
+        poll.register(proc.stderr)
+        while proc.poll() is None:
+            res = poll.poll(1)
+            for fd, evt in res:
+                if not (evt & select.POLLIN):
+                    continue
+                if fd == proc.stdout.fileno():
+                    line = proc.stdout.readline().strip()
+                    if line:
+                        rospy.logdebug(line)
+                elif fd == proc.stderr.fileno():
+                    line = proc.stderr.readline().strip()
+                    if line:
+                        rospy.logwarn(line)
+        if proc.returncode:
+            raise err
 
 if __name__ == '__main__':
-    rospy.init_node("handle_arduino")
+    rospy.init_node("handle_arduino", anonymous=True)
     if rospy.has_param(params.DEVELOPMENT):
         development = rospy.get_param(params.DEVELOPMENT)
         development = development == "True"
@@ -133,13 +122,25 @@ if __name__ == '__main__':
         raise RuntimeError(
             "No local DB server specified. Run `openag db init` to select one"
         )
-    build_dir = tempfile.mkdtemp()
-    rospy.loginfo("Initializing firmware project")
-    proc = subprocess.Popen(
-        ["openag", "firmware", "init"], cwd=build_dir, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    handle_process(proc, RuntimeError(
-        "Failed to iniailize OpenAg firmware project"
-    ))
-    handle_arduino(db_server, args.serial_port, development)
+    handler = ArduinoHandler(args.serial_port, development)
+    handler.start()
+
+    if development:
+        while True:
+            if rospy.is_shutdown():
+                sys.exit(0)
+            time.sleep(5)
+
+    # Whenever the firmware module configuration changes, reflash the arduino
+    server = Server(db_server)
+    db = server[FIRMWARE_MODULE]
+    last_seq = db.changes(limit=1, descending=True)['last_seq']
+    while True:
+        time.sleep(5)
+        if rospy.is_shutdown():
+            break
+        changes = db.changes(since=last_seq)
+        last_seq = changes['last_seq']
+        if len(changes['results']):
+            rospy.loginfo("Firmware module configuration changed; Restarting")
+            handler.restart()
