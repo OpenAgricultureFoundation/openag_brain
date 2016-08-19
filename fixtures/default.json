@@ -26,6 +26,10 @@
       "description": "",
       "header_file": "openag_atlas_do.h",
       "class_name": "AtlasDo",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_do.git"
+      },
       "arguments": [
         {
           "name": "i2c_address",
@@ -74,6 +78,10 @@
       "header_file": "openag_atlas_orp.h",
       "class_name": "AtlasOrp",
       "description": "",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_orp.git"
+      },
       "arguments": [
         {
           "name": "i2c_address",
@@ -164,6 +172,10 @@
       "header_file": "openag_dht22.h",
       "class_name": "Dht22",
       "description": "",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_dht22.git"
+      },
       "arguments": [
         {
           "name": "pin",
@@ -184,6 +196,10 @@
       "header_file": "openag_ds18b20.h",
       "class_name": "Ds18b20",
       "description": "",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_ds18b20.git"
+      },
       "arguments": [
         {
           "name": "pin",
@@ -201,6 +217,10 @@
       "header_file": "openag_gc0012.h",
       "class_name": "Gc0012",
       "description": "",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_gc0012.git"
+      },
       "arguments": [
         {
           "name": "serial_port",

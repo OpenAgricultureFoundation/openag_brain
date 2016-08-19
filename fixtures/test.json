@@ -27,21 +27,19 @@
       "type": "atlas_orp"
     },
     {
-      "_id": "atlas_ph_2",
+      "_id": "atlas_ph_1",
       "environment": "environment_2",
       "type": "atlas_ph"
     },
     {
       "_id": "dht22_1",
       "type": "dht22",
-      "environment": "environment_2",
-      "arguments": [69]
+      "environment": "environment_2"
     },
     {
       "_id": "ds18b20_1",
       "type": "ds18b20",
       "environment": "environment_1",
-      "arguments": [69],
       "mappings": {
         "temperature": "water_temperature"
       }

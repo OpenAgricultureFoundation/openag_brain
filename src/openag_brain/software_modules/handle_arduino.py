@@ -29,14 +29,11 @@ from openag_brain import commands, params
 
 
 class ArduinoHandler(object):
-    def __init__(self, serial_port=None, development=False):
-        self.serial_port = serial_port
+    def __init__(self, development=False):
         self.development = development
         self.serial_node = None
         self.build_dir = tempfile.mkdtemp()
-        rospy.loginfo(
-            "Initializing firmware project for arduino at %s", self.serial_port
-        )
+        rospy.loginfo("Initializing firmware project for arduino")
         proc = subprocess.Popen(
             ["openag", "firmware", "init"], cwd=self.build_dir,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -55,7 +52,7 @@ class ArduinoHandler(object):
 
     def start(self):
         if not self.development:
-            rospy.loginfo("Updating arduino at %s", self.serial_port)
+            rospy.loginfo("Updating arduino")
             try:
                 proc = subprocess.Popen(
                     [
@@ -67,9 +64,9 @@ class ArduinoHandler(object):
                 self.handle_process(proc, Exception())
             except Exception:
                 rospy.logerr("Failed to update Arduino")
-        rospy.loginfo("Starting to read from Arduino at %s", self.serial_port)
+        rospy.loginfo("Starting to read from Arduino")
         self.serial_node = subprocess.Popen([
-            "rosrun", "rosserial_python", "serial_node.py", self.serial_port
+            "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
         ])
 
     def stop(self):
@@ -116,17 +113,13 @@ if __name__ == '__main__':
         development = development == "True"
     else:
         development = False
-    parser = argparse.ArgumentParser(
-        "Handles generating code for, flashing, and reading from the Arduino"
-    )
-    parser.add_argument("serial_port")
-    args, _ = parser.parse_known_args()
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError(
             "No local DB server specified. Run `openag db init` to select one"
         )
-    handler = ArduinoHandler(args.serial_port, development)
+
+    handler = ArduinoHandler(development)
     handler.start()
 
     if development:
