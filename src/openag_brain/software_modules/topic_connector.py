@@ -49,10 +49,10 @@ def connect_all_topics(module_db, module_type_db):
     for module_id, module_info in modules.items():
         module_type = FirmwareModuleType(module_type_db[module_info["type"]])
         for input_name, input_info in module_type["inputs"].items():
-            mapped_input_name = module.get("mappings",{}).get(
+            mapped_input_name = module_info.get("mappings",{}).get(
                 input_name, input_name
             )
-            src_topic = "/{}/{}".format(module.environment, mapped_input_name)
+            src_topic = "/{}/{}".format(module_info["environment"], mapped_input_name)
             dest_topic = "/actuators/{}/{}".format(module_id, input_name)
             dest_topic_type = resolve_message_type(input_info["type"])
             src_topic_type = Float64 if dest_topic_type is Float32 else \
@@ -61,7 +61,7 @@ def connect_all_topics(module_db, module_type_db):
                 src_topic, dest_topic, src_topic_type, dest_topic_type
             ))
         for output_name, output_info in module_type["outputs"].items():
-            mapped_output_name = module_type.get("mappings", {}).get(
+            mapped_output_name = module_info.get("mappings", {}).get(
                 output_name, output_name
             )
             src_topic = "/sensors/{}/{}/filtered".format(module_id, output_name)

@@ -1,4 +1,10 @@
 {
+  "environment": [
+    {
+      "_id": "environment_2",
+      "name": "Environment 2"
+    }
+  ],
   "firmware_module": [
     {
       "_id": "am2315_1",
@@ -6,14 +12,49 @@
       "type": "am2315"
     },
     {
+      "_id": "atlas_do_1",
+      "environment": "environment_2",
+      "type": "atlas_do"
+    },
+    {
       "_id": "atlas_ec_1",
       "environment": "environment_1",
       "type": "atlas_ec"
     },
     {
-      "_id": "atlas_ph_1",
-      "environment": "environment_1",
+      "_id": "atlas_orp_1",
+      "environment": "environment_2",
+      "type": "atlas_orp"
+    },
+    {
+      "_id": "atlas_ph_2",
+      "environment": "environment_2",
       "type": "atlas_ph"
+    },
+    {
+      "_id": "dht22_1",
+      "type": "dht22",
+      "environment": "environment_2",
+      "arguments": [69]
+    },
+    {
+      "_id": "ds18b20_1",
+      "type": "ds18b20",
+      "environment": "environment_1",
+      "arguments": [69],
+      "mappings": {
+        "temperature": "water_temperature"
+      }
+    },
+    {
+      "_id": "gc0012_1",
+      "type": "gc0012",
+      "environment": "environment_1"
+    },
+    {
+      "_id": "mhz16_1",
+      "environment": "environment_2",
+      "type": "mhz16"
     }
   ],
   "software_module": [

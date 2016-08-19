@@ -89,7 +89,7 @@ class ArduinoHandler(object):
         poll = select.poll()
         poll.register(proc.stdout)
         poll.register(proc.stderr)
-        while proc.poll() is None:
+        while proc.poll() is None and not rospy.is_shutdown():
             res = poll.poll(1)
             for fd, evt in res:
                 if not (evt & select.POLLIN):
@@ -102,6 +102,10 @@ class ArduinoHandler(object):
                     line = proc.stderr.readline().strip()
                     if line:
                         rospy.logwarn(line)
+        if proc.poll():
+            proc.terminate()
+            proc.wait()
+            raise RuntimeError("Process interrupted by ROS shutdown")
         if proc.returncode:
             raise err
 

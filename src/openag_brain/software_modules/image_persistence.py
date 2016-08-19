@@ -18,62 +18,32 @@ from StringIO import StringIO
 from sensor_msgs.msg import Image as ImageMsg
 
 from openag.cli.config import config as cli_config
-from openag.models import EnvironmentalDataPoint
-from openag.db_names import ENVIRONMENTAL_DATA_POINT
+from openag.models import EnvironmentalDataPoint, SoftwareModule
+from openag.db_names import ENVIRONMENTAL_DATA_POINT, SOFTWARE_MODULE
+from openag.var_types import AERIAL_IMAGE
 
 from openag_brain import params
 
 class ImagePersistence:
-    def __init__(self, server, min_update_interval):
-        self.db = server[ENVIRONMENTAL_DATA_POINT]
+    image_format_mapping = {
+        "rgb8": "RGB",
+        "rgba8": "RGBA"
+    }
+
+    def __init__(self, db, topic, variable, environment, min_update_interval):
+        self.db = db
+        self.variable = variable
+        self.environment = environment
         self.min_update_interval = min_update_interval
-        self.namespace = rospy.get_namespace()
-        if self.namespace == '/':
-            raise RuntimeError(
-                "Image persistence module cannot be run in the global "
-                "namespace. Please designate an environment for this module."
-            )
-        self.environment = self.namespace.split('/')[-2]
-        self.subscribers = {}
-        self.last_update = {}
-        # Maps image encodings from ROS format to numpy format
-        self.image_format_mapping = {
-            "rgb8": "RGB",
-            "rgba8": "RGBA",
-        }
+        self.last_update = 0
+        self.sub = rospy.Subscriber(topic, ImageMsg, self.on_image)
 
-    def run(self):
-        while not rospy.is_shutdown():
-            self.update_subscribers()
-            time.sleep(5)
-
-    def update_subscribers(self):
-        if rospy.is_shutdown():
-            return
-
-        for topic, topic_type in rospy.get_published_topics(self.namespace):
-            # Ignore anything that is not an image
-            if topic_type != "sensor_msgs/Image":
-                continue
-
-            # Ignore topics we are already listening to
-            if topic in self.subscribers:
-                continue
-
-            camera_id = topic.split('/')[-2]
-            def callback(item, camera_id=camera_id):
-                self.on_image(item, camera_id)
-            self.subscribers[topic] = rospy.Subscriber(
-                topic, ImageMsg, callback
-            )
-
-    def on_image(self, item, camera_id):
+    def on_image(self, item):
         # Rate limit
         curr_time = time.time()
-        if (curr_time - self.last_update.get(camera_id, 0)) < \
-                self.min_update_interval:
+        if (curr_time - self.last_update) < self.min_update_interval:
             return
-        self.last_update[camera_id] = curr_time
+        self.last_update = curr_time
 
         rospy.loginfo("Posting image")
 
@@ -83,10 +53,9 @@ class ImagePersistence:
         img = Image.fromstring(
             image_format, (item.width, item.height), item.data
         )
-        variable = "image:" + camera_id
         point = EnvironmentalDataPoint({
             "environment": self.environment,
-            "variable": variable,
+            "variable": self.variable.name,
             "is_desired": False,
             "value": None,
             "timestamp": time.time()
@@ -108,17 +77,31 @@ class ImagePersistence:
             )
 
 if __name__ == '__main__':
-    rospy.init_node('image_persistence_1')
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No database server specified")
     server = Server(db_server)
+    rospy.init_node('image_persistence_1')
     try:
         min_update_interval = rospy.get_param("~min_update_interval")
     except KeyError:
         rospy.logwarn(
             "No minimum update interval specified for image persistence module"
         )
-        min_update_interval = 60
-    mod = ImagePersistence(server, min_update_interval)
-    mod.run()
+        min_update_interval = 3600
+    env_var_db = server[ENVIRONMENTAL_DATA_POINT]
+    module_db = server[SOFTWARE_MODULE]
+    modules = {
+        module_id: SoftwareModule(module_db[module_id]) for module_id in
+        module_db if not module_id.startswith("_")
+    }
+    persistence_objs = []
+    for module_id, module_info in modules.items():
+        if module_info.get("namespace", None) == "cameras":
+            topic = "/cameras/{}/image_raw".format(module_id)
+            persistence_objs.append(ImagePersistence(
+                db=env_var_db, topic=topic, variable=AERIAL_IMAGE,
+                environment=module_info["environment"],
+                min_update_interval=min_update_interval
+            ))
+    rospy.spin()

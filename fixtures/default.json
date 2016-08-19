@@ -22,8 +22,37 @@
       }
     },
     {
+      "_id": "atlas_do",
+      "description": "",
+      "header_file": "openag_atlas_do.h",
+      "class_name": "AtlasDo",
+      "arguments": [
+        {
+          "name": "i2c_address",
+          "type": "int",
+          "default": 97
+        }
+      ],
+      "inputs": {
+        "atmospheric_calibration": {
+          "type": "std_msgs/Empty",
+          "categories": ["calibration"]
+        },
+        "zero_calibration": {
+          "type": "std_msgs/Empty",
+          "categories": ["calibration"]
+        }
+      },
+      "outputs": {
+        "water_dissolved_oxygen": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
       "_id": "atlas_ec",
       "pio_id": 338,
+      "description": "",
       "header_file": "openag_atlas_ec.h",
       "class_name": "AtlasEc",
       "description": "Driver for the Atlas Scientific electrical conductivity sensor",
@@ -36,6 +65,30 @@
       ],
       "outputs": {
         "water_electrical_conductivity": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "atlas_orp",
+      "header_file": "openag_atlas_orp.h",
+      "class_name": "AtlasOrp",
+      "description": "",
+      "arguments": [
+        {
+          "name": "i2c_address",
+          "type": "int",
+          "default": 98
+        }
+      ],
+      "inputs": {
+        "calibration": {
+          "type": "std_msgs/Float32",
+          "categories": ["calibration"]
+        }
+      },
+      "outputs": {
+        "water_oxidation_reduction_potential": {
           "type": "std_msgs/Float32"
         }
       }
@@ -103,6 +156,80 @@
       "inputs": {
         "cmd": {
           "type": "std_msgs/Bool"
+        }
+      }
+    },
+    {
+      "_id": "dht22",
+      "header_file": "openag_dht22.h",
+      "class_name": "Dht22",
+      "description": "",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
+        }
+      ],
+      "outputs": {
+        "air_temperature": {
+          "type": "std_msgs/Float32"
+        },
+        "air_humidity": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "ds18b20",
+      "header_file": "openag_ds18b20.h",
+      "class_name": "Ds18b20",
+      "description": "",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
+        }
+      ],
+      "outputs": {
+        "temperature": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "gc0012",
+      "header_file": "openag_gc0012.h",
+      "class_name": "Gc0012",
+      "description": "",
+      "arguments": [
+        {
+          "name": "serial_port",
+          "type": "int",
+          "default": 1
+        }
+      ],
+      "outputs": {
+        "air_carbon_dioxide": {
+          "type": "std_msgs/Float32"
+        }
+      }
+    },
+    {
+      "_id": "mhz16",
+      "pio_id": 372,
+      "header_file": "openag_mhz16.h",
+      "class_name": "MHZ16",
+      "description": "",
+      "arguments": [
+        {
+          "name": "i2c_address",
+          "type": "int",
+          "default": 77
+        }
+      ],
+      "outputs": {
+        "air_carbon_dioxide": {
+          "type": "std_msgs/Int32"
         }
       }
     },
