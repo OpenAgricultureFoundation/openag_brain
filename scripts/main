@@ -9,7 +9,7 @@ import subprocess
 
 from openag.couch import Server
 from openag.cli.config import config as cli_config
-from openag.db_names import SOFTWARE_MODULE
+from openag.db_names import SOFTWARE_MODULE, FIRMWARE_MODULE
 
 from openag_brain import commands
 
@@ -21,16 +21,13 @@ def kill_children():
         modules.terminate()
         modules.wait()
 
-def spawn_modules(development=False, screen=False):
-    roslaunch_command = [
-        "roslaunch", "openag_brain", "modules.launch",
-        "development:={}".format(development)
-    ]
+def spawn_modules(screen=False):
+    roslaunch_command = ["roslaunch", "openag_brain", "modules.launch"]
     if screen:
         roslaunch_command.append("--screen")
     return subprocess.Popen(roslaunch_command)
 
-def main(api_server, db_server, fixtures, development, screen):
+def main(api_server, db_server, fixtures, screen):
     # Initialize the database
     print "Initializing the database"
     db_server = db_server or cli_config["local_server"]["url"]
@@ -57,27 +54,30 @@ def main(api_server, db_server, fixtures, development, screen):
             raise RuntimeError("Failed to load fixture " + fixture_name)
 
     # Start the software modules
-    if not development:
-        print "Generating launch file"
-        commands.update_launch(server)
+    print "Generating launch file"
+    commands.update_launch(server)
     global modules
     print "Spawning software modules"
-    modules = spawn_modules(development, screen)
+    modules = spawn_modules(screen)
 
-    if development:
-        while True:
-            time.sleep(60)
-
-    # Whenever the softwate module configuration changes, restart the software
-    # modules
-    db = server[SOFTWARE_MODULE]
-    last_seq = db.changes()['last_seq']
+    # Whenever the software or firmware module configuration changes, restart
+    # the software modules
+    software_db = server[SOFTWARE_MODULE]
+    firmware_db = server[FIRMWARE_MODULE]
+    last_software_seq = software_db.changes(
+        limit=1, descending=True
+    ) ["last_seq"]
+    last_firmware_seq = firmware_db.changes(
+        limit=1, descending=True
+    )["last_seq"]
     while True:
         time.sleep(5)
-        changes = db.changes(since=last_seq)
-        last_seq = changes['last_seq']
-        if len(changes['results']):
-            print "Software module configuration changed; Restarting"
+        software_changes = software_db.changes(since=last_software_seq)
+        firmware_changes = firmware_db.changes(since=last_firmware_seq)
+        last_software_seq = software_changes["last_seq"]
+        last_firmware_seq = firmware_changes["last_seq"]
+        if len(software_changes["results"]) or len(firmware_changes["results"]):
+            print "Module configuration changed; Restarting"
             modules.terminate()
             print "Generating launch file"
             commands.update_launch(server)
@@ -106,10 +106,6 @@ the configuration of the software modules
         default=[], action='append', dest='fixtures'
     )
     parser.add_argument(
-        "-d", "--development", action="store_true",
-        help="Disables automatic module updates for both software and firmware"
-    )
-    parser.add_argument(
         "--screen", action="store_true",
         help="""
 Passes the --screen flag to the roslaunch call, which forces all node output to
@@ -118,6 +114,5 @@ the screen. Useful for debugging
     vals = parser.parse_args()
     main(
         api_server=vals.api_server, db_server=vals.db_server,
-        fixtures=vals.fixtures, development=vals.development,
-        screen=vals.screen
+        fixtures=vals.fixtures, screen=vals.screen
     )

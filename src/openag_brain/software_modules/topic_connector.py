@@ -16,26 +16,30 @@ import rospy
 import rosgraph
 import rostopic
 from openag.cli.config import config as cli_config
+from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
 from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from couchdb import Server
+from std_msgs.msg import Bool, Float32, Float64
 
 from openag_brain import params
 from openag_brain.srv import Empty
 from openag_brain.util import resolve_message_type
 
-Float32 = resolve_message_type("std_msgs/Float32")
-Float64 = resolve_message_type("std_msgs/Float64")
-
-def connect_topics(src_topic, dest_topic, src_topic_type, dest_topic_type):
+def connect_topics(
+    src_topic, dest_topic, src_topic_type, dest_topic_type, multiplier=1,
+    threshold=0
+):
     rospy.loginfo("Connecting topic {} to topic {}".format(
         src_topic, dest_topic
     ))
     pub = rospy.Publisher(dest_topic, dest_topic_type, queue_size=10)
     def callback(src_item):
-        dest_item = dest_topic_type(*[
-            getattr(src_item, slot) for slot in src_item.__slots__
-        ])
+        val = src_item.data
+        val *= multiplier
+        if dest_topic_type == Bool:
+            val = (val > threshold)
+        dest_item = dest_topic_type(val)
         pub.publish(dest_item)
     sub = rospy.Subscriber(src_topic, src_topic_type, callback)
     return sub, pub
@@ -45,36 +49,36 @@ def connect_all_topics(module_db, module_type_db):
         module_id: FirmwareModule(module_db[module_id]) for module_id in
         module_db if not module_id.startswith('_')
     }
-    topics = []
+    module_types = {
+        type_id: FirmwareModuleType(module_type_db[type_id]) for type_id in
+        module_type_db if not type_id.startswith("_")
+    }
+    modules = synthesize_firmware_module_info(modules, module_types)
     for module_id, module_info in modules.items():
-        module_type = FirmwareModuleType(module_type_db[module_info["type"]])
-        for input_name, input_info in module_type["inputs"].items():
-            mapped_input_name = module_info.get("mappings",{}).get(
-                input_name, input_name
-            )
-            src_topic = "/{}/{}".format(module_info["environment"], mapped_input_name)
+        for input_name, input_info in module_info["inputs"].items():
+            if not "actuators" in input_info["categories"]:
+                continue
+            src_topic = "/{}/{}".format(module_info["environment"], input_info["variable"])
             dest_topic = "/actuators/{}/{}".format(module_id, input_name)
             dest_topic_type = resolve_message_type(input_info["type"])
-            src_topic_type = Float64 if dest_topic_type is Float32 else \
-                    dest_topic_type
-            topics.extend(connect_topics(
-                src_topic, dest_topic, src_topic_type, dest_topic_type
-            ))
-        for output_name, output_info in module_type["outputs"].items():
-            mapped_output_name = module_info.get("mappings", {}).get(
-                output_name, output_name
+            src_topic_type = Float64
+            connect_topics(
+                src_topic, dest_topic, src_topic_type, dest_topic_type,
+                multiplier=input_info.get("direction", 1),
+                threshold=input_info.get("threshold", 0)
             )
+        for output_name, output_info in module_info["outputs"].items():
+            if not "sensors" in output_info["categories"]:
+                continue
             src_topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
             dest_topic = "/{}/measured/{}".format(
-                module_info["environment"], mapped_output_name
+                module_info["environment"], output_info["variable"]
             )
             src_topic_type = resolve_message_type(output_info["type"])
-            dest_topic_type = Float64 if src_topic_type is Float32 else \
-                    src_topic_type
-            topics.extend(connect_topics(
+            dest_topic_type = Float64
+            connect_topics(
                 src_topic, dest_topic, src_topic_type, dest_topic_type
-            ))
-    return topics
+            )
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
@@ -84,15 +88,5 @@ if __name__ == '__main__':
     server = Server(db_server)
     module_db = server[FIRMWARE_MODULE]
     module_type_db = server[FIRMWARE_MODULE_TYPE]
-    topics = connect_all_topics(module_db, module_type_db)
-    last_seq = module_db.changes(limit=1, descending=True)['last_seq']
-    while True:
-        if rospy.is_shutdown():
-            break
-        time.sleep(5)
-        changes = module_db.changes(since=last_seq)
-        last_seq = changes['last_seq']
-        if len(changes['results']):
-            for topic in topics:
-                topic.unregister()
-            topics = connect_all_topics(module_db, module_type_db)
+    connect_all_topics(module_db, module_type_db)
+    rospy.spin()

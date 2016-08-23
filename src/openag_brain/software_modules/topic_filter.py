@@ -2,6 +2,7 @@
 import time
 import rospy
 from openag.cli.config import config as cli_config
+from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
 from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from couchdb import Server
@@ -38,17 +39,19 @@ def filter_all_topics(module_db, module_type_db):
         module_id: FirmwareModule(module_db[module_id]) for module_id in
         module_db if not module_id.startswith('_')
     }
-    topics = []
+    module_types = {
+        type_id: FirmwareModuleType(module_type_db[type_id]) for type_id in
+        module_type_db if not type_id.startswith("_")
+    }
+    modules = synthesize_firmware_module_info(modules, module_types)
     for module_id, module_info in modules.items():
-        module_type = FirmwareModuleType(module_type_db[module_info['type']])
-        for output_name, output_info in module_type["outputs"].items():
+        for output_name, output_info in module_info["outputs"].items():
             src_topic = "/sensors/{}/{}/raw".format(module_id, output_name)
             dest_topic = "/sensors/{}/{}/filtered".format(
                 module_id, output_name
             )
             topic_type = resolve_message_type(output_info["type"])
-            topics.extend(filter_topic(src_topic, dest_topic, topic_type))
-    return topics
+            filter_topic(src_topic, dest_topic, topic_type)
 
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
@@ -58,15 +61,5 @@ if __name__ == '__main__':
     server = Server(db_server)
     module_db = server[FIRMWARE_MODULE]
     module_type_db = server[FIRMWARE_MODULE_TYPE]
-    topics = filter_all_topics(module_db, module_type_db)
-    last_seq = module_db.changes(limit=1, descending=True)['last_seq']
-    while True:
-        if rospy.is_shutdown():
-            break
-        time.sleep(5)
-        changes = module_db.changes(since=last_seq)
-        last_seq = changes['last_seq']
-        if len(changes['results']):
-            for topic in topics:
-                topic.unregister()
-            topics = filter_all_topics(module_db, module_type_db)
+    filter_all_topics(module_db, module_type_db)
+    rospy.spin()

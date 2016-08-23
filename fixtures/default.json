@@ -8,7 +8,10 @@
   "firmware_module_type": [
     {
       "_id": "am2315",
-      "pio_id": 336,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_am2315.git"
+      },
       "header_file": "openag_am2315.h",
       "class_name": "Am2315",
       "description": "Driver for the am2315 sensor",
@@ -19,17 +22,20 @@
         "air_humidity": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "atlas_do",
-      "description": "",
-      "header_file": "openag_atlas_do.h",
-      "class_name": "AtlasDo",
       "repository": {
         "type": "git",
         "url": "https://github.com/OpenAgInitiative/openag_atlas_do.git"
       },
+      "description": "",
+      "header_file": "openag_atlas_do.h",
+      "class_name": "AtlasDo",
       "arguments": [
         {
           "name": "i2c_address",
@@ -51,11 +57,17 @@
         "water_dissolved_oxygen": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "atlas_ec",
-      "pio_id": 338,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_ec.git"
+      },
       "description": "",
       "header_file": "openag_atlas_ec.h",
       "class_name": "AtlasEc",
@@ -71,10 +83,17 @@
         "water_electrical_conductivity": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "atlas_orp",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_orp.git"
+      },
       "header_file": "openag_atlas_orp.h",
       "class_name": "AtlasOrp",
       "description": "",
@@ -99,11 +118,17 @@
         "water_oxidation_reduction_potential": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "atlas_ph",
-      "pio_id": 339,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_ph.git"
+      },
       "header_file": "openag_atlas_ph.h",
       "class_name": "AtlasPh",
       "description": "Driver for the Atlas Scientific pH sensor",
@@ -119,11 +144,17 @@
         "water_potential_hydrogen": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "atlas_rgb",
-      "pio_id": 340,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_rgb.git"
+      },
       "header_file": "openag_atlas_rgb.h",
       "class_name": "AtlasRgb",
       "description": "Driver for the Atlas Scientific light spectrum and intensity sensor",
@@ -142,11 +173,17 @@
           "type": "std_msgs/UInt8MultiArray",
           "description": "3-element array with red, green, and blue values"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "binary_actuator",
-      "pio_id": 349,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_binary_actuator.git"
+      },
       "header_file": "openag_binary_actuator.h",
       "class_name": "BinaryActuator",
       "description": "Driver for an actuator that can only be set ot binary values",
@@ -169,6 +206,10 @@
     },
     {
       "_id": "dht22",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_dht22.git"
+      },
       "header_file": "openag_dht22.h",
       "class_name": "Dht22",
       "description": "",
@@ -189,7 +230,10 @@
         "air_humidity": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "ds18b20",
@@ -210,7 +254,10 @@
         "temperature": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "pio", "id": 54}
+      ]
     },
     {
       "_id": "gc0012",
@@ -232,11 +279,17 @@
         "air_carbon_dioxide": {
           "type": "std_msgs/Float32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "mhz16",
-      "pio_id": 372,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_mhz16.git"
+      },
       "header_file": "openag_mhz16.h",
       "class_name": "MHZ16",
       "description": "",
@@ -251,11 +304,17 @@
         "air_carbon_dioxide": {
           "type": "std_msgs/Int32"
         }
-      }
+      },
+      "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "pwm_actuator",
-      "pio_id": 348,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_pwm_actuator.git"
+      },
       "header_file": "openag_pwm_actuator.h",
       "class_name": "PwmActuator",
       "description": "Driver for an actuator that can take any value between 0 and 1",
@@ -284,7 +343,10 @@
     },
     {
       "_id": "software_pwm_actuator",
-      "pio_id": 351,
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_software_pwm_actuator.git"
+      },
       "header_file": "openag_software_pwm_actuator.h",
       "class_name": "SoftwarePwmActuator",
       "description": "OpenAg driver for an actuator. Does pwm in software to allow for more flexibility in configuration: particularly to allow for longer periods for actuators that exhibit a nonlinear response to normal pwm.",

@@ -78,10 +78,6 @@ def update_launch(server):
     """
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
-    create_arg(root, params.DEVELOPMENT, default=False)
-    create_param(
-        root, params.DEVELOPMENT, '$(arg {})'.format(params.DEVELOPMENT), 'str'
-    )
     groups = {None: root}
 
     module_db = server[SOFTWARE_MODULE]

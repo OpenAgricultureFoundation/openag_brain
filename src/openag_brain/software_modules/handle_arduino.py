@@ -29,8 +29,7 @@ from openag_brain import commands, params
 
 
 class ArduinoHandler(object):
-    def __init__(self, development=False):
-        self.development = development
+    def __init__(self):
         self.serial_node = None
         self.build_dir = tempfile.mkdtemp()
         rospy.loginfo("Initializing firmware project for arduino")
@@ -51,19 +50,18 @@ class ArduinoHandler(object):
             shutil.rmtree(self.build_dir)
 
     def start(self):
-        if not self.development:
-            rospy.loginfo("Updating arduino")
-            try:
-                proc = subprocess.Popen(
-                    [
-                        "openag", "firmware", "run", "-p", "ros", "-t",
-                        "upload"
-                    ], cwd=self.build_dir, stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                self.handle_process(proc, Exception())
-            except Exception:
-                rospy.logerr("Failed to update Arduino")
+        rospy.loginfo("Updating arduino")
+        try:
+            proc = subprocess.Popen(
+                [
+                    "openag", "firmware", "run", "-p", "ros", "-t",
+                    "upload"
+                ], cwd=self.build_dir, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            self.handle_process(proc, Exception())
+        except Exception:
+            rospy.logerr("Failed to update Arduino")
         rospy.loginfo("Starting to read from Arduino")
         self.serial_node = subprocess.Popen([
             "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
@@ -108,36 +106,13 @@ class ArduinoHandler(object):
 
 if __name__ == '__main__':
     rospy.init_node("handle_arduino", anonymous=True)
-    if rospy.has_param(params.DEVELOPMENT):
-        development = rospy.get_param(params.DEVELOPMENT)
-        development = development == "True"
-    else:
-        development = False
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError(
             "No local DB server specified. Run `openag db init` to select one"
         )
 
-    handler = ArduinoHandler(development)
+    handler = ArduinoHandler()
     handler.start()
 
-    if development:
-        while True:
-            if rospy.is_shutdown():
-                sys.exit(0)
-            time.sleep(5)
-
-    # Whenever the firmware module configuration changes, reflash the arduino
-    server = Server(db_server)
-    db = server[FIRMWARE_MODULE]
-    last_seq = db.changes(limit=1, descending=True)['last_seq']
-    while True:
-        time.sleep(5)
-        if rospy.is_shutdown():
-            break
-        changes = db.changes(since=last_seq)
-        last_seq = changes['last_seq']
-        if len(changes['results']):
-            rospy.loginfo("Firmware module configuration changed; Restarting")
-            handler.restart()
+    rospy.spin()

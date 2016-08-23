@@ -34,14 +34,16 @@
     {
       "_id": "dht22_1",
       "type": "dht22",
-      "environment": "environment_2"
+      "environment": "environment_2",
+      "arguments": [54]
     },
     {
       "_id": "ds18b20_1",
       "type": "ds18b20",
       "environment": "environment_1",
-      "mappings": {
-        "temperature": "water_temperature"
+      "arguments": [4],
+      "outputs": {
+        "temperature": {"variable": "water_temperature"}
       }
     },
     {
