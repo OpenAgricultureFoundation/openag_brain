@@ -1,0 +1,35 @@
+{
+  "firmware_module": [
+    {
+      "_id": "am2315_1",
+      "environment": "environment_1",
+      "type": "am2315"
+    },
+    {
+      "_id": "atlas_ec_1",
+      "environment": "environment_1",
+      "type": "atlas_ec"
+    },
+    {
+      "_id": "atlas_ph_1",
+      "environment": "environment_1",
+      "type": "atlas_ph"
+    },
+    {
+      "_id": "ds18b20_1",
+      "type": "ds18b20",
+      "environment": "environment_1",
+      "arguments": [4],
+      "outputs": {
+        "temperature": {"variable": "water_temperature"}
+      }
+    },
+    {
+      "_id": "mhz16_1",
+      "environment": "environment_1",
+      "type": "mhz16"
+    }
+  ],
+  "software_module": [
+  ]
+}
