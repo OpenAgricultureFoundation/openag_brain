@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+import os
+import rospkg
+import argparse
+import subprocess
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="""
+Convenience script to load a database fixture that is located in the fixtures
+folder of this ROS package.
+    """)
+    parser.add_argument("fixtures", nargs="+")
+    args = parser.parse_args()
+
+    rospack = rospkg.RosPack()
+    pkg_path = rospack.get_path("openag_brain")
+    fixtures_path = os.path.join(pkg_path, "fixtures")
+    for fixture_name in args.fixtures:
+        print "Applying fixture {}".format(fixture_name)
+        fixture_path = os.path.join(fixtures_path, fixture_name + ".json")
+        if subprocess.call([
+            "openag", "db", "load_fixture", fixture_path
+        ]):
+            raise RuntimeError(
+                "Failed to load fixture {}".format(fixture_name)
+            )
