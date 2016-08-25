@@ -135,9 +135,9 @@ class RecipeHandler(object):
 
         # Get the recipe that has been started most recently
         start_view = self.env_data_db.view("openag/by_variable", startkey=[
-            self.environment, RECIPE_START.name, "desired"
+            self.environment, "desired", RECIPE_START.name
         ], endkey=[
-            self.environment, RECIPE_START.name, "desired", {}
+            self.environment, "desired", RECIPE_START.name, {}
         ], group_level=3)
         if len(start_view) == 0:
             return
@@ -146,9 +146,9 @@ class RecipeHandler(object):
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view("openag/by_variable", startkey=[
-            self.environment, RECIPE_END.name, "desired"
+            self.environment, "desired", RECIPE_END.name,
         ], endkey=[
-            self.environment, RECIPE_END.name, "desired", {}
+            self.environment, "desired", RECIPE_END.name, {}
         ], group_level=3)
         if len(end_view):
             end_doc = end_view.rows[0].value
