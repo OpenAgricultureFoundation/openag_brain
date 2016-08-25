@@ -9,7 +9,9 @@ import subprocess
 
 from openag.couch import Server
 from openag.cli.config import config as cli_config
-from openag.db_names import SOFTWARE_MODULE, FIRMWARE_MODULE
+from openag.db_names import (
+    SOFTWARE_MODULE, FIRMWARE_MODULE, ENVIRONMENTAL_DATA_POINT
+)
 
 from openag_brain import commands
 
@@ -64,6 +66,7 @@ def main(api_server, db_server, fixtures, screen):
     # the software modules
     software_db = server[SOFTWARE_MODULE]
     firmware_db = server[FIRMWARE_MODULE]
+    edp_db = server[ENVIRONMENTAL_DATA_POINT]
     last_software_seq = software_db.changes(
         limit=1, descending=True
     ) ["last_seq"]
@@ -72,6 +75,10 @@ def main(api_server, db_server, fixtures, screen):
     )["last_seq"]
     while True:
         time.sleep(5)
+        # Query the environmental data point views regularly to force them to
+        # update
+        edp_db.view("openag/by_variable", stale="update_after")._fetch()
+        edp_db.view("openag/by_timestamp", stale="update_after")._fetch()
         software_changes = software_db.changes(since=last_software_seq)
         firmware_changes = firmware_db.changes(since=last_firmware_seq)
         last_software_seq = software_changes["last_seq"]
