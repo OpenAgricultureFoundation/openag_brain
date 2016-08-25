@@ -508,6 +508,12 @@
       "description": "Filters the /raw sensor outputs with an Exponentially Weighted Moving Average filter and creates /filtered topics with the filtered data"
     },
     {
+      "_id": "openag_brain:video_writer.py",
+      "package": "openag_brain",
+      "executable": "video_writer.py",
+      "description": "Watches the DB for aerial images of the environment and makes a timelapse from them"
+    },
+    {
       "_id": "usb_cam:usb_cam_node",
       "package": "usb_cam",
       "executable": "usb_cam_node",
@@ -614,6 +620,11 @@
       "parameters": {
         "min_update_interval": 3600
       }
+    },
+    {
+      "_id": "video_writer_1",
+      "type": "openag_brain:video_writer.py",
+      "environment": "environment_1"
     },
     {
       "_id": "recipe_handler_1",
