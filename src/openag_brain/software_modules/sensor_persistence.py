@@ -29,7 +29,10 @@ from openag_brain import params
 from openag_brain.util import resolve_message_type
 
 class TopicPersistence:
-    def __init__(self, db, topic, topic_type, environment, variable, is_desired):
+    def __init__(
+        self, db, topic, topic_type, environment, variable, is_desired,
+        max_update_interval, min_update_interval
+    ):
         self.db = db
         self.environment = environment
         self.variable = variable
@@ -37,8 +40,8 @@ class TopicPersistence:
         self.last_value = None
         self.last_time = 0
         self.sub = rospy.Subscriber(topic, topic_type, self.on_data)
-        self.min_update_interval = 5
-        self.max_update_interval = 600
+        self.max_update_interval = max_update_interval
+        self.min_update_interval = min_update_interval
 
     def on_data(self, item):
         curr_time = time.time()
@@ -74,7 +77,9 @@ class TopicPersistence:
     def gen_doc_id(self, curr_time):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
-def create_persistence_objects(server):
+def create_persistence_objects(
+    server, max_update_interval, min_update_interval
+):
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     module_db = server[FIRMWARE_MODULE]
     module_type_db = server[FIRMWARE_MODULE_TYPE]
@@ -96,13 +101,15 @@ def create_persistence_objects(server):
                     'non-existant variable: Output "%s" of module "%s"',
                     output_name, module_id
                 )
+                continue
             topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
             topic_type = resolve_message_type(output_info["type"])
             TopicPersistence(
                 topic=topic, topic_type=topic_type,
                 environment=module_info["environment"],
                 variable=output_info["variable"], is_desired=False,
-                db=env_var_db
+                db=env_var_db, max_update_interval=max_update_interval,
+                min_update_interval=min_update_interval
             )
 
 if __name__ == '__main__':
@@ -111,5 +118,24 @@ if __name__ == '__main__':
         raise RuntimeError("No local database specified")
     server = Server(db_server)
     rospy.init_node('sensor_persistence')
-    create_persistence_objects(server)
+    try:
+        max_update_interval = rospy.get_param("~max_update_interval")
+    except KeyError:
+        rospy.logwarn(
+            "No maximum update interval specified for sensor persistence "
+            "module"
+        )
+        max_update_interval = 600
+    try:
+        min_update_interval = rospy.get_param("~min_update_interval")
+    except KeyError:
+        rospy.logwarn(
+            "No minimum update interval specified for sensor persistence "
+            "module"
+        )
+        min_update_interval = 5
+    create_persistence_objects(
+        server, max_update_interval=max_update_interval,
+        min_update_interval=min_update_interval
+    )
     rospy.spin()

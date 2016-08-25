@@ -491,7 +491,13 @@
       "parameters": {
         "max_update_interval": {
           "type": "int",
-          "description": ""
+          "description": "Maximum amount of time that can pass between data point post events for an individual environmental variable and environment",
+          "default": 600
+        },
+        "min_update_interval": {
+          "type": "int",
+          "description": "Minimum amount of time that must pass between data point post events for an individual environmental variable and environment",
+          "default": 5
         }
       }
     },
