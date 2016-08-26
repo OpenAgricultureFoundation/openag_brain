@@ -19,6 +19,7 @@ Contents
     module_configuration
     commands
     api
+    docker
 
 Indices and tables
 ------------------
