@@ -125,7 +125,7 @@ class RecipeHandler(object):
         self.current_recipe = None
         self.current_set_points = {}
 
-        self.valid_variables = [var.name for var in EnvVar.items]
+        self.valid_variables = list(EnvVar.items.keys())
 
         rospy.set_param(params.CURRENT_RECIPE, "")
         rospy.set_param(params.CURRENT_RECIPE_START, 0)

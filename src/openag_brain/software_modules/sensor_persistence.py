@@ -92,7 +92,7 @@ def create_persistence_objects(
         module_type_db if not type_id.startswith("_")
     }
     modules = synthesize_firmware_module_info(modules, module_types)
-    valid_vars = [var.name for var in EnvVar.items]
+    valid_vars = list(EnvVar.items.keys())
     for module_id, module_info in modules.items():
         for output_name, output_info in module_info["outputs"].items():
             if not output_info["variable"] in valid_vars:
