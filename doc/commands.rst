@@ -7,17 +7,6 @@ others may prove useful for developers.
 
 .. _OpenagCmdInitDb:
 
-Initialize Database
--------------------
-
-.. code-block:: bash
-
-    rosrun openag_brain init_db
-
-.. program-output:: rosrun openag_brain init_db -h
-
-.. _OpenagCmdMain:
-
 Main
 ----
 
@@ -66,31 +55,3 @@ Update Roslaunch File
     rosrun openag_brain update_launch
 
 .. program-output:: rosrun openag_brain update_launch -h
-
-.. _OpenagCmdFlashArduino:
-
-Flash Arduino
--------------
-
-.. code-block:: bash
-
-    rosrun openag_brain flash_arduino
-
-Compiles the firmware project contained in `~/.openag/build` and flashes a
-connected Arduino with it (if one exists).
-
-.. _OpenagCmdGenerateFirmware:
-
-Generate Firmware
------------------
-
-.. code-block:: bash
-
-    rosrun openag_brain generate_firmware
-
-.. program-output:: rosrun openag_brain generate_firmware -h
-
-Generates Arduino code based on the configuration of firmware modules from the
-CouchDB instance and stores in in the `~/.openag/build` directry. It can then
-be compiled with the `flash_arduino` command.
-

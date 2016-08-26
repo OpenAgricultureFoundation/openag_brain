@@ -71,7 +71,15 @@ Topic Connector
 
 .. automodule:: openag_brain.software_modules.topic_connector
 
-Camera
+Topic Filter
+~~~~~~~~~~~~
+
+.. automodule:: openag_brain.software_modules.topic_filter
+
+Video Writer
+~~~~~~~~~~~~
+
+.. automodule:: openag_brain.software_modules.video_writer
 
 Firmware Modules
 ----------------
