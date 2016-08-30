@@ -4,9 +4,9 @@ Docker
 We use `Docker <http://www.docker.com/>`_ to containerize the openag_brain
 environment, making it easy and fast to install.
 
-*Note: to install the openag_brain Docker image, don't use this repository directly.
+**Note**: to install the openag_brain Docker image, don't use this repository directly.
 Instead, see
-`openag_brain_docker_rpi <https://github.com/OpenAgInitiative/openag_brain_docker_rpi>`_.*
+`openag_brain_docker_rpi <https://github.com/OpenAgInitiative/openag_brain_docker_rpi>`_.
 
 Working with Docker
 -------------------
@@ -15,8 +15,8 @@ Starting the openag_brain Docker containers::
 
     docker-compose up -d
 
-*Note: if you install openag_brain with
-`the Docker container script <https://github.com/OpenAgInitiative/openag_brain_docker_rpi>`_ you don't have to do this. It is taken care of for you.*
+**Note**: if you install openag_brain with
+`the Docker container script <https://github.com/OpenAgInitiative/openag_brain_docker_rpi>`_ you don't have to do this. It is taken care of for you.
 
 2 Docker containers will be started in the background and will persist across
 reboots. (If you don't have your Arduino connected, you will see an error.
