@@ -32,7 +32,7 @@ listed when running `docker ps`::
     openagbraindockerrpi_brain_1
     openagbraindockerrpi_db_1
 
-Stoping and starting the containers is done in the usual way::
+Stopping and starting the containers is done in the usual way::
 
     docker-compose start
     docker-compose stop
