@@ -139,3 +139,6 @@ exist:
 * Atlas Scientific RGB Sensor
 * Generic binary actuator
 * Generic analog (pwm) actuator
+
+Firmware modules can be configured into a functional system with
+database fixtures. See :ref:`FirmwareModuleFixtures`.

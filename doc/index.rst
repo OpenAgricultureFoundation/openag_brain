@@ -19,6 +19,7 @@ Contents
     module_configuration
     commands
     api
+    fixtures
     docker
 
 Indices and tables
