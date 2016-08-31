@@ -123,23 +123,32 @@ Let's go over these fields:
 * ``_id``: an id for the record. This is the same ID used in the ``type`` field
   of ``firmware_module`` records.
 * ``repository``
+
   * ``type``: this should nearly always be ``git``
   * ``url``: the url of the Git repository
+
 * ``description``: a friendly description of the module
 * ``header_file``: the path to the C++ header file for the module.
 * ``class_name``: the name of the class defined by the module file.
 * ``arguments``: an array of named arguments to the module.
+
   * ``name``: the name key of the argument
   * ``type``: datatype (int, bool, ...)
   * ``default``: (optional) a default value for this argument.
+
 * ``inputs``: a object of named inputs for the module (if any). The key
   is the name of the argument. The value should be an object with two fields:
+
   * ``type``: the datatype (usually a ROS topic type)
   * ``categories``: an array of category keywords.
+
 * ``outputs``: an object of named outputs for the module. The key should be the
   name of the output. The value should be an object with one field:
+
   * ``type``: the datatype (usually a ROS topic type)
+
 * ``dependencies``: an array of other OpenAg modules this module depends on.
   Each dependency is an object of:
+
   * ``type``: usually ``git``.
   * ``url``: the url of the repository.
