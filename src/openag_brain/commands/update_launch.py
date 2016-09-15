@@ -34,7 +34,7 @@ def create_param(parent, name, value, type):
     e = ET.SubElement(parent, 'param')
     e.attrib['name'] = name
     e.attrib['value'] = value
-    e.attrib['type'] = TYPE_MAPPING.get(type, type)
+    e.attrib['type'] = PARAM_TYPE_MAPPING.get(type, type)
     return e
 
 def create_group(parent, ns):
