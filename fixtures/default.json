@@ -414,37 +414,37 @@
       "description": "A Python implementation of a Proportional-Integral-Derivative controller for ROS",
       "parameters": {
         "Kp": {
-          "type": "double",
+          "type": "float",
           "description": "Proportional control gain",
           "default": 0
         },
         "Ki": {
-          "type": "double",
+          "type": "float",
           "description": "Integral control gain",
           "default": 0
         },
         "Kd": {
-          "type": "double",
+          "type": "float",
           "description": "Derivative control gain",
           "default": 0
         },
         "upper_limit": {
-          "type": "double",
+          "type": "float",
           "description": "The maximum limit for control_effort",
           "default": 1
         },
         "lower_limit": {
-          "type": "double",
+          "type": "float",
           "description": "The minimum limit for control_effort",
           "default": -1
         },
         "windup_limit": {
-          "type": "double",
+          "type": "float",
           "description": "The maximum limit for error integral",
           "default": 1000
         },
         "deadband_width": {
-          "type": "double",
+          "type": "float",
           "description": "Control efforts with an absolute value below this values will be ignored and a 0 will be sent instead",
           "default": 0
         },
