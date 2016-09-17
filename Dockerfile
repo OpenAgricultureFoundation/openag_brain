@@ -21,6 +21,8 @@ RUN sudo chown -R pi:pi ~/catkin_ws/src/openag_brain && cd ~/catkin_ws/src && \
     ~/catkin_ws/devel/env.sh rosdep install -i -y openag_brain && \
     ~/catkin_ws/devel/env.sh rosdep install -i -y rosserial_python && \
     ~/catkin_ws/devel/env.sh rosrun openag_brain install_pio
-
+# add .bashrc 
+RUN echo -e '[ -z "$PS1" ] && return' >~/.bashrc
+RUN echo -e 'source ./catkin_ws/devel/setup.bash' >>~/.bashrc
 # Run the project
 CMD ["~/catkin_ws/devel/env.sh", "rosrun", "openag_brain", "main"]
