@@ -77,7 +77,7 @@ Updated docker images will be published by the core team from the openag_brain r
 
 First, build the image::
 
-    docker build -t openag/rpi_brain
+    docker build -t openag/rpi_brain .
 
 Then, log in to docker::
 
