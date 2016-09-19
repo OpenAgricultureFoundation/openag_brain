@@ -6,6 +6,9 @@ from openag_brain import params
 from openag.models import SoftwareModule, SoftwareModuleType
 from openag.db_names import SOFTWARE_MODULE, SOFTWARE_MODULE_TYPE
 
+# maping from python types to roslaunch acceptable ones
+PARAM_TYPE_MAPPING = {'float' : 'double'}
+
 def create_node(parent, pkg, type, name, args=None):
     """
     Creates an xml node for the launch file that represents a ROS node.
@@ -31,7 +34,7 @@ def create_param(parent, name, value, type):
     e = ET.SubElement(parent, 'param')
     e.attrib['name'] = name
     e.attrib['value'] = value
-    e.attrib['type'] = type
+    e.attrib['type'] = PARAM_TYPE_MAPPING.get(type, type)
     return e
 
 def create_group(parent, ns):
