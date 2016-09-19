@@ -13,6 +13,7 @@ import rospy
 import rostopic
 import rosgraph
 import rosservice
+from roslib.message import get_message_class
 from flask import Flask, jsonify, request, Response
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
@@ -179,6 +180,36 @@ def get_topic_info(topic_name):
         "subs": subs,
         "pubs": pubs
     })
+
+@app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=["POST"])
+def post_topic_data(topic_name):
+    """
+    POST /api/<version>/topic/<topic_name>
+
+    POST a message to a ROS topic by name. Topic must exist.
+    """
+    topic_name = "/" + topic_name
+    # Get the list of ROS topics in the system.
+    # Returns a list of (topic, type_string) tuples.
+    topic_list = rostopic_master.getTopicTypes()
+    # Find topic in list (this is Python's approach find).
+    try:
+        topic_match = next(x for x in topic_list if x[0] == topic_name)
+    except StopIteration:
+        # If we can't find the topic, return a 400 (bad request) early.
+        return "", 400
+    msg_type_string = topic_match[1]
+    # Get the message type class for the given message type string.
+    MsgType = get_message_class(msg_type_string)
+    # Create a publisher for this topic
+    pub = rospy.Publisher(topic_name, MsgType, queue_size=10)
+    # json = request.get_json()
+    # @TODO figure out how to coerce string message body into topic data type
+    # in a polymorphic way.
+    try:
+        pub.publish(msg)
+    except Exception, e:
+        return "", 400
 
 @app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=["GET"])
 def stream_topic(topic_name):
