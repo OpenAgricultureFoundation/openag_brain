@@ -172,7 +172,7 @@ def get_topic_info(topic_name):
     if not topic_exists:
         return error("Topic does not exist", 404)
     topic_type = next(
-        x for name, x in master.getTopicTypes() if name == topic_name
+        x for name, x in rostopic_master.getTopicTypes() if name == topic_name
     )
     return jsonify({
         "type": topic_type,
