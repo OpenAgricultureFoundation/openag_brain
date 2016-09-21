@@ -13,6 +13,7 @@ import rospy
 import rostopic
 import rosgraph
 import rosservice
+from roslib.message import get_message_class
 from flask import Flask, jsonify, request, Response
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
@@ -32,6 +33,8 @@ def error(msg, status_code=400):
 
 rostopic_master = rosgraph.Master("/rostopic")
 rosnode_master = rosgraph.Master("/rosnode")
+# Register api with roscore
+rospy.init_node("api")
 
 @app.route("/api/{v}/param".format(v=API_VER), methods=["GET"])
 def list_params():
@@ -179,6 +182,39 @@ def get_topic_info(topic_name):
         "subs": subs,
         "pubs": pubs
     })
+
+@app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=["POST"])
+def post_topic_message(topic_name):
+    """
+    POST /api/<version>/topic/<topic_name>
+
+    POST a message to a ROS topic by name.
+
+    Requires a JSON payload of shape: ``[x, y, z]``. The values of the JSON
+    array must match the argument types of the topic's type constructor.
+    """
+    topic_name = "/" + topic_name
+    # Get the list of ROS topics in the system.
+    # Returns a list of [topic, type_string] pairs.
+    topic_list = rostopic_master.getTopicTypes()
+    # Find topic in list (this is Python's approach to find).
+    try:
+        topic_match = next(x for x in topic_list if x[0] == topic_name)
+    except StopIteration:
+        # If we can't find the topic, return early (400 bad request).
+        return "Topic does not exist", 400
+    # Get the message type constructor for the topic's type string.
+    try:
+        MsgType = get_message_class(topic_match[1])
+        msg_args = request.get_json()
+        pub = rospy.Publisher(topic_name, MsgType, queue_size=10)
+        # Unpack JSON list and pass to publish.
+        # pub.publish() will pass the list of arguments to the message
+        # type constructor.
+        pub.publish(*msg_args)
+    except Exception, e:
+        return '{error: "Wrong arguments for topic type constructor"}', 400
+    return '{message: "Posted message to topic"}'
 
 @app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=["GET"])
 def stream_topic(topic_name):
