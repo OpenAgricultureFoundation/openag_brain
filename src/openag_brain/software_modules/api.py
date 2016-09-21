@@ -182,34 +182,36 @@ def get_topic_info(topic_name):
     })
 
 @app.route("/api/{v}/topic/<path:topic_name>".format(v=API_VER), methods=["POST"])
-def post_topic_data(topic_name):
+def post_topic_message(topic_name):
     """
     POST /api/<version>/topic/<topic_name>
 
-    POST a message to a ROS topic by name. Topic must exist.
+    POST a message to a ROS topic by name.
+
+    Requires a JSON payload of shape: ``[x, y, z]``. The values of the JSON
+    array must match the argument types of the topic's type constructor.
     """
     topic_name = "/" + topic_name
     # Get the list of ROS topics in the system.
-    # Returns a list of (topic, type_string) tuples.
+    # Returns a list of [topic, type_string] pairs.
     topic_list = rostopic_master.getTopicTypes()
-    # Find topic in list (this is Python's approach find).
+    # Find topic in list (this is Python's approach to find).
     try:
         topic_match = next(x for x in topic_list if x[0] == topic_name)
     except StopIteration:
-        # If we can't find the topic, return a 400 (bad request) early.
-        return "", 400
-    msg_type_string = topic_match[1]
-    # Get the message type class for the given message type string.
-    MsgType = get_message_class(msg_type_string)
-    # Create a publisher for this topic
-    pub = rospy.Publisher(topic_name, MsgType, queue_size=10)
-    # json = request.get_json()
-    # @TODO figure out how to coerce string message body into topic data type
-    # in a polymorphic way.
+        # If we can't find the topic, return early (400 bad request).
+        return "Topic does not exist", 400
+    # Get the message type constructor for the topic's type string.
+    MsgType = get_message_class(topic_match[1])
+    msg_args = request.get_json()
     try:
-        pub.publish(msg)
+        pub = rospy.Publisher(topic_name, MsgType, queue_size=10)
+        # Unpack JSON list and pass to publish.
+        # pub.publish() will pass the list of arguments to the message
+        # type constructor.
+        pub.publish(*msg_args)
     except Exception, e:
-        return "", 400
+        return "Wrong arguments for topic", 400
 
 @app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=["GET"])
 def stream_topic(topic_name):
