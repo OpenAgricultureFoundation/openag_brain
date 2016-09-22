@@ -37,8 +37,8 @@ def main(api_server, db_server, fixtures, screen):
     if db_server:
         command.extend(["--db_url", db_server])
     db_server = db_server or "http://localhost:5984"
-    if api_server:
-        command.extend(["--api_url", api_server])
+    api_server = api_server or "http://localhost:5000"
+    command.extend(["--api_url", api_server])
     if subprocess.call(command):
         raise RuntimeError("Failed to initialize database")
     server = Server(db_server)
