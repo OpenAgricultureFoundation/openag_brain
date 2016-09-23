@@ -31,6 +31,9 @@ def socket_error_handler(e):
 def error(msg, status_code=400):
     return jsonify({"error": str(msg)}), status_code
 
+def success(msg, status_code=200):
+    return jsonify({"message": str(msg)}), status_code
+
 rostopic_master = rosgraph.Master("/rostopic")
 rosnode_master = rosgraph.Master("/rosnode")
 # Register api with roscore
@@ -202,7 +205,7 @@ def post_topic_message(topic_name):
         topic_match = next(x for x in topic_list if x[0] == topic_name)
     except StopIteration:
         # If we can't find the topic, return early (400 bad request).
-        return "Topic does not exist", 400
+        return error("Topic does not exist")
     # Get the message type constructor for the topic's type string.
     try:
         MsgType = get_message_class(topic_match[1])
@@ -213,8 +216,8 @@ def post_topic_message(topic_name):
         # type constructor.
         pub.publish(*msg_args)
     except Exception, e:
-        return '{error: "Wrong arguments for topic type constructor"}', 400
-    return '{message: "Posted message to topic"}'
+        return error("Wrong arguments for topic type constructor")
+    return success("Posted message to topic")
 
 @app.route("/api/{v}/topic_stream/<path:topic_name>".format(v=API_VER), methods=["GET"])
 def stream_topic(topic_name):
