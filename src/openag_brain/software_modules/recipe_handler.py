@@ -207,8 +207,13 @@ class RecipeHandler(object):
         return True, "Success"
 
     def stop_recipe(self, data):
-        self.current_recipe.cancel()
-        return True, "Success"
+        if self.current_recipe and self.current_recipe.is_running:
+            self.current_recipe.cancel()
+            while self.recipe_flag.is_set():
+                rospy.sleep(1)
+            return True, "Success"
+        else:
+            return False, "There is no recipe running"
 
     def run(self):
         while True:
