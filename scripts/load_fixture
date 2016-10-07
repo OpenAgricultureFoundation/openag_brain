@@ -8,7 +8,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="""
 Convenience script to load a database fixture that is located in the fixtures
-folder of this ROS package.
+folder of this ROS package. Typical use:
+
+    rosrun openag_brain load_fixure <fixture>
+
+Note: this command wraps the load_fixture command from the openag_python package.
+If you want to load a fixture that does not live in the fixtures directory, you
+can use the load_fixture command from the openag_python package:
+
+    openag db load_fixture <path_to_fixture>
     """)
     parser.add_argument("fixtures", nargs="+")
     args = parser.parse_args()
