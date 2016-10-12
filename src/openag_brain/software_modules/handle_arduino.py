@@ -31,8 +31,20 @@ from openag_brain import commands, params
 class ArduinoHandler(object):
     def __init__(self, should_flash=True):
         self.serial_node = None
+        self.build_dir = None
+        self.should_flash = should_flash
 
-        if should_flash:
+    def __del__(self):
+        if self.serial_node is not None and self.serial_node.poll():
+            self.serial_node.terminate()
+            self.serial_node.wait()
+        if self.build_dir is not None:
+            import shutil
+            shutil.rmtree(self.build_dir)
+
+    def start(self):
+        if self.should_flash:
+            rospy.loginfo("Updating arduino")
             self.build_dir = tempfile.mkdtemp()
             rospy.loginfo("Initializing firmware project for arduino")
             proc = subprocess.Popen(
@@ -42,28 +54,17 @@ class ArduinoHandler(object):
             self.handle_process(proc, RuntimeError(
                 "Failed to iniailize OpenAg firmware project"
             ))
-
-    def __del__(self):
-        if self.serial_node is not None and self.serial_node.poll():
-            self.serial_node.terminate()
-            self.serial_node.wait()
-        if self.build_dir:
-            import shutil
-            shutil.rmtree(self.build_dir)
-
-    def start(self):
-        rospy.loginfo("Updating arduino")
-        try:
-            proc = subprocess.Popen(
-                [
-                    "openag", "firmware", "run", "-p", "ros", "-t",
-                    "upload"
-                ], cwd=self.build_dir, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            self.handle_process(proc, Exception())
-        except Exception:
-            rospy.logerr("Failed to update Arduino")
+            try:
+                proc = subprocess.Popen(
+                    [
+                        "openag", "firmware", "run", "-p", "ros", "-t",
+                        "upload"
+                    ], cwd=self.build_dir, stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                self.handle_process(proc, Exception())
+            except Exception:
+                rospy.logerr("Failed to update Arduino")
         rospy.loginfo("Starting to read from Arduino")
         self.serial_node = subprocess.Popen([
             "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
