@@ -36,13 +36,13 @@ class ArduinoHandler(object):
         # directory later at self.start().
         if should_flash:
             self.build_dir = tempfile.mkdtemp()
-            rospy.loginfo("Initializing firmware project for arduino")
+            rospy.loginfo("Initializing firmware project for Arduino")
             proc = subprocess.Popen(
                 ["openag", "firmware", "init"], cwd=self.build_dir,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             self.handle_process(proc, RuntimeError(
-                "Failed to iniailize OpenAg firmware project"
+                "Failed to initialize OpenAg firmware project"
             ))
         else:
             self.build_dir = None
@@ -59,7 +59,7 @@ class ArduinoHandler(object):
     def start(self):
         # If we have a buil_dir, it means we need to flash the Arduino
         if self.build_dir is not None:
-            rospy.loginfo("Updating arduino")
+            rospy.loginfo("Updating Arduino")
             try:
                 proc = subprocess.Popen(
                     [
