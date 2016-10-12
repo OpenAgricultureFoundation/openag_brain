@@ -114,7 +114,15 @@ if __name__ == '__main__':
             "No local DB server specified. Run `openag db init` to select one"
         )
 
-    handler = ArduinoHandler()
+    try:
+        should_flash = rospy.get_param("~should_flash")
+    except KeyError:
+        rospy.logwarn(
+            "Not specified whether Arduino should be flashed on startup. Defaulting to True."
+        )
+        should_flash = True
+
+    handler = ArduinoHandler(should_flash=should_flash)
     handler.start()
 
     rospy.spin()
