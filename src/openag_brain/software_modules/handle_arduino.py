@@ -29,39 +29,50 @@ from openag_brain import commands, params
 
 
 class ArduinoHandler(object):
-    def __init__(self):
+    def __init__(self, should_flash=True):
         self.serial_node = None
-        self.build_dir = tempfile.mkdtemp()
-        rospy.loginfo("Initializing firmware project for arduino")
-        proc = subprocess.Popen(
-            ["openag", "firmware", "init"], cwd=self.build_dir,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        self.handle_process(proc, RuntimeError(
-            "Failed to iniailize OpenAg firmware project"
-        ))
+        # If we need to flash the Arduino, create a build_dir for the source
+        # and initialize a firmware project within it. We'll use this
+        # directory later at self.start().
+        if should_flash:
+            self.build_dir = tempfile.mkdtemp()
+            rospy.loginfo("Initializing firmware project for Arduino")
+            proc = subprocess.Popen(
+                ["openag", "firmware", "init"], cwd=self.build_dir,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            self.handle_process(proc, RuntimeError(
+                "Failed to initialize OpenAg firmware project"
+            ))
+        else:
+            self.build_dir = None
 
     def __del__(self):
         if self.serial_node is not None and self.serial_node.poll():
             self.serial_node.terminate()
             self.serial_node.wait()
-        if self.build_dir:
+        # If we have a build_dir laying around, trash it.
+        if self.build_dir is not None:
             import shutil
             shutil.rmtree(self.build_dir)
 
     def start(self):
-        rospy.loginfo("Updating arduino")
-        try:
-            proc = subprocess.Popen(
-                [
-                    "openag", "firmware", "run", "-p", "ros", "-t",
-                    "upload"
-                ], cwd=self.build_dir, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            self.handle_process(proc, Exception())
-        except Exception:
-            rospy.logerr("Failed to update Arduino")
+        # If we have a build_dir, it means we need to flash the Arduino
+        if self.build_dir is not None:
+            rospy.loginfo("Updating Arduino")
+            try:
+                proc = subprocess.Popen(
+                    [
+                        "openag", "firmware", "run", "-p", "ros", "-t",
+                        "upload"
+                    ], cwd=self.build_dir, stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                self.handle_process(proc, Exception())
+            except Exception:
+                rospy.logerr("Failed to update Arduino")
+        else:
+            rospy.loginfo("Skipping Arduino flash (should_flash is False)")
         rospy.loginfo("Starting to read from Arduino")
         self.serial_node = subprocess.Popen([
             "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
@@ -112,7 +123,15 @@ if __name__ == '__main__':
             "No local DB server specified. Run `openag db init` to select one"
         )
 
-    handler = ArduinoHandler()
+    try:
+        should_flash = rospy.get_param("~should_flash")
+    except KeyError:
+        rospy.logwarn(
+            "Not specified whether Arduino should be flashed on startup. Defaulting to True."
+        )
+        should_flash = True
+
+    handler = ArduinoHandler(should_flash=should_flash)
     handler.start()
 
     rospy.spin()
