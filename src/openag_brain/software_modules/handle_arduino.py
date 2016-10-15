@@ -57,7 +57,7 @@ class ArduinoHandler(object):
             shutil.rmtree(self.build_dir)
 
     def start(self):
-        # If we have a buil_dir, it means we need to flash the Arduino
+        # If we have a build_dir, it means we need to flash the Arduino
         if self.build_dir is not None:
             rospy.loginfo("Updating Arduino")
             try:
