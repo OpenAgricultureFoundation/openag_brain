@@ -36,8 +36,6 @@ def success(msg, status_code=200):
 
 rostopic_master = rosgraph.Master("/rostopic")
 rosnode_master = rosgraph.Master("/rosnode")
-# Register api with roscore
-rospy.init_node("api")
 
 @app.route("/api/{v}/param".format(v=API_VER), methods=["GET"])
 def list_params():
