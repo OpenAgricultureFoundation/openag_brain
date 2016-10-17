@@ -1,9 +1,12 @@
 #!/bin/bash
 #type platformio > /dev/null 2>&1 && echo "pio is already installed" && exit
+# We install platformio in a virtualenv, because platformio and rosserial
+# depend on different versions of pyserial.
 sudo apt-get install -y python-virtualenv
 virtualenv ~/pio_env
 source ~/pio_env/bin/activate
-pip install platformio
+pip install platformio==2.11.2
+# Create symlink to virtualenv pio in global bin
 if [ ! -e /usr/local/bin/pio ]; then
     sudo ln -s ~/pio_env/bin/pio /usr/local/bin/pio
 fi
