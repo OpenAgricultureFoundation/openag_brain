@@ -6,9 +6,9 @@ namespace `/actuators`. This is very useful for low level tasks such as
 debugging/testing your hardware but not so useful for getting a high level
 overview of the environmental conditions of your system. For this, we would
 like to use topics namespaced by the ID of the environment on which the piece
-of hardware acts (e.g. /environment_1/air_temperature). This module connects
-topics so as to ensure that both of these system views work as expected. There
-should be exactly one instance of this module in the system
+of hardware acts (e.g. /environment_1/measured/air_temperature). This module
+connects topics so as to ensure that both of these system views work as
+expected. There should be exactly one instance of this module in the system
 """
 import sys
 import time
@@ -28,7 +28,7 @@ from openag_brain.util import resolve_message_type
 
 def connect_topics(
     src_topic, dest_topic, src_topic_type, dest_topic_type, multiplier=1,
-    threshold=0
+    deadband=0
 ):
     rospy.loginfo("Connecting topic {} to topic {}".format(
         src_topic, dest_topic
@@ -38,7 +38,7 @@ def connect_topics(
         val = src_item.data
         val *= multiplier
         if dest_topic_type == Bool:
-            val = (val > threshold)
+            val = (val > deadband)
         dest_item = dest_topic_type(val)
         pub.publish(dest_item)
     sub = rospy.Subscriber(src_topic, src_topic_type, callback)
@@ -58,14 +58,16 @@ def connect_all_topics(module_db, module_type_db):
         for input_name, input_info in module_info["inputs"].items():
             if not "actuators" in input_info["categories"]:
                 continue
-            src_topic = "/{}/{}".format(module_info["environment"], input_info["variable"])
+            src_topic = "/{}/commanded/{}".format(
+                module_info["environment"], input_info["variable"]
+            )
             dest_topic = "/actuators/{}/{}".format(module_id, input_name)
             dest_topic_type = resolve_message_type(input_info["type"])
             src_topic_type = Float64
             connect_topics(
                 src_topic, dest_topic, src_topic_type, dest_topic_type,
-                multiplier=input_info.get("direction", 1),
-                threshold=input_info.get("threshold", 0)
+                multiplier=input_info.get("multiplier", 1),
+                deadband=input_info.get("deadband", 0)
             )
         for output_name, output_info in module_info["outputs"].items():
             if not "sensors" in output_info["categories"]:

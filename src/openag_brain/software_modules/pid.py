@@ -13,12 +13,9 @@ renamed as follows. This makes it easy to integrate this PID controller with
 ROS topics from firmware modules without remapping each of the topics
 individually.
 
-    desired -> <variable>_desired
-    state -> <variable>
-    cmd -> <variable>_cmd
-    up_cmd -> <variable>_up_cmd
-    down_cmd -> <variable>_down_cmd
-
+    desired -> /desired/<variable>
+    state -> /measured/<variable>
+    cmd -> /commanded/<variable>
 
 It also reads configuration from a number of other ROS parameters as well. The
 controller gains are passed in as parameters `Kp`, `Ki`, and `Kd`. It also
@@ -84,36 +81,22 @@ if __name__ == '__main__':
     pid = PID(**param_values)
 
     pub_name = "cmd"
-    up_pub_name = "up_cmd"
-    down_pub_name = "down_cmd"
     state_sub_name = "state"
     desired_sub_name = "desired"
 
     variable = rospy.get_param("~variable", None)
     if variable is not None:
-        pub_name = "{}_cmd".format(variable)
-        up_pub_name = "{}_up_cmd".format(variable)
-        down_pub_name = "{}_down_cmd".format(variable)
-        state_sub_name = variable
-        desired_sub_name = "{}_desired".format(variable)
+        pub_name = "commanded/{}".format(variable)
+        state_sub_name = "measured/{}".format(variable)
+        desired_sub_name = "desired/{}".format(variable)
 
     pub = rospy.Publisher(pub_name, Float64, queue_size=10)
-    up_pub = rospy.Publisher(up_pub_name, Float64, queue_size=10)
-    down_pub = rospy.Publisher(down_pub_name, Float64, queue_size=10)
 
     def state_callback(item):
         cmd = pid.update(item.data)
         if cmd is None:
             return
-        up_cmd = 0
-        down_cmd = 0
-        if cmd > 0:
-            up_cmd = cmd
-        else:
-            down_cmd = -cmd
         pub.publish(cmd)
-        up_pub.publish(up_cmd)
-        down_pub.publish(down_cmd)
 
     def set_point_callback(item):
         pid.set_point = item.data

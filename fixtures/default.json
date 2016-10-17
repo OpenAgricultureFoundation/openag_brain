@@ -483,14 +483,34 @@
         "cmd": {
           "type": "std_msgs/Float64",
           "description": "The control_effort message data element contains the control effort to be applied to the process to drive state/data to equal setpoint/data. This topic can be renamed by the topic_from_controller parameter"
-        },
-        "up_cmd": {
+        }
+      }
+    },
+    {
+      "_id": "openag_brain:direct_controller.py",
+      "package": "openag_brain",
+      "executable": "direct_controller.py",
+      "description": "A simple control loop that just interprets the set point as a direct command to the actuator",
+      "parameters": {
+        "variable": {
+          "type": "str",
+          "description": "The variable on which this loop operates. This parameter is used to rename the input and outputs of this module for easy integration for the inputs and outputs of firmware modules. For example if the `variable` were `air_temperature`, `desired` would become `air_temperature_desired`, `state` would become `air_temperature`, `cmd` would become `air_temperature_cmd`, `up_cmd` would become `air_temperature_up_cmd`, and `down_cmd` would become `air_temperature_down_cmd"
+        }
+      },
+      "inputs": {
+        "desired": {
           "type": "std_msgs/Float64",
-          "description": "The positive component of `cmd`"
-        },
-        "down_cmd": {
+          "description": "The message data element must contain the desired value of the state measurement of the controlled process. This topic can be renamed by the variable parameter"
+        }
+      },
+      "outputs": {
+        "state": {
           "type": "std_msgs/Float64",
-          "description": "The negative component of `cmd`"
+          "description": "A copy of the cmd output under a different name. The makes explicit the assumption that applying the desired value as a command to the actuator sets the measured value of the relevant environmental variable to the same value."
+        },
+        "cmd": {
+          "type": "std_msgs/Float64",
+          "description": "The control_effort message data element contains the control effort to be applied to the process to drive state/data to equal setpoint/data. This topic can be renamed by the topic_from_controller parameter"
         }
       }
     },
