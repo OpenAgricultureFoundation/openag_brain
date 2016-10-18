@@ -51,7 +51,7 @@ def main(api_server, db_server, fixtures, screen):
         if subprocess.call(
             ["openag", "db", "load_fixture", fixture_path]
         ):
-            raise RuntimeError("Failed to load fixture " + fixture_name)
+            raise RuntimeError("Failed to load fixture " + fixture_path)
 
     # Start the software modules
     print "Generating launch file"
