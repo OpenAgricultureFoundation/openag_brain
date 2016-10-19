@@ -120,7 +120,7 @@ the configuration of the software modules
         default=[], action='append', dest='fixtures'
     )
     parser.add_argument(
-        '-F', '--fixture-path',
+        '-F', '--fixture_path',
         help="""
 Path to a json fixture file to apply to the database. Specify the full path to
 the fixture file. This flag is useful for loading fixtures not located in the
