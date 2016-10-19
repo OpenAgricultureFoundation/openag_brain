@@ -88,6 +88,17 @@ def main(api_server, db_server, fixtures, screen):
             print "Spawning software modules"
             modules = spawn_modules(screen)
 
+def resolve_fixtures(fixtures):
+    """
+    Given a list of fixture names, returns a list of fully resolved fixture
+    paths.
+    """
+    rospack = rospkg.RosPack()
+    pkg_path = rospack.get_path('openag_brain')
+    fixtures_path = os.path.join(pkg_path, "fixtures")
+    resolved = [os.path.join(fixtures_path, fixture_name + ".json") for fixture_name in fixtures]
+    return resolved
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="""
@@ -109,13 +120,24 @@ the configuration of the software modules
         default=[], action='append', dest='fixtures'
     )
     parser.add_argument(
+        '-F', '--fixture-path',
+        help="""
+Path to a json fixture file to apply to the database. Specify the full path to
+the fixture file. This flag is useful for loading fixtures not located in the
+default fixtures directory.
+        """,
+        default=[], action='append', dest='fixture_paths'
+    )
+    parser.add_argument(
         "--screen", action="store_true",
         help="""
 Passes the --screen flag to the roslaunch call, which forces all node output to
-the screen. Useful for debugging
+the screen. Useful for debugging.
 """)
     vals = parser.parse_args()
+    # Resolve named fixtures, then join named fixtures and path fixtures.
+    fixture_paths = resolve_fixtures(vals.fixtures) + vals.fixture_paths
     main(
         api_server=vals.api_server, db_server=vals.db_server,
-        fixtures=vals.fixtures, screen=vals.screen
+        fixtures=fixture_paths, screen=vals.screen
     )
