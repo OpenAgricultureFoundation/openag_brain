@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 A simple control loop that just interprets boolean set points as a direct
-commands to the actuator. True = on, False = off, as you might expect.
+commands to the actuator.
 """
 import rospy
 from std_msgs.msg import Bool
