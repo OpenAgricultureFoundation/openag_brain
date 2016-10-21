@@ -4,14 +4,10 @@ The `pid.py` module is a Python implementation of a
 Proportional-Integral-Derivative controller for ROS. By default, it listens on
 a topic "desired" for the current set point and a topic "state" for the current
 state of the plant being controller. It then writes to a topic "cmd" with the
-output of the PID controller as well as 2 commands "up_cmd" and "down_cmd"
-which are the positive and negative components of the command. This is useful
-when there are separate physical actuators for applying positive and negative
-control effort to the plant (e.g. a separate heater and cooler for air
-temperature). If the parameter `variable` is defined, these topics will be
-renamed as follows. This makes it easy to integrate this PID controller with
-ROS topics from firmware modules without remapping each of the topics
-individually.
+output of the PID controller. If the parameter `variable` is defined, these
+topics will be renamed as follows. This makes it easy to integrate this PID
+controller with ROS topics from firmware modules without remapping each of the
+topics individually.
 
     desired -> /desired/<variable>
     state -> /measured/<variable>
