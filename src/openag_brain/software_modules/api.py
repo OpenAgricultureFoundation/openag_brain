@@ -18,6 +18,9 @@ from flask import Flask, jsonify, request, Response
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
 
+from openag_brain.services import START_RECIPE, STOP_RECIPE
+from openag_brain.srv import StartRecipe, Empty
+
 API_VER = "0.0.1"
 
 app = Flask(__name__)
@@ -106,27 +109,64 @@ def get_service_info(service_name):
         "args": rosservice.get_service_args(service_name).split(" ")
     })
 
-@app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=["POST"])
-def perform_service_call(service_name):
+@app.route("/api/{v}/{srv}".format(v=API_VER, srv=START_RECIPE), methods=["POST"])
+def perform_start_recipe():
     """
-    POST /api/<version>/service/<service_name>
+    POST /api/<version>/start_recipe {"environment": <id>, "recipe_id": <id>}
 
-    POST a message to a ROS service by name.
+    Start a recipe by POSTing its recipe_id and environment.
     """
-    service_name = "/" + service_name
-    args = request.json
-    if not args:
-        args = request.values.to_dict()
-    args = {
-        k: str(v) if isinstance(v, unicode) else v for k,v in args.items()
-    }
+    try:
+        args = request.get_json()
+        environment = args['environment']
+        recipe_id = args['recipe_id']
+    except KeyError as e:
+        return error(e)
+    # Create service name from environment passed in JSON arguments.
+    service_name = '/{env}/{srv}'.format(env=environment, srv=START_RECIPE)
+    # Wait for service to be ready before attempting to use it.
     try:
         rospy.wait_for_service(service_name, 1)
     except rospy.ROSException as e:
         raise socket.error()
+    # We use the imported srv class created by ROS from the srv file and
+    # the service name to create a ServiceProxy that lets us interact with
+    # the service.
+    start_recipe = rospy.ServiceProxy(service_name, StartRecipe)
     try:
-        res = rosservice.call_service(service_name, [args])[1]
-    except rosservice.ROSServiceException as e:
+        res = start_recipe(recipe_id)
+    except rospy.ServiceException as e:
+        return error(e)
+    status_code = 200 if getattr(res, "success", True) else 400
+    data = {k: getattr(res, k) for k in res.__slots__}
+    return jsonify(data), status_code
+
+@app.route("/api/{v}/{srv}".format(v=API_VER, srv=STOP_RECIPE), methods=["POST"])
+def perform_stop_recipe():
+    """
+    POST /api/<version>/stop_recipe
+
+    Stop whatever recipe is currently running by POSTing its environment.
+    """
+    try:
+        args = request.get_json()
+        environment = args['environment']
+    except KeyError as e:
+        return error(e)
+    # Create service name from environment passed in JSON arguments.
+    service_name = '/{env}/{srv}'.format(env=environment, srv=STOP_RECIPE)
+    # Wait for service to be ready before attempting to use it.
+    try:
+        rospy.wait_for_service(service_name, 1)
+    except rospy.ROSException as e:
+        raise socket.error()
+    # We use the imported srv class created by ROS from the srv file and
+    # the service name to create a ServiceProxy that lets us interact with
+    # the service.
+    stop_recipe = rospy.ServiceProxy(service_name, Empty)
+    try:
+        res = stop_recipe()
+    except rospy.ServiceException as e:
         return error(e)
     status_code = 200 if getattr(res, "success", True) else 400
     data = {k: getattr(res, k) for k in res.__slots__}
@@ -278,6 +318,7 @@ def get_node_info(node_name):
     })
 
 if __name__ == '__main__':
+    rospy.init_node("api")
     server = WSGIServer(('', 5000), app)
     try:
         rospy.loginfo("API now listening on http://0.0.0.0:5000")
