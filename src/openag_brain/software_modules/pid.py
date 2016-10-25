@@ -64,6 +64,14 @@ class PID:
 if __name__ == '__main__':
     rospy.init_node('pid')
 
+    # Make sure that we're under an environment namespace.
+    namespace = rospy.get_namespace()
+    if namespace == '/':
+        raise RuntimeError(
+            "Cannot be run in the global namespace. Please "
+            "designate an environment for this module."
+        )
+
     param_names = [
         "Kp", "Ki", "Kd", "lower_limit", "upper_limit", "windup_limit",
         "deadband_width"
