@@ -7,7 +7,6 @@ from openag.models import FirmwareModule, FirmwareModuleType
 from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from couchdb import Server
 
-from openag_brain.util import resolve_message_type
 from roslib.message import get_message_class
 
 class EWMA:
