@@ -219,15 +219,16 @@ def post_topic_message(topic_name):
     except StopIteration:
         # If we can't find the topic, return early (400 bad request).
         return error("Topic does not exist")
-    # Get the message type constructor for the topic's type string.
+    json = request.get_json(silent=True)
+    args = json if json else []
     try:
+        # Get the message type constructor for the topic's type string.
         MsgType = get_message_class(topic_match[1])
-        msg_args = request.get_json()
         pub = rospy.Publisher(topic_name, MsgType, queue_size=10)
         # Unpack JSON list and pass to publish.
         # pub.publish() will pass the list of arguments to the message
         # type constructor.
-        pub.publish(*msg_args)
+        pub.publish(*args)
     except Exception, e:
         return error("Wrong arguments for topic type constructor")
     return success("Posted message to topic")
