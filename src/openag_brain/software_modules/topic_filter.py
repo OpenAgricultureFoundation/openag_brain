@@ -8,6 +8,7 @@ from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from couchdb import Server
 
 from openag_brain.util import resolve_message_type
+from roslib.message import get_message_class
 
 class EWMA:
     def __init__(self, a):
@@ -50,7 +51,7 @@ def filter_all_topics(module_db, module_type_db):
             dest_topic = "/sensors/{}/{}/filtered".format(
                 module_id, output_name
             )
-            topic_type = resolve_message_type(output_info["type"])
+            topic_type = get_message_class(output_info["type"])
             filter_topic(src_topic, dest_topic, topic_type)
 
 if __name__ == '__main__':
