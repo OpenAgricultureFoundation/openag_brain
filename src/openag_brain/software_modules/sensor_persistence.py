@@ -26,7 +26,6 @@ from openag.db_names import (
 from openag.var_types import EnvVar
 
 from openag_brain import params
-from openag_brain.util import resolve_message_type
 from roslib.message import get_message_class
 
 class TopicPersistence:
