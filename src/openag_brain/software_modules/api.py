@@ -18,9 +18,6 @@ from flask import Flask, jsonify, request, Response
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
 
-from openag_brain.services import START_RECIPE, STOP_RECIPE
-from openag_brain.srv import StartRecipe, Empty
-
 API_VER = "0.0.1"
 
 app = Flask(__name__)
@@ -109,64 +106,42 @@ def get_service_info(service_name):
         "args": rosservice.get_service_args(service_name).split(" ")
     })
 
-@app.route("/api/{v}/{srv}".format(v=API_VER, srv=START_RECIPE), methods=["POST"])
-def perform_start_recipe():
+@app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=["POST"])
+def perform_service_call(service_name):
     """
-    POST /api/<version>/start_recipe {"environment": <id>, "recipe_id": <id>}
+    POST  /api/<version>/service/<service_name>
 
-    Start a recipe by POSTing its recipe_id and environment.
+    POST to a service to change it somehow. service_name may be a path.
+
+    For example, to start an environmental recipe in an environment, use the
+    start_recipe service:
+
+        POST /api/<version>/service/<environment_id>/start_recipe {"recipe_id": <id>}
     """
+    # Add leading slash to service_name. ROS qualifies all services with a
+    # leading slash.
+    service_name = '/' + service_name
+    # Find the class that ROS autogenerates from srv files that is associated
+    # with this service.
     try:
-        args = request.get_json()
-        environment = args['environment']
-        recipe_id = args['recipe_id']
-    except KeyError as e:
+        ServiceClass = rosservice.get_service_class_by_name(service_name)
+    except rosservice.ROSServiceException as e:
         return error(e)
-    # Create service name from environment passed in JSON arguments.
-    service_name = '/{env}/{srv}'.format(env=environment, srv=START_RECIPE)
+    # If we made it this far, the service exists.
     # Wait for service to be ready before attempting to use it.
     try:
         rospy.wait_for_service(service_name, 1)
     except rospy.ROSException as e:
         raise socket.error()
-    # We use the imported srv class created by ROS from the srv file and
-    # the service name to create a ServiceProxy that lets us interact with
-    # the service.
-    start_recipe = rospy.ServiceProxy(service_name, StartRecipe)
+    # Get JSON args if they exist. If they don't, treat as if empty array
+    # was passed.
+    json = request.get_json(silent=True)
+    args = json if json else []
+    service_proxy = rospy.ServiceProxy(service_name, ServiceClass)
     try:
-        res = start_recipe(recipe_id)
-    except rospy.ServiceException as e:
-        return error(e)
-    status_code = 200 if getattr(res, "success", True) else 400
-    data = {k: getattr(res, k) for k in res.__slots__}
-    return jsonify(data), status_code
-
-@app.route("/api/{v}/{srv}".format(v=API_VER, srv=STOP_RECIPE), methods=["POST"])
-def perform_stop_recipe():
-    """
-    POST /api/<version>/stop_recipe
-
-    Stop whatever recipe is currently running by POSTing its environment.
-    """
-    try:
-        args = request.get_json()
-        environment = args['environment']
-    except KeyError as e:
-        return error(e)
-    # Create service name from environment passed in JSON arguments.
-    service_name = '/{env}/{srv}'.format(env=environment, srv=STOP_RECIPE)
-    # Wait for service to be ready before attempting to use it.
-    try:
-        rospy.wait_for_service(service_name, 1)
-    except rospy.ROSException as e:
-        raise socket.error()
-    # We use the imported srv class created by ROS from the srv file and
-    # the service name to create a ServiceProxy that lets us interact with
-    # the service.
-    stop_recipe = rospy.ServiceProxy(service_name, Empty)
-    try:
-        res = stop_recipe()
-    except rospy.ServiceException as e:
+        # Unpack the list of args and pass to service_proxy function.
+        res = service_proxy(*args)
+    except (rospy.ServiceException, TypeError) as e:
         return error(e)
     status_code = 200 if getattr(res, "success", True) else 400
     data = {k: getattr(res, k) for k in res.__slots__}
