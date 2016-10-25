@@ -109,7 +109,7 @@ def get_service_info(service_name):
 @app.route("/api/{v}/service/<path:service_name>".format(v=API_VER), methods=["POST"])
 def perform_service_call(service_name):
     """
-    POST  /api/<version>/service/<service_name>
+    POST /api/<version>/service/<service_name>
 
     POST to a service to change it somehow. service_name may be a path.
 
