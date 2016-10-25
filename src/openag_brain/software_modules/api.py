@@ -111,22 +111,37 @@ def perform_service_call(service_name):
     """
     POST /api/<version>/service/<service_name>
 
-    POST a message to a ROS service by name.
+    POST to a service to change it somehow. service_name may be a path.
+
+    For example, to start an environmental recipe in an environment, use the
+    start_recipe service:
+
+        POST /api/<version>/service/<environment_id>/start_recipe {"recipe_id": <id>}
     """
-    service_name = "/" + service_name
-    args = request.json
-    if not args:
-        args = request.values.to_dict()
-    args = {
-        k: str(v) if isinstance(v, unicode) else v for k,v in args.items()
-    }
+    # Add leading slash to service_name. ROS qualifies all services with a
+    # leading slash.
+    service_name = '/' + service_name
+    # Find the class that ROS autogenerates from srv files that is associated
+    # with this service.
+    try:
+        ServiceClass = rosservice.get_service_class_by_name(service_name)
+    except rosservice.ROSServiceException as e:
+        return error(e)
+    # If we made it this far, the service exists.
+    # Wait for service to be ready before attempting to use it.
     try:
         rospy.wait_for_service(service_name, 1)
     except rospy.ROSException as e:
         raise socket.error()
+    # Get JSON args if they exist. If they don't, treat as if empty array
+    # was passed.
+    json = request.get_json(silent=True)
+    args = json if json else []
+    service_proxy = rospy.ServiceProxy(service_name, ServiceClass)
     try:
-        res = rosservice.call_service(service_name, [args])[1]
-    except rosservice.ROSServiceException as e:
+        # Unpack the list of args and pass to service_proxy function.
+        res = service_proxy(*args)
+    except (rospy.ServiceException, TypeError) as e:
         return error(e)
     status_code = 200 if getattr(res, "success", True) else 400
     data = {k: getattr(res, k) for k in res.__slots__}
@@ -204,15 +219,16 @@ def post_topic_message(topic_name):
     except StopIteration:
         # If we can't find the topic, return early (400 bad request).
         return error("Topic does not exist")
-    # Get the message type constructor for the topic's type string.
+    json = request.get_json(silent=True)
+    args = json if json else []
     try:
+        # Get the message type constructor for the topic's type string.
         MsgType = get_message_class(topic_match[1])
-        msg_args = request.get_json()
         pub = rospy.Publisher(topic_name, MsgType, queue_size=10)
         # Unpack JSON list and pass to publish.
         # pub.publish() will pass the list of arguments to the message
         # type constructor.
-        pub.publish(*msg_args)
+        pub.publish(*args)
     except Exception, e:
         return error("Wrong arguments for topic type constructor")
     return success("Posted message to topic")
@@ -278,6 +294,7 @@ def get_node_info(node_name):
     })
 
 if __name__ == '__main__':
+    rospy.init_node("api")
     server = WSGIServer(('', 5000), app)
     try:
         rospy.loginfo("API now listening on http://0.0.0.0:5000")
