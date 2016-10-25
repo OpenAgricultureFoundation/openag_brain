@@ -27,6 +27,7 @@ from openag.var_types import EnvVar
 
 from openag_brain import params
 from openag_brain.util import resolve_message_type
+from roslib.message import get_message_class
 
 class TopicPersistence:
     def __init__(
@@ -103,7 +104,7 @@ def create_persistence_objects(
                 )
                 continue
             topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
-            topic_type = resolve_message_type(output_info["type"])
+            topic_type = get_message_class(output_info["type"])
             TopicPersistence(
                 topic=topic, topic_type=topic_type,
                 environment=module_info["environment"],
