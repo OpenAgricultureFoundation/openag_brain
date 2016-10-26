@@ -9,6 +9,14 @@ from std_msgs.msg import Bool
 if __name__ == '__main__':
     rospy.init_node('on_off_controller')
 
+    # Make sure that we're under an environment namespace.
+    namespace = rospy.get_namespace()
+    if namespace == '/':
+        raise RuntimeError(
+            "Cannot be run in the global namespace. Please "
+            "designate an environment for this module."
+        )
+
     command_pub_name = "cmd"
     state_pub_name = "state"
     desired_sub_name = "desired"
