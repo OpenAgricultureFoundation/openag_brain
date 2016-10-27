@@ -24,7 +24,6 @@ from std_msgs.msg import Bool, Float32, Float64
 
 from openag_brain import params
 from openag_brain.srv import Empty
-from openag_brain.util import resolve_message_type
 from roslib.message import get_message_class
 
 def connect_topics(
