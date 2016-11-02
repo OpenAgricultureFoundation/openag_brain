@@ -24,7 +24,7 @@ from std_msgs.msg import Bool, Float32, Float64
 
 from openag_brain import params
 from openag_brain.srv import Empty
-from openag_brain.util import resolve_message_type
+from roslib.message import get_message_class
 
 def connect_topics(
     src_topic, dest_topic, src_topic_type, dest_topic_type, multiplier=1,
@@ -62,7 +62,7 @@ def connect_all_topics(module_db, module_type_db):
                 module_info["environment"], input_info["variable"]
             )
             dest_topic = "/actuators/{}/{}".format(module_id, input_name)
-            dest_topic_type = resolve_message_type(input_info["type"])
+            dest_topic_type = get_message_class(input_info["type"])
             src_topic_type = Float64
             connect_topics(
                 src_topic, dest_topic, src_topic_type, dest_topic_type,
@@ -76,7 +76,7 @@ def connect_all_topics(module_db, module_type_db):
             dest_topic = "/{}/measured/{}".format(
                 module_info["environment"], output_info["variable"]
             )
-            src_topic_type = resolve_message_type(output_info["type"])
+            src_topic_type = get_message_class(output_info["type"])
             dest_topic_type = Float64
             connect_topics(
                 src_topic, dest_topic, src_topic_type, dest_topic_type
