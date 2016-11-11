@@ -2,52 +2,19 @@
 import subprocess
 import argparse
 import tempfile
-import select
-
-# def log(x):
-#     print x
-
-# def handle_process(proc, err, stdout=None, stderr=None):
-#     """
-#     Takes a running subprocess.Popen object `proc`, logs everything it
-#     prints using `log` function, roswarns everything it prints to stderr, and raises
-#     `err` if it fails
-#     """
-#     poll = select.poll()
-#     poll.register(proc.stdout)
-#     poll.register(proc.stderr)
-#     while proc.poll() is None:
-#         res = poll.poll(1)
-#         for fd, evt in res:
-#             if not (evt & select.POLLIN):
-#                 continue
-#             if fd == proc.stdout.fileno():
-#                 line = proc.stdout.readline().strip()
-#                 if line:
-#                     stdout(line)
-#             elif fd == proc.stderr.fileno():
-#                 line = proc.stderr.readline().strip()
-#                 if line:
-#                     stderr(line)
-#     if proc.poll():
-#         proc.terminate()
-#         proc.wait()
-#         raise RuntimeError("Process interrupted")
-#     if proc.returncode:
-#         raise err
 
 def run_flash(build_dir):
-    print "Initializing PlatformIO firmware project for Arduino"
-    proc = subprocess.Popen(
-        ["openag", "firmware", "init"], cwd=self.build_dir
+    init_proc = subprocess.Popen(
+        ["openag", "firmware", "init"], cwd=build_dir
     )
-    print "Compiling and flashing firmware to Arduino"
-    proc = subprocess.Popen(
+    init_proc.wait()
+    flash_proc = subprocess.Popen(
         [
             "openag", "firmware", "run", "-p", "ros", "-t",
             "upload"
-        ], cwd=self.build_dir
+        ], cwd=build_dir
     )
+    flash_proc.wait()
     print "Done"
 
 
