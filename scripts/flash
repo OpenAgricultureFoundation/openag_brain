@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import subprocess
+import argparse
+import tempfile
+
+def run_flash(build_dir):
+    init_proc = subprocess.Popen(
+        ["openag", "firmware", "init"], cwd=build_dir
+    )
+    init_proc.wait()
+    flash_proc = subprocess.Popen(
+        [
+            "openag", "firmware", "run", "-p", "ros", "-t",
+            "upload"
+        ], cwd=build_dir
+    )
+    flash_proc.wait()
+    print "Done"
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="""
+Flashes Arduino with firmware_modules read from the CouchDB firmware_modules
+database.
+        """,
+    )
+    parser.add_argument(
+        "-d", "--build_dir",
+        help="The directory in which to initialize the PlatformIO project",
+        default=None
+    )
+
+    args = parser.parse_args()
+    build_dir = args.build_dir or tempfile.mkdtemp()
+    run_flash(build_dir)
