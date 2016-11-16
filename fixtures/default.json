@@ -409,7 +409,7 @@
         "should_flash": {
           "type": "bool",
           "description": "Whether to flash the Arduino during setup",
-          "default": true
+          "default": false
         }
       }
     },
