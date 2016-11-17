@@ -50,7 +50,7 @@ default fixtures directory.
     # Resolve named fixtures, then join named fixtures and path fixtures.
     fixture_paths = resolve_fixtures(args.fixtures) + args.fixture_paths
     # Load the fixtures (if any)
-    for fixture_path in fixtures:
+    for fixture_path in fixture_paths:
         print "Applying fixture {}".format(fixture_path)
         if subprocess.call(
             ["openag", "db", "load_fixture", fixture_path]

@@ -1,3 +1,4 @@
+import os
 import rospkg
 
 def resolve_fixtures(fixtures):
