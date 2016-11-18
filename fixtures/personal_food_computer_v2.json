@@ -1,0 +1,143 @@
+{
+  "firmware_module": [
+    {
+      "_id": "red_light_1",
+      "arguments": [3],
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "light_illuminance"
+        }
+      }
+    },
+    {
+      "_id": "blue_light_1",
+      "arguments": [4],
+      "environment": "environment_1",
+      "type": "pwm_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "light_illuminance"
+        }
+      }
+    },
+    {
+      "_id": "white_light_1",
+      "arguments": [5],
+      "environment": "environment_1",
+      "type": "pwm_actuator"
+    },
+    {
+      "_id": "pump_1",
+      "arguments": [37, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "pump_2",
+      "arguments": [35, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "pump_3",
+      "arguments": [33, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "pump_4",
+      "arguments": [31, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "pump_5",
+      "arguments": [29, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "heater_1",
+      "arguments": [25, true],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature"
+        }
+      }
+    },
+    {
+      "_id": "cooler_1",
+      "arguments": [23, true],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "humidifier",
+      "arguments": [27, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "atlas_ec_1",
+      "environment": "environment_1",
+      "type": "atlas_ec"
+    },
+    {
+      "_id": "atlas_ph_1",
+      "environment": "environment_1",
+      "type": "atlas_ph"
+    },
+    {
+      "_id": "mhz16_1",
+      "environment": "environment_1",
+      "type": "mhz16"
+    },
+    {
+      "_id": "am2315_1",
+      "type": "am2315",
+      "environment": "environment_1"
+    }
+  ],
+  "software_module": [
+    {
+      "_id": "arduino_handler",
+      "type": "openag_brain:handle_arduino.py",
+      "parameters": {
+        "should_flash": true
+      }
+    },
+    {
+      "_id": "light_controller_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "light_illuminance"
+      }
+    },
+    {
+      "_id": "air_temperature_controller_1",
+      "type": "openag_brain:pid.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "air_temperature",
+        "Kp": 1,
+        "Ki": 0,
+        "Kd": 0,
+        "upper_limit": 1,
+        "lower_limit": -1,
+        "windup_limit": 1000,
+        "deadband_width": 0.5
+      }
+    }
+  ]
+}
