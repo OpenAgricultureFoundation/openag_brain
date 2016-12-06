@@ -30,33 +30,30 @@ def filter_topic(src_topic, dest_topic, topic_type):
     sub = rospy.Subscriber(src_topic, topic_type, callback)
     return sub, pub
 
-def gen_sensor_topic_desc(pubs):
+def gen_parsed_measured(pubs):
     """
-    Generate a description dict for topics that are sensor topics.
-    Matches, filters and parses topic names to find sensor information.
+    Generate a description tuple for topics that measured endpoints.
+    Matches, filters and parses topic names to find measured information.
     """
     for topic, topic_type in pubs:
-        result = match("/sensors/(\w+)/(\w+)/raw", topic)
+        result = match("/environments/(\w+)/measured/(\w+)", topic)
         if result:
-            yield {
-                "module_id": result.groups(1),
-                "output_name": result.groups(2),
-                "topic": topic,
-                "type": topic_type
-            }
+            environment_id = result.groups(1)
+            variable = result.groups(2)
+            yield (topic, topic_type, environment_id, variable)
 
 def filter_all_topics(pubs):
     """
     Given an iterator publishers, where each publisher is a two-tuple
-    `(topic, type)`, create a filtered topic endpoint.
+    `(topic, type)`, publishes a filtered topic endpoint.
     """
-    for desc in gen_sensor_topic_desc(pubs):
-        src_topic_type = get_message_class(desc["type"])
-        src_topic = desc["topic"]
-        module_id = desc["module_id"]
-        output_name = desc["output_name"]
-        dest_topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
-        filter_topic(src_topic, dest_topic, src_topic_type)
+    for topic, topic_type, environment_id, variable in gen_parsed_measured(pubs):
+        TopicType = get_message_class(topic_type)
+        dest_topic = "/environments/{}/filtered/{}".format(
+            environment_id,
+            variable
+        )
+        filter_topic(topic, dest_topic, TopicType)
 
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
