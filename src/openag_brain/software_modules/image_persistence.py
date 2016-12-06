@@ -76,6 +76,14 @@ class ImagePersistence:
                 "Failed to post image to database: {}".format(res.content)
             )
 
+def gen_parsed_image_topics(pubs):
+    topic_pattern = "/environments/(\w+)/{}/measured".format(AERIAL_IMAGE)
+    for topic, topic_type in pubs:
+        result = match(topic_pattern, topic)
+        if result:
+            environment_id = result.groups(1)
+            yield (topic, topic_type, environment_id)
+
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
     if not db_server:
@@ -90,18 +98,11 @@ if __name__ == '__main__':
         )
         min_update_interval = 3600
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
-    module_db = server[SOFTWARE_MODULE]
-    modules = {
-        module_id: SoftwareModule(module_db[module_id]) for module_id in
-        module_db if not module_id.startswith("_")
-    }
     persistence_objs = []
-    for module_id, module_info in modules.items():
-        if module_info.get("namespace", None) == "cameras":
-            topic = "/cameras/{}/image_raw".format(module_id)
-            persistence_objs.append(ImagePersistence(
-                db=env_var_db, topic=topic, variable=AERIAL_IMAGE,
-                environment=module_info["environment"],
-                min_update_interval=min_update_interval
-            ))
+    for topic, topic_type, environment_id in gen_parsed_image_topics(pubs):
+        persistence_objs.append(ImagePersistence(
+            db=env_var_db, topic=topic, variable=AERIAL_IMAGE,
+            environment=environment_id,
+            min_update_interval=min_update_interval
+        ))
     rospy.spin()
