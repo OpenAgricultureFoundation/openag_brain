@@ -11,11 +11,13 @@ for the environment are streams of images from connected webcams.
 """
 import time
 import rospy
+import rosgraph
 import requests
 from PIL import Image
 from couchdb import Server
 from StringIO import StringIO
 from sensor_msgs.msg import Image as ImageMsg
+from re import match
 
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint, SoftwareModule
@@ -90,6 +92,9 @@ if __name__ == '__main__':
         raise RuntimeError("No database server specified")
     server = Server(db_server)
     rospy.init_node('image_persistence_1')
+    rostopic_master = rosgraph.Master("/rostopic")
+    pubs, subs, _ = rostopic_master.getSystemState()
+
     try:
         min_update_interval = rospy.get_param("~min_update_interval")
     except KeyError:
