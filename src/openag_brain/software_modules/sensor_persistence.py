@@ -9,11 +9,15 @@ in the system.
 import sys
 import time
 import random
+from re import match
 
 import rospy
 import rostopic
+from couchdb import Server
 from std_msgs.msg import Float64
 
+from openag.cli.config import config as cli_config
+from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.var_types import SENSOR_VARIABLES
 
 class TopicPersistence:
@@ -66,8 +70,9 @@ class TopicPersistence:
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
 def create_persistence_objects(
-    pubs, max_update_interval, min_update_interval
+    server, environment_id, max_update_interval, min_update_interval
 ):
+    env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     for variable, MsgType in SENSOR_VARIABLES:
         topic = "{}/measured".format(variable)
         TopicPersistence(
@@ -78,9 +83,21 @@ def create_persistence_objects(
             min_update_interval=min_update_interval
         )
 
-if __name__ == '__main__':
-    rospy.init_node('sensor_persistence')
+def read_environment_from_ns(namespace):
+    result = match("/environments/(\w+)/", namespace)
+    if not result:
+        raise ValueError(
+            "No environment id found in namespace \"{}\".".format(namespace)
+        )
+    environment_id = result.group(1)
+    return environment_id
 
+if __name__ == '__main__':
+    db_server = cli_config["local_server"]["url"]
+    if not db_server:
+        raise RuntimeError("No local database specified")
+    server = Server(db_server)
+    rospy.init_node('sensor_persistence')
     try:
         max_update_interval = rospy.get_param("~max_update_interval")
     except KeyError:
@@ -97,8 +114,9 @@ if __name__ == '__main__':
             "module"
         )
         min_update_interval = 5
+    environment_id = read_environment_from_ns(rospy.get_namespace())
     create_persistence_objects(
-        pubs,
+        server, environment_id,
         max_update_interval=max_update_interval,
         min_update_interval=min_update_interval
     )
