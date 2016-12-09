@@ -72,8 +72,8 @@ def connect_all_topics(module_db, module_type_db):
         for output_name, output_info in module_info["outputs"].items():
             if not "sensors" in output_info["categories"]:
                 continue
-            src_topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
-            dest_topic = "/environments/{}/measured/{}".format(
+            src_topic = "/sensors/{}/{}/raw".format(module_id, output_name)
+            dest_topic = "/environments/{}/raw/{}".format(
                 module_info["environment"], output_info["variable"]
             )
             src_topic_type = get_message_class(output_info["type"])

@@ -9,13 +9,12 @@ in the system.
 import sys
 import time
 import random
-from re import match
 
 import rospy
 import rostopic
-import rosgraph
+from std_msgs.msg import Float64
 
-from roslib.message import get_message_class
+from openag_brain.var_types import SENSOR_VARIABLES
 
 class TopicPersistence:
     def __init__(
@@ -66,25 +65,13 @@ class TopicPersistence:
     def gen_doc_id(self, curr_time):
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
-def gen_parsed_filtered(pubs):
-    """
-    Generate a description tuple for topics that measured endpoints.
-    Matches, filters and parses topic names to find measured information.
-    """
-    for topic, topic_type in pubs:
-        result = match("/environments/(\w+)/filtered/(\w+)", topic)
-        if result:
-            environment_id = result.groups(1)
-            variable = result.groups(2)
-            yield (topic, topic_type, environment_id, variable)
-
 def create_persistence_objects(
     pubs, max_update_interval, min_update_interval
 ):
-    for topic, topic_type, environment_id, variable in gen_parsed_filtered(pubs):
-        TopicType = get_message_class(topic_type)
+    for variable, MsgType in SENSOR_VARIABLES:
+        topic = "{}/measured".format(variable)
         TopicPersistence(
-            topic=topic, topic_type=TopicType,
+            topic=topic, topic_type=Float64,
             environment=environment_id,
             variable=variable, is_desired=False,
             db=env_var_db, max_update_interval=max_update_interval,
@@ -93,9 +80,6 @@ def create_persistence_objects(
 
 if __name__ == '__main__':
     rospy.init_node('sensor_persistence')
-
-    rostopic_master = rosgraph.Master("/rostopic")
-    pubs, subs, _ = rostopic_master.getSystemState()
 
     try:
         max_update_interval = rospy.get_param("~max_update_interval")

@@ -1,9 +1,8 @@
 #!/usr/bin/python
 import rospy
-import rosgraph
 
-from re import match
-from roslib.message import get_message_class
+from std_msgs.msg import Float64
+from openag_brain.var_types import SENSOR_VARIABLES
 
 class EWMA:
     def __init__(self, a):
@@ -30,34 +29,20 @@ def filter_topic(src_topic, dest_topic, topic_type):
     sub = rospy.Subscriber(src_topic, topic_type, callback)
     return sub, pub
 
-def gen_parsed_measured(pubs):
-    """
-    Generate a description tuple for topics that measured endpoints.
-    Matches, filters and parses topic names to find measured information.
-    """
-    for topic, topic_type in pubs:
-        result = match("/environments/(\w+)/measured/(\w+)", topic)
-        if result:
-            environment_id = result.groups(1)
-            variable = result.groups(2)
-            yield (topic, topic_type, environment_id, variable)
-
-def filter_all_topics(pubs):
+def filter_all_variable_topics(variables):
     """
     Given an iterator publishers, where each publisher is a two-tuple
     `(topic, type)`, publishes a filtered topic endpoint.
     """
-    for topic, topic_type, environment_id, variable in gen_parsed_measured(pubs):
-        TopicType = get_message_class(topic_type)
-        dest_topic = "/environments/{}/filtered/{}".format(
-            environment_id,
-            variable
-        )
-        filter_topic(topic, dest_topic, TopicType)
+    for env_var, MsgType in variables:
+        src_topic = "raw/{}".format(env_var)
+        dest_topic = "measured/{}".format(env_var)
+        # Ignore type associated with environmental variable type and
+        # coerce to Float64
+        filter_topic(src_topic, dest_topic, Float64)
 
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
-    rostopic_master = rosgraph.Master("/rostopic")
-    pubs, subs, _ = rostopic_master.getSystemState()
-    filter_all_topics(pubs)
+    # Make sure that we're under an environment namespace.
+    filter_all_variable_topics(SENSOR_VARIABLES)
     rospy.spin()
