@@ -58,7 +58,7 @@ def connect_all_topics(module_db, module_type_db):
         for input_name, input_info in module_info["inputs"].items():
             if not "actuators" in input_info["categories"]:
                 continue
-            src_topic = "/environments/{}/commanded/{}".format(
+            src_topic = "/environments/{}/{}/commanded".format(
                 module_info["environment"], input_info["variable"]
             )
             dest_topic = "/actuators/{}/{}".format(module_id, input_name)
@@ -73,7 +73,7 @@ def connect_all_topics(module_db, module_type_db):
             if not "sensors" in output_info["categories"]:
                 continue
             src_topic = "/sensors/{}/{}/raw".format(module_id, output_name)
-            dest_topic = "/environments/{}/raw/{}".format(
+            dest_topic = "/environments/{}/{}/raw".format(
                 module_info["environment"], output_info["variable"]
             )
             src_topic_type = get_message_class(output_info["type"])
