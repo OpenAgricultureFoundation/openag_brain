@@ -35,8 +35,8 @@ def filter_all_variable_topics(variables):
     `(topic, type)`, publishes a filtered topic endpoint.
     """
     for env_var, MsgType in variables:
-        src_topic = "raw/{}".format(env_var)
-        dest_topic = "measured/{}".format(env_var)
+        src_topic = "{}/raw".format(env_var)
+        dest_topic = "{}/measured".format(env_var)
         # Ignore type associated with environmental variable type and
         # coerce to Float64
         filter_topic(src_topic, dest_topic, Float64)
