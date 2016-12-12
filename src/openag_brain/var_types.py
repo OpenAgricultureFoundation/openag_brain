@@ -1,3 +1,7 @@
+"""
+Pairs openag environmental variable types with ROS topic types.
+This allows us to construct topic names along with an associated type.
+"""
 from std_msgs.msg import Float64, Int32
 
 from openag.var_types import (
