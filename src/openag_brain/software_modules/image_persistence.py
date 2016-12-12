@@ -11,7 +11,6 @@ for the environment are streams of images from connected webcams.
 """
 import time
 import rospy
-import rosgraph
 import requests
 from PIL import Image
 from couchdb import Server
@@ -25,6 +24,8 @@ from openag.db_names import ENVIRONMENTAL_DATA_POINT, SOFTWARE_MODULE
 from openag.var_types import AERIAL_IMAGE
 
 from openag_brain import params
+from openag_brain.utils import read_environment_from_ns
+from openag_brain.var_types import CAMERA_VARIABLES
 
 class ImagePersistence:
     image_format_mapping = {
@@ -78,23 +79,13 @@ class ImagePersistence:
                 "Failed to post image to database: {}".format(res.content)
             )
 
-def gen_parsed_image_topics(pubs):
-    topic_pattern = "/environments/(\w+)/{}/measured".format(AERIAL_IMAGE)
-    for topic, topic_type in pubs:
-        result = match(topic_pattern, topic)
-        if result:
-            environment_id = result.groups(1)
-            yield (topic, topic_type, environment_id)
-
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No database server specified")
     server = Server(db_server)
     rospy.init_node('image_persistence_1')
-    rostopic_master = rosgraph.Master("/rostopic")
-    pubs, subs, _ = rostopic_master.getSystemState()
-
+    environment_id = read_environment_from_ns(rospy.get_namespace())
     try:
         min_update_interval = rospy.get_param("~min_update_interval")
     except KeyError:
@@ -104,9 +95,10 @@ if __name__ == '__main__':
         min_update_interval = 3600
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     persistence_objs = []
-    for topic, topic_type, environment_id in gen_parsed_image_topics(pubs):
+    for variable, MsgType in CAMERA_VARIABLES:
+        topic = "{}/raw".format(variable)
         persistence_objs.append(ImagePersistence(
-            db=env_var_db, topic=topic, variable=AERIAL_IMAGE,
+            db=env_var_db, topic=topic, variable=variable,
             environment=environment_id,
             min_update_interval=min_update_interval
         ))

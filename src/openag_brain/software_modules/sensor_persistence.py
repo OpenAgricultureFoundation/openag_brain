@@ -9,7 +9,6 @@ in the system.
 import sys
 import time
 import random
-from re import match
 
 import rospy
 import rostopic
@@ -20,6 +19,7 @@ from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.var_types import SENSOR_VARIABLES
+from openag_brain.utils import read_environment_from_ns
 
 class TopicPersistence:
     def __init__(
@@ -84,15 +84,6 @@ def create_persistence_objects(
             db=env_var_db, max_update_interval=max_update_interval,
             min_update_interval=min_update_interval
         )
-
-def read_environment_from_ns(namespace):
-    result = match("/environments/(\w+)/", namespace)
-    if not result:
-        raise ValueError(
-            "No environment id found in namespace \"{}\".".format(namespace)
-        )
-    environment_id = result.group(1)
-    return environment_id
 
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
