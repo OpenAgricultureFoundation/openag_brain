@@ -17,6 +17,7 @@ from couchdb import Server
 from std_msgs.msg import Float64
 
 from openag.cli.config import config as cli_config
+from openag.models import EnvironmentalDataPoint
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.var_types import SENSOR_VARIABLES
 
@@ -74,6 +75,7 @@ def create_persistence_objects(
 ):
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     for variable, MsgType in SENSOR_VARIABLES:
+        variable = str(variable)
         topic = "{}/measured".format(variable)
         TopicPersistence(
             topic=topic, topic_type=Float64,
