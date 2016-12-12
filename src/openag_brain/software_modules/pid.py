@@ -9,9 +9,9 @@ topics will be renamed as follows. This makes it easy to integrate this PID
 controller with ROS topics from firmware modules without remapping each of the
 topics individually.
 
-    desired -> /desired/<variable>
-    state -> /measured/<variable>
-    cmd -> /commanded/<variable>
+    desired -> <variable>/desired
+    state -> <variable>/measured
+    cmd -> <variable>/commanded
 
 It also reads configuration from a number of other ROS parameters as well. The
 controller gains are passed in as parameters `Kp`, `Ki`, and `Kd`. It also
@@ -90,9 +90,9 @@ if __name__ == '__main__':
 
     variable = rospy.get_param("~variable", None)
     if variable is not None:
-        pub_name = "commanded/{}".format(variable)
-        state_sub_name = "measured/{}".format(variable)
-        desired_sub_name = "desired/{}".format(variable)
+        pub_name = "{}/commanded".format(variable)
+        state_sub_name = "{}/measured".format(variable)
+        desired_sub_name = "{}/desired".format(variable)
 
     pub = rospy.Publisher(pub_name, Float64, queue_size=10)
 
