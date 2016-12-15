@@ -72,10 +72,6 @@ def main(api_server, db_server, fixtures, screen):
     )["last_seq"]
     while True:
         time.sleep(5)
-        # Query the environmental data point views regularly to force them to
-        # update
-        edp_db.view("openag/by_variable", stale="update_after")._fetch()
-        edp_db.view("openag/by_timestamp", stale="update_after")._fetch()
         software_changes = software_db.changes(since=last_software_seq)
         firmware_changes = firmware_db.changes(since=last_firmware_seq)
         last_software_seq = software_changes["last_seq"]
