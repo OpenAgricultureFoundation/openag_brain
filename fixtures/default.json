@@ -398,18 +398,16 @@
       "package": "openag_brain",
       "executable": "handle_arduino.py",
       "description": "Handles generating code for, flashing, and reading from the Arduino",
-      "arguments": [
-        {
-          "name": "serial_port",
-          "type": "str",
-          "default": "/dev/ttyACM0"
-        }
-      ],
       "parameters": {
         "should_flash": {
           "type": "bool",
           "description": "Whether to flash the Arduino during setup",
           "default": false
+        },
+        "serial_port": {
+          "type": "str",
+          "description": "The serial port to which the arduino is connected",
+          "default": "/dev/ttyACM0"
         }
       }
     },
