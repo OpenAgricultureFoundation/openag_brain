@@ -19,9 +19,9 @@ if __name__ == '__main__':
 
     variable = rospy.get_param("~variable", None)
     if variable is not None:
-        command_pub_name = "commanded/{}".format(variable)
-        state_pub_name = "measured/{}".format(variable)
-        desired_sub_name = "desired/{}".format(variable)
+        command_pub_name = "{}/commanded".format(variable)
+        state_pub_name = "{}/measured".format(variable)
+        desired_sub_name = "{}/desired".format(variable)
 
     command_pub = rospy.Publisher(command_pub_name, Float64, queue_size=10)
     state_pub = rospy.Publisher(state_pub_name, Float64, queue_size=10)

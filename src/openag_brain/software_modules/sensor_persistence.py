@@ -9,24 +9,17 @@ in the system.
 import sys
 import time
 import random
-from importlib import import_module
 
 import rospy
 import rostopic
 from couchdb import Server
+from std_msgs.msg import Float64
 
 from openag.cli.config import config as cli_config
-from openag.utils import synthesize_firmware_module_info
-from openag.models import (
-    FirmwareModule, FirmwareModuleType, EnvironmentalDataPoint
-)
-from openag.db_names import (
-    FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE, ENVIRONMENTAL_DATA_POINT
-)
-from openag.var_types import EnvVar
-
-from openag_brain import params
-from roslib.message import get_message_class
+from openag.models import EnvironmentalDataPoint
+from openag.db_names import ENVIRONMENTAL_DATA_POINT
+from openag_brain.var_types import SENSOR_VARIABLES
+from openag_brain.utils import read_environment_from_ns
 
 class TopicPersistence:
     def __init__(
@@ -78,39 +71,19 @@ class TopicPersistence:
         return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
 def create_persistence_objects(
-    server, max_update_interval, min_update_interval
+    server, environment_id, max_update_interval, min_update_interval
 ):
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
-    module_db = server[FIRMWARE_MODULE]
-    module_type_db = server[FIRMWARE_MODULE_TYPE]
-    modules = {
-        module_id: FirmwareModule(module_db[module_id]) for module_id in
-        module_db if not module_id.startswith('_')
-    }
-    module_types = {
-        type_id: FirmwareModuleType(module_type_db[type_id]) for type_id in
-        module_type_db if not type_id.startswith("_")
-    }
-    modules = synthesize_firmware_module_info(modules, module_types)
-    valid_vars = list(EnvVar.items.keys())
-    for module_id, module_info in modules.items():
-        for output_name, output_info in module_info["outputs"].items():
-            if not output_info["variable"] in valid_vars:
-                rospy.logwarn(
-                    "Encountered a module output that references a "
-                    'non-existant variable: Output "%s" of module "%s"',
-                    output_name, module_id
-                )
-                continue
-            topic = "/sensors/{}/{}/filtered".format(module_id, output_name)
-            topic_type = get_message_class(output_info["type"])
-            TopicPersistence(
-                topic=topic, topic_type=topic_type,
-                environment=module_info["environment"],
-                variable=output_info["variable"], is_desired=False,
-                db=env_var_db, max_update_interval=max_update_interval,
-                min_update_interval=min_update_interval
-            )
+    for variable, MsgType in SENSOR_VARIABLES:
+        variable = str(variable)
+        topic = "{}/measured".format(variable)
+        TopicPersistence(
+            topic=topic, topic_type=Float64,
+            environment=environment_id,
+            variable=variable, is_desired=False,
+            db=env_var_db, max_update_interval=max_update_interval,
+            min_update_interval=min_update_interval
+        )
 
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
@@ -134,8 +107,10 @@ if __name__ == '__main__':
             "module"
         )
         min_update_interval = 5
+    environment_id = read_environment_from_ns(rospy.get_namespace())
     create_persistence_objects(
-        server, max_update_interval=max_update_interval,
+        server, environment_id,
+        max_update_interval=max_update_interval,
         min_update_interval=min_update_interval
     )
     rospy.spin()

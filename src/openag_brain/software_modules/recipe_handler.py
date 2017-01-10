@@ -93,7 +93,7 @@ class PublisherDict:
     def __getitem__(self, topic):
         if not topic in self.publishers:
             self.publishers[topic] = rospy.Publisher(
-                "desired/"+topic, Float64, queue_size=10
+                "{}/desired".format(topic), Float64, queue_size=10
             )
         return self.publishers[topic]
 
