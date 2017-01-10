@@ -585,7 +585,14 @@
       "_id": "openag_brain:video_writer.py",
       "package": "openag_brain",
       "executable": "video_writer.py",
-      "description": "Watches the DB for aerial images of the environment and makes a timelapse from them"
+      "description": "Watches the DB for aerial images of the environment and makes a timelapse from them",
+      "parameters": {
+        "timelapse_scaling_factor": {
+          "type": "int",
+          "description": "Number of seconds in real life that should correspond to 1 second in the timelapse",
+          "default": 86400
+        }
+      }
     },
     {
       "_id": "usb_cam:usb_cam_node",
