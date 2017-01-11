@@ -12,248 +12,276 @@ running, `current_recipe` will be set to an empty string and
 instance of this module per environment in the system.
 """
 
-import sys
 import time
 import rospy
-import random
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from openag.var_types import RECIPE_START, RECIPE_END, EnvVar
 from couchdb import Server
 from std_msgs.msg import Float64
-from threading import Event, Timer
-
+from threading import RLock
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
+from openag_brain.utils import gen_doc_id, read_environment_from_ns
+from openag_brain.memoize import memoize
+from openag_brain.multidispatch import multidispatch
 
-class Recipe(object):
-    def __init__(self, _id, operations, start_time):
-        self._id = _id
-        self.operations = operations
+# Create a tuple constant of valid environmental variables
+VALID_VARIABLES = frozenset(EnvVar.items.keys())
+
+@memoize
+def publisher_memo(topic, MsgType, queue_size):
+    """
+    A memoized publisher function which will return a cached publisher
+    instance for the same topic, type and queue_size.
+    """
+    return rospy.Publisher(topic, MsgType, queue_size=queue_size)
+
+@multidispatch(lambda x: x.get("type", "simple"))
+def interpret_recipe(recipe):
+    """We don't support default behavior for recipe interpretation"""
+    raise ValueError("Recipe type not supported")
+
+# Register simple recipe handler
+@interpret_recipe.register("simple")
+class SimpleRecipe:
+    def __init__(self, recipe, start_time=None, timeout=1):
+        """
+        This class serves as a good example of how to create recipe
+        interpreters. A recipe interpreter is a class which:
+
+        - Takes a recipe description object of whatever format it supports
+        - A start_time (to restart a recipe started in the past)
+        - A timeout
+
+        ...and is able to generate setpoint tuples via Python's iterator
+        interface. Setpoint tuples are of format
+        `(timestamp, variable, value)`.
+
+        Recipe interpreter classes must also expose an ID and start_time
+        field.
+        """
+        init_time = time.time()
+        start_time = start_time or init_time
+        if start_time > init_time:
+            raise ValueError("Recipes cannot be scheduled for the future")
         self.start_time = start_time
+        self.id = recipe["_id"]
+        self.operations = recipe["operations"]
+        self.timeout = timeout
 
-    def set_points(self):
-        raise NotImplementedError()
+    def __iter__(self):
+        """
+        Create a blocking recipe generator for simple recipes.
+        Yields a series of setpoints for current time.
+        """
+        # Create a state object to accrue recipe setpoint values.
+        state = {}
+        # If start time was now (or in the very recent past), yield
+        # a recipe start setpoint.
+        if time.time() - self.start_time < 1:
+            yield (self.start_time, RECIPE_START.name, self.id)
+        for t, variable, value in self.operations:
+            # While we wait for time to catch up to timestamp, yield the
+            # previous state once every second.
+            while t > time.time() - self.start_time:
+                # Make sure the variable names in this inner loop are different
+                # from the ones above. Python scopes loop variables to the
+                # function level (not the loop level). Ran afoul of scoping
+                # bug here in the past.
+                # http://eli.thegreenplace.net/2015/the-scope-of-index-variables-in-pythons-for-loops/
+                # 2017-01-09 @gordonbrander
+                for state_variable, state_value in state.iteritems():
+                    yield (time.time(), state_variable, state_value)
+                rospy.sleep(self.timeout)
+            # Ok, setpoint has reached the present. Assign it to state.
+            # Then loop until we hit a future state, at which point, we
+            # start yielding the present state again.
+            state[variable] = value
+        # We're done! Yield any final state changes we picked up
+        # on the last iteration, then yield a RECIPE_END setpoint.
+        for state_variable, state_value in state.iteritems():
+            yield (time.time(), variable, value)
+        yield (time.time(), RECIPE_END.name, self.id)
 
-class SimpleRecipe(Recipe):
-    def __init__(self, *args):
-        super(SimpleRecipe, self).__init__(*args)
-        if not isinstance(self.operations, list):
-            raise ValueError(
-                "Invalid recipe. Operations should be an array of set points."
-            )
-        self.current_index = 0
-        self.is_running = True
+class RecipeRunningError(Exception):
+    """Thrown when trying to set a recipe, but recipe is already running."""
+    pass
 
-    def next_operation(self):
-        if self.current_index >= len(self.operations):
-            return None
-        else:
-            return self.operations[self.current_index]
+class RecipeIdleError(Exception):
+    """Thrown when trying to clear a recipe, but recipe is already clear."""
+    pass
 
-    def cancel(self):
-        self.current_index = len(self.operations)
-        self.is_running = False
-
-    def set_points(self):
-        initial_values = {}
-        while True:
-            next_operation = self.next_operation()
-            if next_operation is None:
-                break
-            offset, variable, value = next_operation
-            next_time = self.start_time + offset
-            if next_time < time.time():
-                initial_values[variable] = (next_time, value)
-                self.current_index += 1
-            else:
-                break
-        for variable, (timestamp, value) in initial_values.items():
-            yield (timestamp, variable, value)
-        while True:
-            next_operation = self.next_operation()
-            if next_operation is None:
-                return
-            offset, variable, value = next_operation
-            next_time = self.start_time + offset
-            while next_time > time.time():
-                if rospy.is_shutdown():
-                    raise rospy.ROSInterruptException()
-                if not self.is_running:
-                    return
-                rospy.sleep(1)
-            yield (timestamp, variable, value)
-            self.current_index += 1
-
-class PublisherDict:
-    def __init__(self):
-        self.publishers = {}
-
-    def __getitem__(self, topic):
-        if not topic in self.publishers:
-            self.publishers[topic] = rospy.Publisher(
-                "{}/desired".format(topic), Float64, queue_size=10
-            )
-        return self.publishers[topic]
-
-class RecipeHandler(object):
-    # Dictionary that maps recipe formats to python classes
-    recipe_class_map = {
-        "simple": SimpleRecipe
-    }
-
-    def __init__(self, server):
+class RecipeHandler:
+    def __init__(self, server, environment):
+        # We create a lock to ensure threadsafety, since service handlers are
+        # run in a separate thread by ROS.
+        self.lock = RLock()
         self.env_data_db = server[ENVIRONMENTAL_DATA_POINT]
         self.recipe_db = server[RECIPE]
+        self.environment = environment
+        self.__recipe = None
 
-        # Indicates whether or not a recipe is running
-        self.recipe_flag = Event()
+    def get_recipe(self):
+        with self.lock:
+            return self.__recipe
 
-        self.namespace = rospy.get_namespace()
-        self.environment = self.namespace.split('/')[-2]
+    def set_recipe(self, recipe):
+        with self.lock:
+            if self.__recipe is not None:
+                raise RecipeRunningError("Recipe is already running")
+            self.__recipe = recipe
+        return self
 
-        rospy.init_node('recipe_handler')
-        self.publishers = PublisherDict()
-        rospy.Service(services.START_RECIPE, StartRecipe, self.start_recipe)
-        rospy.Service(services.STOP_RECIPE, Empty, self.stop_recipe)
-        rospy.set_param(
-            params.SUPPORTED_RECIPE_FORMATS,
-            ','.join(self.recipe_class_map.keys())
-        )
+    def clear_recipe(self):
+        with self.lock:
+            if self.__recipe is None:
+                raise RecipeIdleError("No recipe is running")
+            self.__recipe = None
+        return self
 
-        self.current_recipe = None
-        self.current_set_points = {}
+    def loop(self):
+        while not rospy.is_shutdown():
+            # Check for a recipe
+            recipe = self.get_recipe()
+            # If we have a recipe, process it. Running a recipe is a blocking
+            # operation, so the recipe will stay in this turn of the loop
+            # until it is finished.
+            if recipe:
+                rospy.set_param(params.CURRENT_RECIPE, recipe.id)
+                rospy.set_param(params.CURRENT_RECIPE_START, recipe.start_time)
+                rospy.loginfo('Starting recipe "{}"'.format(recipe.id))
+                state = {}
+                for timestamp, variable, value in recipe:
+                    # If recipe was canceled, or ROS stopped, break setpoint
+                    # iteration
+                    if not self.get_recipe() or rospy.is_shutdown():
+                        break
 
-        self.valid_variables = list(EnvVar.items.keys())
+                    # Skip invalid variable types
+                    if variable not in VALID_VARIABLES:
+                        msg = 'Recipe references invalid variable "{}"'
+                        rospy.logwarn(msg.format(variable))
+                        continue
 
-        rospy.set_param(params.CURRENT_RECIPE, "")
-        rospy.set_param(params.CURRENT_RECIPE_START, 0)
+                    # Publish any setpoints that coerce to float
+                    try:
+                        float_value = float(value)
+                        topic_name = "desired/{}".format(variable)
+                        pub = publisher_memo(topic_name, Float64, 10)
+                        pub.publish(float_value)
+                    except ValueError:
+                        pass
 
-        # Start publishing set points
-        self.publish_set_points()
+                    # Advance state
+                    prev = state.get(variable, None)
+                    state[variable] = value
+                    # Store unique datapoints
+                    if prev != value:
+                        # @TODO ideally, this should be handled in a separate
+                        # desired_persistence ros node and we should only publish to
+                        # topic endpoint.
+                        doc = EnvironmentalDataPoint({
+                            "environment": self.environment,
+                            "variable": variable,
+                            "is_desired": True,
+                            "value": value,
+                            "timestamp": timestamp
+                        })
+                        doc_id = gen_doc_id(time.time())
+                        self.env_data_db[doc_id] = doc
+                self.clear_recipe()
+                rospy.set_param(params.CURRENT_RECIPE, "")
+                rospy.set_param(params.CURRENT_RECIPE_START, 0)
+            rospy.sleep(1)
 
-        # Get the recipe that has been started most recently
-        start_view = self.env_data_db.view("openag/by_variable", startkey=[
-            self.environment, "desired", RECIPE_START.name
-        ], endkey=[
-            self.environment, "desired", RECIPE_START.name, {}
-        ], group_level=3)
-        if len(start_view) == 0:
-            return
-        start_doc = start_view.rows[0].value
-
-        # If a recipe has been ended more recently than the most recent time a
-        # recipe was started, don't run the recipe
-        end_view = self.env_data_db.view("openag/by_variable", startkey=[
-            self.environment, "desired", RECIPE_END.name,
-        ], endkey=[
-            self.environment, "desired", RECIPE_END.name, {}
-        ], group_level=3)
-        if len(end_view):
-            end_doc = end_view.rows[0].value
-            if (end_doc["timestamp"] > start_doc["timestamp"]):
-                return
-
-        # Run the recipe
-        self.start_recipe(
-            StartRecipe._request_class(start_doc["value"]),
-            start_doc["timestamp"]
-        )
-
-    def publish_set_points(self):
-        if rospy.is_shutdown():
-            return
-        for variable, value in self.current_set_points.items():
-            if variable in self.valid_variables:
-                self.publishers[variable].publish(value)
-            else:
-                rospy.logwarn('Recipe references invalid variable "{}"'.format(
-                    variable
-                ))
-        Timer(5, self.publish_set_points).start()
-
-    def start_recipe(self, data, start_time=None):
+    def start_recipe_service(self, data, start_time=None):
         recipe_id = data.recipe_id
         if not recipe_id:
             return False, "No recipe id was specified"
-        if self.recipe_flag.is_set():
-            return False, "There is already a recipe running. Please stop it "\
-                "before attempting to start a new one"
         try:
             recipe = self.recipe_db[recipe_id]
         except Exception as e:
             return False, "\"{}\" does not reference a valid "\
             "recipe".format(recipe_id)
-        start_time = start_time or time.time()
-        self.current_recipe = self.recipe_class_map[
-            recipe.get("format", "simple")
-        ](
-            recipe_id, recipe["operations"], start_time
-        )
-        point = EnvironmentalDataPoint({
-            "environment": self.environment,
-            "variable": RECIPE_START.name,
-            "is_desired": True,
-            "value": recipe_id,
-            "timestamp": start_time
-        })
-        point_id = self.gen_doc_id(start_time)
-        self.env_data_db[point_id] = point
-        rospy.set_param(params.CURRENT_RECIPE, recipe_id)
-        rospy.set_param(params.CURRENT_RECIPE_START, start_time)
-        self.recipe_flag.set()
-        rospy.loginfo('Starting recipe "{}"'.format(recipe_id))
+        try:
+            recipe_interpreter = interpret_recipe(recipe)
+        except ValueError:
+            return False, "Unsupported recipe type"
+        try:
+            self.set_recipe(recipe_interpreter)
+        except RecipeRunningError:
+            return (
+                False,
+                "There is already a recipe running. Please stop it "
+                "before attempting to start a new one"
+            )
         return True, "Success"
 
-    def stop_recipe(self, data):
-        if self.current_recipe and self.current_recipe.is_running:
-            self.current_recipe.cancel()
-            while self.recipe_flag.is_set():
-                rospy.sleep(1)
-            return True, "Success"
-        else:
+    def stop_recipe_service(self, data):
+        """Stop recipe ROS service"""
+        try:
+            self.clear_recipe()
+        except RecipeIdleError:
             return False, "There is no recipe running"
+        return True, "Success"
 
-    def run(self):
-        while True:
-            while not self.recipe_flag.is_set():
-                if rospy.is_shutdown():
-                    raise rospy.ROSInterruptException()
-                rospy.sleep(1)
-            self.current_set_points = {}
-            for timestamp, variable, value in self.current_recipe.set_points():
-                if variable in self.valid_variables:
-                    self.current_set_points[variable] = value
-                    self.publishers[variable].publish(value)
-                else:
-                    rospy.logwarn('Recipe references invalid variable "{}"'.format(
-                        variable
-                    ))
-            curr_time = time.time()
-            point = EnvironmentalDataPoint({
-                "environment": self.environment,
-                "variable": RECIPE_END.name,
-                "is_desired": True,
-                "value": self.current_recipe._id,
-                "timestamp": curr_time
-            })
-            point_id = self.gen_doc_id(curr_time)
-            self.env_data_db[point_id] = point
-            rospy.set_param(params.CURRENT_RECIPE, "")
-            rospy.set_param(params.CURRENT_RECIPE_START, 0)
-            self.recipe_flag.clear()
+    def register_services(self):
+        """Register services for instance"""
+        rospy.Service(services.START_RECIPE, StartRecipe, self.start_recipe_service)
+        rospy.Service(services.STOP_RECIPE, Empty, self.stop_recipe_service)
+        rospy.set_param(
+            params.SUPPORTED_RECIPE_FORMATS,
+            ','.join(interpret_recipe.methods.keys())
+        )
+        return self
 
-    def gen_doc_id(self, curr_time):
-        return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
+    def resume(self):
+        """
+        Attempt to resume any previous recipe that was started but
+        not completed.
+        """
+        # Get the recipe that has been started most recently
+        start_view = self.env_data_db.view(
+            "openag/by_variable",
+            startkey=[self.environment, "desired", RECIPE_START.name],
+            endkey=[self.environment, "desired", RECIPE_START.name, {}],
+            group_level=3
+        )
+        if len(start_view) == 0:
+            return
+        start_doc = start_view.rows[0].value
+        # If a recipe has been ended more recently than the most recent time a
+        # recipe was started, don't run the recipe
+        end_view = self.env_data_db.view(
+            "openag/by_variable",
+            startkey=[self.environment, "desired", RECIPE_END.name],
+            endkey=[self.environment, "desired", RECIPE_END.name, {}],
+            group_level=3
+        )
+        if len(end_view):
+            end_doc = end_view.rows[0].value
+            if (end_doc["timestamp"] > start_doc["timestamp"]):
+                return
+        # Run the recipe
+        self.start_recipe_service(
+            StartRecipe._request_class(start_doc["value"]),
+            start_doc["timestamp"]
+        )
 
 if __name__ == '__main__':
+    rospy.init_node('recipe_handler')
+    namespace = rospy.get_namespace()
+    environment = read_environment_from_ns(namespace)
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No local database specified")
     server = Server(db_server)
-    mod = RecipeHandler(server)
-    try:
-        mod.run()
-    except rospy.ROSInterruptException:
-        pass
+    handler = RecipeHandler(server, environment)
+    # Register ROS service handlers
+    handler.register_services()
+    # Resume any previous recipes
+    handler.resume()
+    # Start the recipe loop
+    handler.loop()
