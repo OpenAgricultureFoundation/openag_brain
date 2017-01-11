@@ -9,4 +9,4 @@ byte STALE=3
 
 byte level # level of operation enumerate above
 string name # a description of the test/component reporting
-uint8 status # a status code for the test/component
+uint8 code # a status code for the test/component
