@@ -28,7 +28,7 @@ from openag_brain.memoize import memoize
 from openag_brain.multidispatch import multidispatch
 
 # Create a tuple constant of valid environmental variables
-VALID_VARIABLES = tuple(EnvVar.items.keys())
+VALID_VARIABLES = frozenset(EnvVar.items.keys())
 
 @memoize
 def publisher_memo(topic, MsgType, queue_size):
