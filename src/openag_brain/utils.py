@@ -2,6 +2,7 @@ import os
 import rospkg
 from sys import maxsize
 from random import randint
+from re import match
 
 def resolve_fixtures(fixtures):
     """
@@ -22,3 +23,20 @@ def gen_doc_id(curr_time):
     Returns a string.
     """
     return "{}-{}".format(curr_time, randint(0, maxsize))
+
+def read_environment_from_ns(namespace):
+    """
+    Given a ROS topic name, attempt to match an environment ID in topic
+    namespace.
+
+    Use:
+
+        read_environment_from_ns(rospy.get_namespace())
+    """
+    result = match("/environments/(\w+)/", namespace)
+    if not result:
+        raise ValueError(
+            "No environment id found in namespace \"{}\".".format(namespace)
+        )
+    environment_id = result.group(1)
+    return environment_id

@@ -16,6 +16,7 @@ from PIL import Image
 from couchdb import Server
 from StringIO import StringIO
 from sensor_msgs.msg import Image as ImageMsg
+from re import match
 
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint, SoftwareModule
@@ -23,6 +24,8 @@ from openag.db_names import ENVIRONMENTAL_DATA_POINT, SOFTWARE_MODULE
 from openag.var_types import AERIAL_IMAGE
 
 from openag_brain import params
+from openag_brain.utils import read_environment_from_ns
+from openag_brain.var_types import CAMERA_VARIABLES
 
 class ImagePersistence:
     image_format_mapping = {
@@ -82,6 +85,7 @@ if __name__ == '__main__':
         raise RuntimeError("No database server specified")
     server = Server(db_server)
     rospy.init_node('image_persistence_1')
+    environment_id = read_environment_from_ns(rospy.get_namespace())
     try:
         min_update_interval = rospy.get_param("~min_update_interval")
     except KeyError:
@@ -90,18 +94,12 @@ if __name__ == '__main__':
         )
         min_update_interval = 3600
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
-    module_db = server[SOFTWARE_MODULE]
-    modules = {
-        module_id: SoftwareModule(module_db[module_id]) for module_id in
-        module_db if not module_id.startswith("_")
-    }
     persistence_objs = []
-    for module_id, module_info in modules.items():
-        if module_info.get("namespace", None) == "cameras":
-            topic = "/cameras/{}/image_raw".format(module_id)
-            persistence_objs.append(ImagePersistence(
-                db=env_var_db, topic=topic, variable=AERIAL_IMAGE,
-                environment=module_info["environment"],
-                min_update_interval=min_update_interval
-            ))
+    for variable, MsgType in CAMERA_VARIABLES:
+        topic = "{}/raw".format(variable)
+        persistence_objs.append(ImagePersistence(
+            db=env_var_db, topic=topic, variable=variable,
+            environment=environment_id,
+            min_update_interval=min_update_interval
+        ))
     rospy.spin()

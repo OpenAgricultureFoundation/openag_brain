@@ -9,8 +9,7 @@ Whenever the configuration of firmware modules changes, it regenerates firmware
 code and reflashes the Arduino. There should always be exactly one instance of
 this module in the system.
 
-The module reads from a command line argument `serial_port` which is the UNIX
-path to the serial port to which the Arduino is connected (e.g. "/dev/ttyACM0")
+This module has
 """
 import sys
 import time
@@ -29,8 +28,9 @@ from openag_brain import commands, params
 
 
 class ArduinoHandler(object):
-    def __init__(self, should_flash=True):
+    def __init__(self, serial_port, should_flash=True):
         self.serial_node = None
+        self.serial_port = serial_port
         # If we need to flash the Arduino, create a build_dir for the source
         # and initialize a firmware project within it. We'll use this
         # directory later at self.start().
@@ -75,7 +75,7 @@ class ArduinoHandler(object):
             rospy.loginfo("Skipping Arduino flash (should_flash is False)")
         rospy.loginfo("Starting to read from Arduino")
         self.serial_node = subprocess.Popen([
-            "rosrun", "rosserial_python", "serial_node.py", "/dev/ttyACM0"
+            "rosrun", "rosserial_python", "serial_node.py", self.serial_port
         ])
 
     def stop(self):
@@ -130,8 +130,15 @@ if __name__ == '__main__':
             "Not specified whether Arduino should be flashed on startup. Defaulting to True."
         )
         should_flash = True
+    try:
+        serial_port = rospy.get_param("~serial_port")
+    except KeyError:
+        rospy.logwarn(
+            "Serial port for arduino_handler not specified. Defaulting to /dev/ttyACM0"
+        )
+        serial_port = "/dev/ttyACM0"
 
-    handler = ArduinoHandler(should_flash=should_flash)
+    handler = ArduinoHandler(serial_port, should_flash=should_flash)
     handler.start()
 
     rospy.spin()
