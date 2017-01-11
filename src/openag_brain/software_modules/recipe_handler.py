@@ -23,7 +23,7 @@ from std_msgs.msg import Float64
 from threading import RLock
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
-from openag_brain.utils import gen_doc_id
+from openag_brain.utils import gen_doc_id, read_environment_from_ns
 from openag_brain.memoize import memoize
 from openag_brain.multidispatch import multidispatch
 
@@ -273,7 +273,7 @@ class RecipeHandler:
 if __name__ == '__main__':
     rospy.init_node('recipe_handler')
     namespace = rospy.get_namespace()
-    environment = namespace.split('/')[-2]
+    environment = read_environment_from_ns(namespace)
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No local database specified")
