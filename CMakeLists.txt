@@ -47,6 +47,7 @@ catkin_python_setup()
 add_message_files(
   FILES
   DiagnosticStatus.msg
+  DiagnosticArray.msg
 )
 
 ## Generate services in the 'srv' folder
