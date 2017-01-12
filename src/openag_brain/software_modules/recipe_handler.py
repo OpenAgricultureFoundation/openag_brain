@@ -105,6 +105,43 @@ class SimpleRecipe:
             yield (time.time(), variable, value)
         yield (time.time(), RECIPE_END.name, self.id)
 
+def hrs_to_seconds(hrs):
+    return hrs * (60 * 60)
+
+def days_to_seconds(days):
+    return hrs_to_seconds(days * 24)
+
+@interpret_recipe("phased")
+class PhasedRecipeInterpreter:
+    def __init__(self, recipe, start_time=None, timeout=1):
+        init_time = time()
+        start_time = start_time or init_time
+        if start_time > init_time:
+            raise ValueError("Recipes cannot be scheduled for the future")
+        self.start_time = start_time
+        self.stages = recipe["stages"]
+        self.id = recipe["_id"]
+        self.timeout = timeout
+
+    def __iter__(self):
+        yield (rospy.get_time(), RECIPE_START, self.id)
+        for stage in self.stages:
+            stage_duration = days_to_seconds(stage["days"])
+            end_of_stage = (rospy.get_time() - self.start_time) + stage_duration
+            phases = ("day", "night")
+            phase_count = 1
+            while (rospy.get_time() - self.start_time) < end_of_stage:
+                phase = stage[phases[phase_count % 2]]
+                phase_count += 1
+                phase_keys = frozenset(phase.keys())
+                phase_duration = hrs_to_seconds(phase["hours"])
+                end_of_phase = (rospy.get_time() - self.start_time) + phase_duration
+                while (rospy.get_time() - self.start_time) < end_of_phase:
+                    for key in VALID_VARIABLES.intersection(phase_keys):
+                        yield float(timestamp), key, float(phase[key])
+                    rospy.sleep(self.timeout)
+        yield (rospy.get_time(), RECIPE_END, self.id)
+
 class RecipeRunningError(Exception):
     """Thrown when trying to set a recipe, but recipe is already running."""
     pass
