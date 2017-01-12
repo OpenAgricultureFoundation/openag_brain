@@ -675,8 +675,9 @@
       "type": "openag_brain:handle_arduino.py"
     },
     {
-      "_id": "topic_filter",
-      "type": "openag_brain:topic_filter.py"
+      "_id": "topic_filter_1",
+      "type": "openag_brain:topic_filter.py",
+      "environment": "environment_1"
     },
     {
       "_id": "topic_connector",
@@ -684,11 +685,13 @@
     },
     {
       "_id": "sensor_persistence_1",
-      "type": "openag_brain:sensor_persistence.py"
+      "type": "openag_brain:sensor_persistence.py",
+      "environment": "environment_1"
     },
     {
       "_id": "image_persistence_1",
       "type": "openag_brain:image_persistence.py",
+      "environment": "environment_1",
       "parameters": {
         "min_update_interval": 3600
       }
