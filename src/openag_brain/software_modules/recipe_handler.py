@@ -38,7 +38,10 @@ def publisher_memo(topic, MsgType, queue_size):
     """
     return rospy.Publisher(topic, MsgType, queue_size=queue_size)
 
-@multidispatch(lambda x: x.get("type", "simple"))
+def get_format(recipe):
+    return recipe.get("format", "simple")
+
+@multidispatch(get_format)
 def interpret_recipe(recipe):
     """We don't support default behavior for recipe interpretation"""
     raise ValueError("Recipe type not supported")
@@ -111,20 +114,20 @@ def hrs_to_seconds(hrs):
 def days_to_seconds(days):
     return hrs_to_seconds(days * 24)
 
-@interpret_recipe("phased")
+@interpret_recipe.register("phased")
 class PhasedRecipeInterpreter:
     def __init__(self, recipe, start_time=None, timeout=1):
-        init_time = time()
+        init_time = rospy.get_time()
         start_time = start_time or init_time
         if start_time > init_time:
             raise ValueError("Recipes cannot be scheduled for the future")
         self.start_time = start_time
-        self.stages = recipe["stages"]
+        self.stages = recipe["operations"]
         self.id = recipe["_id"]
         self.timeout = timeout
 
     def __iter__(self):
-        yield (rospy.get_time(), RECIPE_START, self.id)
+        yield (rospy.get_time(), RECIPE_START.name, self.id)
         for stage in self.stages:
             stage_duration = days_to_seconds(stage["days"])
             end_of_stage = (rospy.get_time() - self.start_time) + stage_duration
@@ -138,9 +141,9 @@ class PhasedRecipeInterpreter:
                 end_of_phase = (rospy.get_time() - self.start_time) + phase_duration
                 while (rospy.get_time() - self.start_time) < end_of_phase:
                     for key in VALID_VARIABLES.intersection(phase_keys):
-                        yield float(timestamp), key, float(phase[key])
+                        yield (rospy.get_time(), key, float(phase[key]))
                     rospy.sleep(self.timeout)
-        yield (rospy.get_time(), RECIPE_END, self.id)
+        yield (rospy.get_time(), RECIPE_END.name, self.id)
 
 class RecipeRunningError(Exception):
     """Thrown when trying to set a recipe, but recipe is already running."""
@@ -205,7 +208,7 @@ class RecipeHandler:
                     # Publish any setpoints that coerce to float
                     try:
                         float_value = float(value)
-                        topic_name = "desired/{}".format(variable)
+                        topic_name = "{}/desired".format(variable)
                         pub = publisher_memo(topic_name, Float64, 10)
                         pub.publish(float_value)
                     except ValueError:
