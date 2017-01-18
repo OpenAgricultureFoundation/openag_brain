@@ -6,11 +6,13 @@ the recipe_start data point
 import os
 import rospy
 import tempfile
+import threading
 import subprocess
 from openag.cli.config import config as cli_config
 from openag.couch import Server
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
-from openag.var_types import RECIPE_START, RECIPE_END, AERIAL_IMAGE
+from openag.var_types import RECIPE_START, RECIPE_END
+from openag_brain.var_types import CAMERA_VARIABLES
 from openag_brain.video_helpers import *
 
 IMAGE_ATTACHMENT = "image"
@@ -269,7 +271,9 @@ if __name__ == '__main__':
             "designate an environment for this module."
         )
     environment = namespace.split('/')[-2]
-    mod = VideoWriter(
-        server, environment, AERIAL_IMAGE, timelapse_scaling_factor
-    )
-    mod.run()
+    for (camera_var, topic_type) in CAMERA_VARIABLES:
+        mod = VideoWriter(
+            server, environment, camera_var, timelapse_scaling_factor
+        )
+        threading.Thread(target=mod.run).start()
+    rospy.spin()
