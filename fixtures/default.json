@@ -597,6 +597,12 @@
       }
     },
     {
+      "_id": "openag_brain:sensor_info_publisher.py",
+      "package": "openag_brain",
+      "executable": "sensor_info_publisher.py",
+      "description": "Publishes information about the active sensors in ROS topics"
+    },
+    {
       "_id": "usb_cam:usb_cam_node",
       "package": "usb_cam",
       "executable": "usb_cam_node",
@@ -689,6 +695,10 @@
       "_id": "topic_filter_1",
       "type": "openag_brain:topic_filter.py",
       "environment": "environment_1"
+    },
+    {
+      "_id": "sensor_info_publisher",
+      "type": "openag_brain:sensor_info_publisher.py"
     },
     {
       "_id": "topic_connector",
