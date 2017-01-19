@@ -17,10 +17,14 @@
       "description": "Driver for the am2315 sensor",
       "outputs": {
         "air_temperature": {
-          "type": "std_msgs/Float32"
+          "type": "std_msgs/Float32",
+          "accuracy": 0.1,
+          "repeatability": 0.2
         },
         "air_humidity": {
-          "type": "std_msgs/Float32"
+          "type": "std_msgs/Float32",
+          "accuracy": 2.0,
+          "repeatability": 0.1
         }
       },
       "dependencies": [
