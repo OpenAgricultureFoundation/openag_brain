@@ -25,7 +25,11 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "Sensor responded with the wrong function code",
+        "2": "Sensor did not return enough information"
+      }
     },
     {
       "_id": "atlas_do",
@@ -60,7 +64,12 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "No response",
+        "2": "Request failed",
+        "3": "Unknown error"
+      }
     },
     {
       "_id": "atlas_ec",
@@ -86,7 +95,12 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "No response",
+        "2": "Request failed",
+        "3": "Unknown error"
+      }
     },
     {
       "_id": "atlas_orp",
@@ -121,7 +135,12 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "No data",
+        "2": "Request failed",
+        "3": "Unknown error"
+      }
     },
     {
       "_id": "atlas_ph",
@@ -147,7 +166,12 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "No response",
+        "2": "Request failed",
+        "3": "Unknown error"
+      }
     },
     {
       "_id": "atlas_rgb",
@@ -176,7 +200,11 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "Failed to read data",
+        "2": "Invalid response. Recalibration required"
+      }
     },
     {
       "_id": "binary_actuator",
@@ -237,7 +265,10 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "Failed to read from sensor"
+      }
     },
     {
       "_id": "ds18b20",
@@ -262,7 +293,11 @@
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"},
         {"type": "pio", "id": 54}
-      ]
+      ],
+      "status_codes": {
+        "1": "Unable to find address for sensor",
+        "2": "Sensor isn't responding to queries"
+      }
     },
     {
       "_id": "gc0012",
@@ -287,7 +322,10 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "2": "Failed to read from sensor"
+      }
     },
     {
       "_id": "mhz16",
@@ -312,7 +350,13 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "Initializing",
+        "2": "Sensor powered off to prevent autocalibration",
+        "3": "Failed to initialize sensor",
+        "4": "Failed to read from sensor"
+      }
     },
     {
       "_id": "pwm_actuator",
@@ -348,7 +392,10 @@
       },
       "dependencies": [
         {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
-      ]
+      ],
+      "status_codes": {
+        "1": "Invalid command received"
+      }
     },
     {
       "_id": "software_pwm_actuator",
@@ -593,6 +640,12 @@
       }
     },
     {
+      "_id": "openag_brain:expand_diagnostics.py",
+      "package": "openag_brain",
+      "executable": "expand_diagnostics.py",
+      "description": "Reads diagnostic information coming from the arduino, converts the status codes to status messages using configuration information from the database, and republishes the information"
+    },
+    {
       "_id": "usb_cam:usb_cam_node",
       "package": "usb_cam",
       "executable": "usb_cam_node",
@@ -716,6 +769,10 @@
     {
       "_id": "api",
       "type": "openag_brain:api.py"
+    },
+    {
+      "_id": "expand_diagnostics",
+      "type": "openag_brain:expand_diagnostics.py"
     }
   ]
 }
