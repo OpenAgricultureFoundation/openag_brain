@@ -2,7 +2,7 @@
   "firmware_module": [
     {
       "_id": "red_light_1",
-      "arguments": [3],
+      "arguments": [42],
       "environment": "environment_1",
       "type": "pwm_actuator",
       "inputs": {
@@ -13,7 +13,7 @@
     },
     {
       "_id": "blue_light_1",
-      "arguments": [4],
+      "arguments": [40],
       "environment": "environment_1",
       "type": "pwm_actuator",
       "inputs": {
@@ -24,43 +24,43 @@
     },
     {
       "_id": "white_light_1",
-      "arguments": [5],
+      "arguments": [41],
       "environment": "environment_1",
       "type": "pwm_actuator"
     },
     {
       "_id": "pump_1",
-      "arguments": [37, true],
+      "arguments": [32, true],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_2",
-      "arguments": [35, true],
-      "environment": "environment_1",
-      "type": "binary_actuator"
-    },
-    {
-      "_id": "pump_3",
-      "arguments": [33, true],
-      "environment": "environment_1",
-      "type": "binary_actuator"
-    },
-    {
-      "_id": "pump_4",
       "arguments": [31, true],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "pump_5",
+      "_id": "pump_3",
+      "arguments": [30, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "pump_4",
       "arguments": [29, true],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
+      "_id": "pump_5",
+      "arguments": [28, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
       "_id": "heater_1",
-      "arguments": [25, true],
+      "arguments": [43, true],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
@@ -84,6 +84,18 @@
     {
       "_id": "humidifier",
       "arguments": [27, true],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "chamber_fan_1",
+      "arguments": [39],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "air_flush_1",
+      "arguments": [36],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
