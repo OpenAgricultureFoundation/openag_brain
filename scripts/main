@@ -8,6 +8,7 @@ import requests
 import subprocess
 
 from openag.couch import Server
+from openag.categories import all_categories, default_categories
 from openag.cli.config import config as cli_config
 from openag.db_names import (
     SOFTWARE_MODULE, FIRMWARE_MODULE, ENVIRONMENTAL_DATA_POINT
@@ -30,7 +31,7 @@ def spawn_modules(screen=False):
         roslaunch_command.append("--screen")
     return subprocess.Popen(roslaunch_command)
 
-def main(api_server, db_server, fixtures, screen):
+def main(api_server, db_server, fixtures, screen, categories):
     # Initialize the database
     print "Initializing the database"
     db_server = db_server or cli_config["local_server"]["url"]
@@ -54,7 +55,7 @@ def main(api_server, db_server, fixtures, screen):
 
     # Start the software modules
     print "Generating launch file"
-    commands.update_launch(server)
+    commands.update_launch(server, categories=categories)
     global modules
     print "Spawning software modules"
     modules = spawn_modules(screen)
@@ -115,6 +116,12 @@ default fixtures directory.
         default=[], action='append', dest='fixture_paths'
     )
     parser.add_argument(
+        "-c", "--categories", nargs='*', default=default_categories,
+        choices=all_categories, help=""""
+The categories of modules/inputs/outputs to be enabled in this run of the
+system
+""")
+    parser.add_argument(
         "--screen", action="store_true",
         help="""
 Passes the --screen flag to the roslaunch call, which forces all node output to
@@ -125,5 +132,5 @@ the screen. Useful for debugging.
     fixture_paths = resolve_fixtures(vals.fixtures) + vals.fixture_paths
     main(
         api_server=vals.api_server, db_server=vals.db_server,
-        fixtures=fixture_paths, screen=vals.screen
+        fixtures=fixture_paths, screen=vals.screen, categories=vals.categories
     )

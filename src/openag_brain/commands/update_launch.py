@@ -3,8 +3,10 @@ import rospkg
 import lxml.etree as ET
 
 from openag_brain import params
+from openag.utils import synthesize_software_module_info
 from openag.models import SoftwareModule, SoftwareModuleType
 from openag.db_names import SOFTWARE_MODULE, SOFTWARE_MODULE_TYPE
+from openag.categories import default_categories, all_categories
 
 # maping from python types to roslaunch acceptable ones
 PARAM_TYPE_MAPPING = {'float' : 'double'}
@@ -74,7 +76,7 @@ def create_arg(parent, name, default=None, value=None):
     if value is not None:
         e.attrib['value'] = str(value)
 
-def update_launch(server):
+def update_launch(server, categories=default_categories):
     """
     Write a roslaunch file to `modules.launch` based on the software module
     configuration read from the `couchdb.Server` instance `server`.
@@ -84,14 +86,29 @@ def update_launch(server):
     groups = {None: root}
 
     module_db = server[SOFTWARE_MODULE]
-    module_types_db = server[SOFTWARE_MODULE_TYPE]
+    module_type_db = server[SOFTWARE_MODULE_TYPE]
     modules = {
         module_id: SoftwareModule(module_db[module_id]) for module_id in
         module_db if not module_id.startswith('_')
     }
+    module_types = {
+        type_id: SoftwareModuleType(module_type_db[type_id]) for type_id in
+        module_type_db if not type_id.startswith('_')
+    }
+    modules = synthesize_software_module_info(modules, module_types)
 
     for module_id, module in modules.items():
         print 'Processing module "{}" from server'.format(module_id)
+
+        # Maybe skip this module based on the categories
+        for category in module.get("categories", all_categories):
+            if category in categories:
+                break
+        else:
+            print 'Skipping module "{}"'.format(module_id)
+            continue
+
+        # Put this module in the right namespace
         ns = module.get("namespace")
         environment = module.get("environment")
         mod_ns = (
@@ -104,39 +121,19 @@ def update_launch(server):
             groups[mod_ns] = group
         else:
             group = groups[mod_ns]
-        if module["type"] in module_types_db:
-            module_type = SoftwareModuleType(module_types_db[module["type"]])
-        else:
-            raise RuntimeError(
-                'Module "{}" references nonexistant module type "{}'.format(
-                    module_id, module["type"]
-                )
-            )
+
+        # Load the module type information
         args = module.get("arguments", [])
         args_str = ", ".join(args)
         node = create_node(
-            group, module_type["package"], module_type["executable"],
-            module_id, args_str
+            group, module["package"], module["executable"], module_id, args_str
         )
-        for param_name, param_info in module_type["parameters"].items():
-            param_value = module.get("parameters", {}).get(
-                param_name, param_info.get("default", None)
-            )
-            param_type = param_info["type"]
-            if param_value is None:
-                if param_info.get("required", False):
-                    raise RuntimeError(
-                        'Parameter "{param}" is not defined for software '
-                        'module "{mod_id}"'.format(
-                            param=param_name, mod_id=module.id
-                        )
-                    )
-            else:
-                param_value = str(param_value) \
-                        if not isinstance(param_value, bool) else \
-                        str(param_value).lower()
-                param_type = str(param_type)
-                create_param(node, param_name, param_value, param_type)
+        for param_name, param_info in module["parameters"].items():
+            param_type = str(param_info["type"])
+            param_val = str(param_info["value"])
+            if isinstance(param_info["value"], bool):
+                param_val = param_val.lower()
+            create_param(node, param_name, param_val, param_type)
         for k,v in module.get("mappings", {}).items():
             create_remap(node, k, v)
     doc = ET.ElementTree(root)
