@@ -116,6 +116,8 @@ def days_to_seconds(days):
 
 @interpret_recipe.register("phased")
 class PhasedRecipeInterpreter:
+    phase_names = ('day', 'night')
+
     def __init__(self, recipe, start_time=None, timeout=1):
         init_time = rospy.get_time()
         start_time = start_time or init_time
@@ -127,19 +129,23 @@ class PhasedRecipeInterpreter:
         self.timeout = timeout
 
     def __iter__(self):
+        # Initialize end_of_phase variable. We add time to this variable
+        # at the beginning of every phase.
+        end_of_phase = self.start_time
         yield (rospy.get_time(), RECIPE_START.name, self.id)
         for stage in self.stages:
-            stage_duration = days_to_seconds(stage["days"])
-            end_of_stage = (rospy.get_time() - self.start_time) + stage_duration
-            phases = ("day", "night")
-            phase_count = 1
-            while (rospy.get_time() - self.start_time) < end_of_stage:
-                phase = stage[phases[phase_count % 2]]
-                phase_count += 1
+            # Each cycle is a pair of day and night phases. So we take the
+            # number of cycles in this stage and double it.
+            total_phases = stage["cycles"] * 2
+            for phase_i in xrange(0, total_phases):
+                # Alternate phase key between day and night, always starting
+                # with day phase.
+                phase_name = self.phase_names[phase_i % 2]
+                phase = stage[phase_name]
                 phase_keys = frozenset(phase.keys())
                 phase_duration = hrs_to_seconds(phase["hours"])
-                end_of_phase = (rospy.get_time() - self.start_time) + phase_duration
-                while (rospy.get_time() - self.start_time) < end_of_phase:
+                end_of_phase += phase_duration
+                while rospy.get_time() < end_of_phase:
                     for key in VALID_VARIABLES.intersection(phase_keys):
                         yield (rospy.get_time(), key, float(phase[key]))
                     rospy.sleep(self.timeout)
