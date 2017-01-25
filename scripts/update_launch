@@ -3,14 +3,15 @@ import argparse
 
 from couchdb import Server
 
-from openag_brain import args
 from openag_brain.commands import update_launch
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Update the roslaunch file for the software modules"
     )
-    args.add_db_server_arg(parser)
+    parser.add_argument(
+        "-D", "--db_server", help="Address of the database server"
+    )
     vals = parser.parse_args()
     server = Server(vals.db_server)
     update_launch(server)
