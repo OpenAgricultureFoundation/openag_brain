@@ -17,3 +17,7 @@ SUPPORTED_RECIPE_FORMATS = "supported_recipe_formats"
 Stores a comma-separated list of all of the recipe formats supported by the
 running recipe handler module
 """
+CATEGORIES = "categories"
+"""
+Stores a list of the currently active module categories
+"""

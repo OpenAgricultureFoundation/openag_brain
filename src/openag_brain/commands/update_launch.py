@@ -8,6 +8,8 @@ from openag.models import SoftwareModule, SoftwareModuleType
 from openag.db_names import SOFTWARE_MODULE, SOFTWARE_MODULE_TYPE
 from openag.categories import default_categories, all_categories
 
+from openag_brain.params import CATEGORIES
+
 # maping from python types to roslaunch acceptable ones
 PARAM_TYPE_MAPPING = {'float' : 'double'}
 
@@ -100,7 +102,7 @@ def update_launch(server, categories=default_categories):
     """
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
-    create_list_param(root, "categories", categories)
+    create_list_param(root, CATEGORIES, categories)
 
     groups = {None: root}
 
