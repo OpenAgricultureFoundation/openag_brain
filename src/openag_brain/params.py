@@ -3,8 +3,6 @@ This module stores some ROS parameter names used for passing information
 between modules in the system.
 """
 
-DEVELOPMENT = "development"
-""" Flag that indicates whether development mode is enabled """
 CURRENT_RECIPE = "current_recipe"
 """
 Stores the ID of the currently running recipe or "" if no recipe is running
