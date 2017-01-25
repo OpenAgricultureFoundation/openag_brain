@@ -2,6 +2,7 @@
 import argparse
 
 from couchdb import Server
+from openag.cli.config import config as cli_config
 
 from openag_brain.commands import update_launch
 
@@ -13,5 +14,6 @@ if __name__ == '__main__':
         "-D", "--db_server", help="Address of the database server"
     )
     vals = parser.parse_args()
-    server = Server(vals.db_server)
+    db_server = vals.db_server or cli_config["local_server"]["url"]
+    server = Server(db_server)
     update_launch(server)
