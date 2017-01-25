@@ -26,7 +26,7 @@ def create_node(parent, pkg, type, name, args=None):
         e.attrib['args'] = args
     return e
 
-def create_param(parent, name, value, type):
+def create_param(parent, name, value, type=None):
     """
     Creates an xml node for the launch file that represents a ROS parameter.
     `parent` is the parent xml node. `name` is the name of the parameter to
@@ -36,7 +36,24 @@ def create_param(parent, name, value, type):
     e = ET.SubElement(parent, 'param')
     e.attrib['name'] = name
     e.attrib['value'] = value
-    e.attrib['type'] = PARAM_TYPE_MAPPING.get(type, type)
+    if type is not None:
+        e.attrib['type'] = PARAM_TYPE_MAPPING.get(type, type)
+    return e
+
+def create_list_param(parent, name, value):
+    """
+    Creates an xml node for the launch file that represents a ROS parameter
+    whose value is a list. This function is separate from `create_param`
+    because defining as an attribute is invalid in xml, so we have to use the
+    `rosparam` tag and insert the list as YAML instead.
+
+    `parent` - The parent xml node for this paramater
+    `name` - The name of the parameter to set
+    `value` - The value of the parameter
+    """
+    e = ET.SubElement(parent, 'rosparam')
+    e.attrib['param'] = name
+    e.text = str(value)
     return e
 
 def create_group(parent, ns):
@@ -83,6 +100,8 @@ def update_launch(server, categories=default_categories):
     """
     # Form a launch file from the parameter configuration
     root = ET.Element('launch')
+    create_list_param(root, "categories", categories)
+
     groups = {None: root}
 
     module_db = server[SOFTWARE_MODULE]
