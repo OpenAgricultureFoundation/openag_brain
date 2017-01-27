@@ -463,6 +463,7 @@
       "package": "openag_brain",
       "executable": "image_persistence.py",
       "description": "Listens for image data for a specific environment and stores it in CouchDB",
+      "categories": ["persistence"],
       "parameters": {
         "min_update_interval": {
           "type": "int",
@@ -476,6 +477,7 @@
       "package": "openag_brain",
       "executable": "pid.py",
       "description": "A Python implementation of a Proportional-Integral-Derivative controller for ROS",
+      "categories": ["control"],
       "parameters": {
         "Kp": {
           "type": "float",
@@ -539,6 +541,7 @@
       "package": "openag_brain",
       "executable": "direct_controller.py",
       "description": "A simple control loop that just interprets the set point as a direct command to the actuator",
+      "categories": ["control"],
       "parameters": {
         "variable": {
           "type": "str",
@@ -567,6 +570,7 @@
       "package": "openag_brain",
       "executable": "on_off_controller.py",
       "description": "A simple control loop that just interprets boolean set points as a direct commands to the actuator",
+      "categories": ["control"],
       "parameters": {
         "variable": {
           "type": "str",
@@ -601,6 +605,7 @@
       "package": "openag_brain",
       "executable": "sensor_persistence.py",
       "description": "Listens for measurements of environmental conditions for a specific environment and writes them to CouchDB",
+      "categories": ["persistence"],
       "parameters": {
         "max_update_interval": {
           "type": "int",
@@ -631,6 +636,7 @@
       "package": "openag_brain",
       "executable": "video_writer.py",
       "description": "Watches the DB for aerial images of the environment and makes a timelapse from them",
+      "categories": ["persistence"],
       "parameters": {
         "timelapse_scaling_factor": {
           "type": "int",
@@ -650,6 +656,7 @@
       "package": "usb_cam",
       "executable": "usb_cam_node",
       "description": "The usb_cam_node interfaces with standard USB cameras (e.g. the Logitech Quickcam) using libusb_cam and publishes images as sensor_msgs::Image. Uses the image_transport library to allow compressed image transport.",
+      "categories": ["sensors"],
       "parameters": {
         "video_device": {
           "type": "str",

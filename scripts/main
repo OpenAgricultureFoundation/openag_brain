@@ -6,14 +6,17 @@ import atexit
 import argparse
 import requests
 import subprocess
+import multiprocessing as mp
 
 from openag.couch import Server
+from openag.categories import all_categories, default_categories
 from openag.cli.config import config as cli_config
 from openag.db_names import (
     SOFTWARE_MODULE, FIRMWARE_MODULE, ENVIRONMENTAL_DATA_POINT
 )
 
 from openag_brain import commands
+from openag_brain.srv import SetCategories
 from openag_brain.utils import resolve_fixtures
 
 modules = None
@@ -30,7 +33,32 @@ def spawn_modules(screen=False):
         roslaunch_command.append("--screen")
     return subprocess.Popen(roslaunch_command)
 
-def main(api_server, db_server, fixtures, screen):
+def run_categories_process(queue):
+    """
+    Start a ROS service that allows the user to changes the set of categories
+    enabled in this run of the system. Whenever the service is called, it adds
+    the new list of categories to the given queue.
+
+    It is convenient to run this service in a new process on every restart
+    because `rospy` assumes that a python process will never outlive its ROS
+    core and that it will certainly never have to register itself with a series
+    of different ROS cores over time, as we would like to do here.
+    """
+    def run_process():
+        import rospy
+        rospy.init_node("categories_service")
+        def callback(req):
+            queue.put(req.categories)
+            return SetCategories._response_class(True, "OK")
+        rospy.Service(
+            "set_categories", SetCategories, callback
+        )
+        rospy.spin()
+    p = mp.Process(target=run_process)
+    p.start()
+    return p
+
+def main(api_server, db_server, fixtures, screen, categories):
     # Initialize the database
     print "Initializing the database"
     db_server = db_server or cli_config["local_server"]["url"]
@@ -54,10 +82,14 @@ def main(api_server, db_server, fixtures, screen):
 
     # Start the software modules
     print "Generating launch file"
-    commands.update_launch(server)
+    commands.update_launch(server, categories=categories)
     global modules
     print "Spawning software modules"
     modules = spawn_modules(screen)
+
+    # Listen for calls to change the set of categories enabled
+    categories_queue = mp.Queue(1)
+    categories_process = run_categories_process(categories_queue)
 
     # Whenever the software or firmware module configuration changes, restart
     # the software modules
@@ -76,14 +108,21 @@ def main(api_server, db_server, fixtures, screen):
         firmware_changes = firmware_db.changes(since=last_firmware_seq)
         last_software_seq = software_changes["last_seq"]
         last_firmware_seq = firmware_changes["last_seq"]
-        if len(software_changes["results"]) or len(firmware_changes["results"]):
+        if len(software_changes["results"]) or len(firmware_changes["results"]) or categories_queue.full():
+            # Handle the categories service
+            if categories_queue.full():
+                categories = categories_queue.get_nowait()
+
             print "Module configuration changed; Restarting"
             modules.terminate()
+            categories_process.terminate()
+            categories_process.join()
             print "Generating launch file"
-            commands.update_launch(server)
+            commands.update_launch(server, categories=categories)
             modules.wait()
             print "Spawning software modules"
             modules = spawn_modules(screen)
+            categories_process = run_categories_process(categories_queue)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -115,6 +154,12 @@ default fixtures directory.
         default=[], action='append', dest='fixture_paths'
     )
     parser.add_argument(
+        "-c", "--categories", nargs='*', default=default_categories,
+        choices=all_categories, help=""""
+The categories of modules/inputs/outputs to be enabled in this run of the
+system
+""")
+    parser.add_argument(
         "--screen", action="store_true",
         help="""
 Passes the --screen flag to the roslaunch call, which forces all node output to
@@ -125,5 +170,5 @@ the screen. Useful for debugging.
     fixture_paths = resolve_fixtures(vals.fixtures) + vals.fixture_paths
     main(
         api_server=vals.api_server, db_server=vals.db_server,
-        fixtures=fixture_paths, screen=vals.screen
+        fixtures=fixture_paths, screen=vals.screen, categories=vals.categories
     )

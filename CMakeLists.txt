@@ -55,6 +55,7 @@ add_service_files(
   FILES
   StartRecipe.srv
   Empty.srv
+  SetCategories.srv
 )
 
 ## Generate actions in the 'action' folder
