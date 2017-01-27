@@ -48,6 +48,7 @@ add_message_files(
   FILES
   DiagnosticStatus.msg
   DiagnosticArray.msg
+  SensorInfo.msg
 )
 
 ## Generate services in the 'srv' folder

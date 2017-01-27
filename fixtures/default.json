@@ -17,10 +17,14 @@
       "description": "Driver for the am2315 sensor",
       "outputs": {
         "air_temperature": {
-          "type": "std_msgs/Float32"
+          "type": "std_msgs/Float32",
+          "accuracy": 0.1,
+          "repeatability": 0.2
         },
         "air_humidity": {
-          "type": "std_msgs/Float32"
+          "type": "std_msgs/Float32",
+          "accuracy": 2.0,
+          "repeatability": 0.1
         }
       },
       "dependencies": [
@@ -646,6 +650,12 @@
       }
     },
     {
+      "_id": "openag_brain:sensor_info_publisher.py",
+      "package": "openag_brain",
+      "executable": "sensor_info_publisher.py",
+      "description": "Publishes information about the active sensors in ROS topics"
+    },
+    {
       "_id": "openag_brain:expand_diagnostics.py",
       "package": "openag_brain",
       "executable": "expand_diagnostics.py",
@@ -745,6 +755,10 @@
       "_id": "topic_filter_1",
       "type": "openag_brain:topic_filter.py",
       "environment": "environment_1"
+    },
+    {
+      "_id": "sensor_info_publisher",
+      "type": "openag_brain:sensor_info_publisher.py"
     },
     {
       "_id": "topic_connector",
