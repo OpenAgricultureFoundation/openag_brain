@@ -1,7 +1,7 @@
 {
   "firmware_module": [
     {
-      "_id": "red_led_1",
+      "_id": "led_red_1",
       "arguments": [42],
       "environment": "environment_1",
       "type": "pwm_actuator",
@@ -12,7 +12,7 @@
       }
     },
     {
-      "_id": "blue_led_1",
+      "_id": "led_blue_1",
       "arguments": [40],
       "environment": "environment_1",
       "type": "pwm_actuator",
@@ -23,37 +23,37 @@
       }
     },
     {
-      "_id": "white_led_1",
+      "_id": "led_white_1",
       "arguments": [41],
       "environment": "environment_1",
       "type": "pwm_actuator"
     },
     {
-      "_id": "nutrient_a_pump_1_1",
+      "_id": "pump_1_nutrient_a_1",
       "arguments": [28, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "nutrient_b_pump_2_1",
+      "_id": "pump_2_nutrient_b_1",
       "arguments": [29, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "ph_up_pump_3_1",
+      "_id": "pump_3_ph_up_1",
       "arguments": [30, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "ph_down_pump_4_1",
+      "_id": "pump_4_ph_down_1",
       "arguments": [31, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "water_pump_5_1",
+      "_id": "pump_5_water_1",
       "arguments": [32, false],
       "environment": "environment_1",
       "type": "binary_actuator"
