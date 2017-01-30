@@ -70,8 +70,32 @@
       }
     },
     {
-      "_id": "cooler_1",
-      "arguments": [23, true],
+      "_id": "chiller_pump_1",
+      "arguments": [34, false],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "chiller_fan_1",
+      "arguments": [33, false],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "chiller_compressor_1",
+      "arguments": [10, true],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
