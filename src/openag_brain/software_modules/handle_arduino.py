@@ -22,15 +22,17 @@ import traceback
 import subprocess
 from openag.cli.config import config as cli_config
 from openag.db_names import FIRMWARE_MODULE
+from openag.categories import default_categories
 from couchdb import Server
 
 from openag_brain import commands, params
 
 
 class ArduinoHandler(object):
-    def __init__(self, serial_port, should_flash=True):
+    def __init__(self, serial_port, should_flash=True, categories=default_categories):
         self.serial_node = None
         self.serial_port = serial_port
+        self.categories = categories
         # If we need to flash the Arduino, create a build_dir for the source
         # and initialize a firmware project within it. We'll use this
         # directory later at self.start().
@@ -60,12 +62,14 @@ class ArduinoHandler(object):
         # If we have a build_dir, it means we need to flash the Arduino
         if self.build_dir is not None:
             rospy.loginfo("Updating Arduino")
+            command = [
+                "openag", "firmware", "run", "-p", "ros", "-t", "upload"
+            ]
+            for category in self.categories:
+                command.extend(["-c", category])
             try:
                 proc = subprocess.Popen(
-                    [
-                        "openag", "firmware", "run", "-p", "ros", "-t",
-                        "upload"
-                    ], cwd=self.build_dir, stdout=subprocess.PIPE,
+                    command, cwd=self.build_dir, stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
                 self.handle_process(proc, Exception())
@@ -137,8 +141,18 @@ if __name__ == '__main__':
             "Serial port for arduino_handler not specified. Defaulting to /dev/ttyACM0"
         )
         serial_port = "/dev/ttyACM0"
+    try:
+        categories = rospy.get_param(params.CATEGORIES)
+    except KeyError:
+        rospy.logwarn(
+            "Not specified what categories are currently enabled. Arduino will"
+            "be flashed with default categories"
+        )
+        categories = default_categories
 
-    handler = ArduinoHandler(serial_port, should_flash=should_flash)
+    handler = ArduinoHandler(
+        serial_port, should_flash=should_flash, categories=categories
+    )
     handler.start()
 
     rospy.spin()

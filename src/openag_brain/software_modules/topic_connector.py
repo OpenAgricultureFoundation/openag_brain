@@ -23,6 +23,7 @@ from couchdb import Server
 from std_msgs.msg import Bool, Float32, Float64
 
 from openag_brain import params
+from openag_brain.msg import SensorInfo
 from openag_brain.srv import Empty
 from roslib.message import get_message_class
 
@@ -43,6 +44,13 @@ def connect_topics(
         pub.publish(dest_item)
     sub = rospy.Subscriber(src_topic, src_topic_type, callback)
     return sub, pub
+
+def connect_sensor_info_topics(src_topic, dest_topic):
+    rospy.loginfo("Connecting topic {} to topic {}".format(
+        src_topic, dest_topic
+    ))
+    pub = rospy.Publisher(dest_topic, SensorInfo, queue_size=1, latch=True)
+    sub = rospy.Subscriber(src_topic, SensorInfo, pub.publish)
 
 def connect_all_topics(module_db, module_type_db):
     modules = {
@@ -81,6 +89,13 @@ def connect_all_topics(module_db, module_type_db):
             connect_topics(
                 src_topic, dest_topic, src_topic_type, dest_topic_type
             )
+            src_info_topic = "/sensors/{}/{}/info".format(
+                module_id, output_name
+            )
+            dest_info_topic = "/environments/{}/{}/info".format(
+                module_info["environment"], output_info["variable"]
+            )
+            connect_sensor_info_topics(src_info_topic, dest_info_topic)
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")

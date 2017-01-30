@@ -48,6 +48,7 @@ add_message_files(
   FILES
   DiagnosticStatus.msg
   DiagnosticArray.msg
+  SensorInfo.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -55,6 +56,7 @@ add_service_files(
   FILES
   StartRecipe.srv
   Empty.srv
+  SetCategories.srv
 )
 
 ## Generate actions in the 'action' folder
