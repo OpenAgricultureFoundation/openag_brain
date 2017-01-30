@@ -44,13 +44,24 @@
       "_id": "pump_3_ph_up_1",
       "arguments": [30, true],
       "environment": "environment_1",
-      "type": "binary_actuator"
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "water_potential_hydrogen"
+        }
+      }
     },
     {
       "_id": "pump_4_ph_down_1",
       "arguments": [31, true],
       "environment": "environment_1",
-      "type": "binary_actuator"
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "water_potential_hydrogen",
+          "multiplier": -1.0
+        }
+      }
     },
     {
       "_id": "pump_5_water_1",
@@ -194,6 +205,21 @@
       "environment": "environment_1",
       "parameters": {
         "variable": "air_temperature",
+        "Kp": 1,
+        "Ki": 0,
+        "Kd": 0,
+        "upper_limit": 1,
+        "lower_limit": -1,
+        "windup_limit": 1000,
+        "deadband_width": 0.5
+      }
+    },
+    {
+      "_id": "pid_controller_1",
+      "type": "openag_brain:pid.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "water_potential_hydrogen",
         "Kp": 1,
         "Ki": 0,
         "Kd": 0,
