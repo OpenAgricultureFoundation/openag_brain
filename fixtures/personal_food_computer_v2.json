@@ -107,7 +107,7 @@
     },
     {
       "_id": "chamber_fan_1",
-      "arguments": [39, true],
+      "arguments": [39, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
