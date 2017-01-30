@@ -59,8 +59,19 @@
       "type": "binary_actuator"
     },
     {
-      "_id": "heater_1",
+      "_id": "heater_core_1_1",
       "arguments": [43, true],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature"
+        }
+      }
+    },
+    {
+      "_id": "heater_core_2_1",
+      "arguments": [35, true],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
