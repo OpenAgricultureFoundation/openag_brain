@@ -30,31 +30,31 @@
     },
     {
       "_id": "pump_1",
-      "arguments": [32, true],
+      "arguments": [28, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_2",
-      "arguments": [31, true],
+      "arguments": [29, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_3",
-      "arguments": [30, true],
+      "arguments": [30, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_4",
-      "arguments": [29, true],
+      "arguments": [31, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_5",
-      "arguments": [28, true],
+      "arguments": [32, false],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
@@ -80,12 +80,6 @@
           "multiplier": -1.0
         }
       }
-    },
-    {
-      "_id": "humidifier",
-      "arguments": [27, true],
-      "environment": "environment_1",
-      "type": "binary_actuator"
     },
     {
       "_id": "chamber_fan_1",
