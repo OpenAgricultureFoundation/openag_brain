@@ -60,7 +60,7 @@
     },
     {
       "_id": "heater_1",
-      "arguments": [43, true],
+      "arguments": [43, false],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
