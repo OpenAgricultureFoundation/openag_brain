@@ -123,6 +123,18 @@
       "type": "binary_actuator"
     },
     {
+      "_id": "water_circulation_pump_1",
+      "arguments": [38, false],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "water_aeration_pump_1",
+      "arguments": [37, false],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
       "_id": "air_flush_1",
       "arguments": [36, true],
       "environment": "environment_1",
