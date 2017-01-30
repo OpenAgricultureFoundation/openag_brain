@@ -143,7 +143,7 @@
       "_id": "arduino_handler",
       "type": "openag_brain:handle_arduino.py",
       "parameters": {
-        "should_flash": true
+        "should_flash": false
       }
     },
     {
