@@ -141,7 +141,12 @@
       "_id": "ds18b20_1",
       "type": "ds18b20",
       "arguments": [5],
-      "environment": "environment_1"
+      "environment": "environment_1",
+      "outputs": {
+        "temperature": {
+          "variable": "water_temperature"
+        }
+      }
     }
   ],
   "software_module": [
