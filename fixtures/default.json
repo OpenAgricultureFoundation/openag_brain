@@ -228,6 +228,11 @@
           "name": "is_active_low",
           "type": "bool",
           "default": false
+        },
+        {
+            "name": "shutoff_ms",
+            "type": "int",
+            "default": 10000
         }
       ],
       "inputs": {
