@@ -30,19 +30,19 @@
     },
     {
       "_id": "pump_1_nutrient_a_1",
-      "arguments": [28, true],
+      "arguments": [28, true, 100],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_2_nutrient_b_1",
-      "arguments": [29, true],
+      "arguments": [29, true, 100],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
       "_id": "pump_3_ph_up_1",
-      "arguments": [30, true],
+      "arguments": [30, true, 100],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
@@ -53,7 +53,7 @@
     },
     {
       "_id": "pump_4_ph_down_1",
-      "arguments": [31, true],
+      "arguments": [31, true, 100],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
