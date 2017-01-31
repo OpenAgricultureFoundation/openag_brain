@@ -67,7 +67,12 @@
       "_id": "pump_5_water_1",
       "arguments": [32, true],
       "environment": "environment_1",
-      "type": "binary_actuator"
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "water_level_high"
+        }
+      }
     },
     {
       "_id": "heater_core_1_1",
@@ -226,7 +231,7 @@
       }
     },
     {
-      "_id": "pid_controller_1",
+      "_id": "water_potential_hydrogen_controller_1",
       "type": "openag_brain:pid.py",
       "environment": "environment_1",
       "parameters": {
@@ -238,6 +243,21 @@
         "lower_limit": -1,
         "windup_limit": 1000,
         "deadband_width": 0.5
+      }
+    },
+    {
+      "_id": "water_level_high_controller_1",
+      "type": "openag_brain:pid.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "water_level_high",
+        "Kp": 1,
+        "Ki": 0,
+        "Kd": 0,
+        "upper_limit": 1,
+        "lower_limit": -1,
+        "windup_limit": 1000,
+        "deadband_width": 0
       }
     }
   ]
