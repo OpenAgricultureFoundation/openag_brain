@@ -449,6 +449,11 @@
         {
           "name": "pin",
           "type": "int"
+        },
+        {
+          "name": "is_active_low",
+          "type": "bool",
+          "default": false
         }
       ],
       "outputs": {
