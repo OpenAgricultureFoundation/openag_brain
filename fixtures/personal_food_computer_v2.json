@@ -186,7 +186,12 @@
       "_id": "water_level_sensor_high_1",
       "type": "binary_sensor",
       "environment": "environment_1",
-      "arguments": [4, true]
+      "arguments": [4, true],
+      "outputs": {
+        "is_on": {
+          "variable": "water_level_high"
+        }
+      }
     }
   ],
   "software_module": [
