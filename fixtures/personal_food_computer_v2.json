@@ -181,6 +181,18 @@
           "variable": "water_temperature"
         }
       }
+    },
+    {
+      "_id": "water_level_sensor_low_1",
+      "type": "binary_sensor",
+      "environment": "environment_1",
+      "arguments": [3]
+    },
+    {
+      "_id": "water_level_sensor_high_1",
+      "type": "binary_sensor",
+      "environment": "environment_1",
+      "arguments": [4]
     }
   ],
   "software_module": [
