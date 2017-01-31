@@ -42,9 +42,9 @@
     },
     {
       "_id": "pump_3_ph_up_1",
-      "arguments": [30, true, 100],
+      "arguments": [30, true, 100, 2000],
       "environment": "environment_1",
-      "type": "binary_actuator",
+      "type": "pulse_actuator",
       "inputs": {
         "cmd": {
           "variable": "water_potential_hydrogen"
@@ -53,9 +53,9 @@
     },
     {
       "_id": "pump_4_ph_down_1",
-      "arguments": [31, true, 100],
+      "arguments": [31, true, 100, 2000],
       "environment": "environment_1",
-      "type": "binary_actuator",
+      "type": "pulse_actuator",
       "inputs": {
         "cmd": {
           "variable": "water_potential_hydrogen",
