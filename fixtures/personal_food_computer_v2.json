@@ -257,7 +257,7 @@
         "upper_limit": 1,
         "lower_limit": -1,
         "windup_limit": 1000,
-        "deadband_width": 0.1
+        "deadband_width": 0.5
       }
     }
   ]
