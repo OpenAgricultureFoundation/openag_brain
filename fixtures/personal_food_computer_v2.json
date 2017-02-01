@@ -1,8 +1,8 @@
 {
   "firmware_module": [
     {
-      "_id": "red_light_1",
-      "arguments": [3],
+      "_id": "led_red_1",
+      "arguments": [42, true],
       "environment": "environment_1",
       "type": "pwm_actuator",
       "inputs": {
@@ -12,8 +12,8 @@
       }
     },
     {
-      "_id": "blue_light_1",
-      "arguments": [4],
+      "_id": "led_blue_1",
+      "arguments": [40, true],
       "environment": "environment_1",
       "type": "pwm_actuator",
       "inputs": {
@@ -23,44 +23,61 @@
       }
     },
     {
-      "_id": "white_light_1",
-      "arguments": [5],
+      "_id": "led_white_1",
+      "arguments": [41, true],
       "environment": "environment_1",
       "type": "pwm_actuator"
     },
     {
-      "_id": "pump_1",
-      "arguments": [37, true],
+      "_id": "pump_1_nutrient_a_1",
+      "arguments": [28, true],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "pump_2",
-      "arguments": [35, true],
-      "environment": "environment_1",
-      "type": "binary_actuator"
-    },
-    {
-      "_id": "pump_3",
-      "arguments": [33, true],
-      "environment": "environment_1",
-      "type": "binary_actuator"
-    },
-    {
-      "_id": "pump_4",
-      "arguments": [31, true],
-      "environment": "environment_1",
-      "type": "binary_actuator"
-    },
-    {
-      "_id": "pump_5",
+      "_id": "pump_2_nutrient_b_1",
       "arguments": [29, true],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
     {
-      "_id": "heater_1",
-      "arguments": [25, true],
+      "_id": "pump_3_ph_up_1",
+      "arguments": [30, true, 50, 4000],
+      "environment": "environment_1",
+      "type": "pulse_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "water_potential_hydrogen"
+        }
+      }
+    },
+    {
+      "_id": "pump_4_ph_down_1",
+      "arguments": [31, true, 50, 4000],
+      "environment": "environment_1",
+      "type": "pulse_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "water_potential_hydrogen",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "pump_5_water_1",
+      "arguments": [32, true],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "water_level_high",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "heater_core_1_1",
+      "arguments": [43, true],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
@@ -70,8 +87,19 @@
       }
     },
     {
-      "_id": "cooler_1",
-      "arguments": [23, true],
+      "_id": "heater_core_2_1",
+      "arguments": [35, true],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature"
+        }
+      }
+    },
+    {
+      "_id": "chiller_pump_1",
+      "arguments": [34, true],
       "environment": "environment_1",
       "type": "binary_actuator",
       "inputs": {
@@ -82,8 +110,50 @@
       }
     },
     {
-      "_id": "humidifier",
-      "arguments": [27, true],
+      "_id": "chiller_fan_1",
+      "arguments": [33, true],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "chiller_compressor_1",
+      "arguments": [10, false],
+      "environment": "environment_1",
+      "type": "binary_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "air_temperature",
+          "multiplier": -1.0
+        }
+      }
+    },
+    {
+      "_id": "chamber_fan_1",
+      "arguments": [39, false],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "water_circulation_pump_1",
+      "arguments": [38, false],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "water_aeration_pump_1",
+      "arguments": [37, false],
+      "environment": "environment_1",
+      "type": "binary_actuator"
+    },
+    {
+      "_id": "air_flush_1",
+      "arguments": [36, true],
       "environment": "environment_1",
       "type": "binary_actuator"
     },
@@ -106,6 +176,28 @@
       "_id": "am2315_1",
       "type": "am2315",
       "environment": "environment_1"
+    },
+    {
+      "_id": "ds18b20_1",
+      "type": "ds18b20",
+      "arguments": [5],
+      "environment": "environment_1",
+      "outputs": {
+        "temperature": {
+          "variable": "water_temperature"
+        }
+      }
+    },
+    {
+      "_id": "water_level_sensor_high_1",
+      "type": "binary_sensor",
+      "environment": "environment_1",
+      "arguments": [4, true],
+      "outputs": {
+        "is_on": {
+          "variable": "water_level_high"
+        }
+      }
     }
   ],
   "software_module": [
@@ -113,7 +205,7 @@
       "_id": "arduino_handler",
       "type": "openag_brain:handle_arduino.py",
       "parameters": {
-        "should_flash": true
+        "should_flash": false
       }
     },
     {
@@ -137,6 +229,29 @@
         "lower_limit": -1,
         "windup_limit": 1000,
         "deadband_width": 0.5
+      }
+    },
+    {
+      "_id": "water_potential_hydrogen_controller_1",
+      "type": "openag_brain:pid.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "water_potential_hydrogen",
+        "Kp": 1,
+        "Ki": 0,
+        "Kd": 0,
+        "upper_limit": 1,
+        "lower_limit": -1,
+        "windup_limit": 1000,
+        "deadband_width": 0.5
+      }
+    },
+    {
+      "_id": "water_level_high_controller_1",
+      "type": "openag_brain:linear_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "water_level_high"
       }
     }
   ]
