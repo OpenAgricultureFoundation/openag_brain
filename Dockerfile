@@ -5,8 +5,8 @@ USER pi
 RUN sudo usermod -a -G dialout pi
 # Install openag_python from the git repository
 RUN cd ~ && git clone http://github.com/OpenAgInitiative/openag_python.git
-RUN sudo easy_install pip && sudo pip install ./openag_python
-RUN sudo pip install pillow --global-option="build_ext" --global-option="--disable-zlib" --global-option="--disable-jpeg"
+RUN sudo easy_install pip==9.0.0 && sudo pip install ./openag_python
+RUN sudo pip install Pillow==3.4.0 --global-option="build_ext" --global-option="--disable-zlib" --global-option="--disable-jpeg"
 # Set up a catkin workspace
 RUN mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/src && \
     /opt/ros/indigo/env.sh catkin_init_workspace
