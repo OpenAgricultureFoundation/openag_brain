@@ -247,17 +247,10 @@
     },
     {
       "_id": "water_level_high_controller_1",
-      "type": "openag_brain:pid.py",
+      "type": "openag_brain:linear_controller.py",
       "environment": "environment_1",
       "parameters": {
-        "variable": "water_level_high",
-        "Kp": 1,
-        "Ki": 0,
-        "Kd": 0,
-        "upper_limit": 1,
-        "lower_limit": -1,
-        "windup_limit": 1000,
-        "deadband_width": 0.5
+        "variable": "water_level_high"
       }
     }
   ]
