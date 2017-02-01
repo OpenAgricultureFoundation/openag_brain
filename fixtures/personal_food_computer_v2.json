@@ -70,7 +70,8 @@
       "type": "binary_actuator",
       "inputs": {
         "cmd": {
-          "variable": "water_level_high"
+          "variable": "water_level_high",
+          "multiplier": -1.0
         }
       }
     },
