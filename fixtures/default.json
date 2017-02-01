@@ -647,6 +647,31 @@
       }
     },
     {
+      "_id": "openag_brain:linear_controller.py",
+      "package": "openag_brain",
+      "executable": "linear_controller.py",
+      "description": "A controller that passes on the measured reading of a sensor as an actuation command.",
+      "categories": ["control"],
+      "parameters": {
+        "variable": {
+          "type": "str",
+          "description": "The variable on which this loop operates. This parameter is used to rename the input and outputs of this module for easy integration for the inputs and outputs of firmware modules. For example if the `variable` were `air_temperature`, `desired` would become `air_temperature_desired`, `state` would become `air_temperature`, `cmd` would become `air_temperature_cmd`, `up_cmd` would become `air_temperature_up_cmd`, and `down_cmd` would become `air_temperature_down_cmd"
+        }
+      },
+      "inputs": {
+        "state": {
+          "type": "std_msgs/Float64",
+          "description": "The measured state"
+        }
+      },
+      "outputs": {
+        "cmd": {
+          "type": "std_msgs/Float64",
+          "description": "The control_effort message data element contains the control effort to be applied to the process to drive state/data to equal setpoint/data. This topic can be renamed by the topic_from_controller parameter"
+        }
+      }
+    },
+    {
       "_id": "openag_brain:on_off_controller.py",
       "package": "openag_brain",
       "executable": "on_off_controller.py",
