@@ -32,13 +32,13 @@
       "_id": "pump_1_nutrient_a_1",
       "arguments": [28, true],
       "environment": "environment_1",
-      "type": "binary_actuator"
+      "type": "doser_pump"
     },
     {
       "_id": "pump_2_nutrient_b_1",
       "arguments": [29, true],
       "environment": "environment_1",
-      "type": "binary_actuator"
+      "type": "doser_pump"
     },
     {
       "_id": "pump_3_ph_up_1",
