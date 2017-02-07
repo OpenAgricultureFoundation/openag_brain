@@ -230,9 +230,9 @@
           "default": false
         },
         {
-            "name": "shutoff_ms",
-            "type": "int",
-            "default": 10000
+          "name": "shutoff_ms",
+          "type": "int",
+          "default": 10000
         }
       ],
       "inputs": {
@@ -246,74 +246,74 @@
       ]
     },
     {
-       "_id": "pulse_actuator",
-       "description": "Driver for binary actuators with very granular timescales",
-       "repository": {
-           "url": "https://github.com/OpenAgInitiative/openag_pulse_actuator.git",
-           "type": "git"
-       },
-       "header_file": "openag_pulse_actuator.h",
-       "class_name": "PulseActuator",
-       "arguments": [
-           {
-               "name": "pin",
-               "type": "int"
-           },
-           {
-               "name": "is_active_low",
-               "type": "bool",
-               "default": false
-           },
-           {
-               "name": "pulse_ms",
-               "type": "int",
-               "default": 100
-           },
-           {
-               "name": "update_ms",
-               "type": "int",
-               "default": 2000
-           }
-       ],
-       "inputs": {
-           "cmd": {
-               "type": "std_msgs/Bool"
-           }
-       },
-       "dependencies": [
-           {
-               "type": "git",
-               "url": "http://github.com/OpenAgInitiative/openag_firmware_module.git"
-           }
-       ]
+      "_id": "pulse_actuator",
+      "description": "Driver for binary actuators with very granular timescales",
+      "repository": {
+        "url": "https://github.com/OpenAgInitiative/openag_pulse_actuator.git",
+        "type": "git"
+      },
+      "header_file": "openag_pulse_actuator.h",
+      "class_name": "PulseActuator",
+      "arguments": [
+          {
+            "name": "pin",
+            "type": "int"
+          },
+          {
+            "name": "is_active_low",
+            "type": "bool",
+            "default": false
+          },
+          {
+            "name": "pulse_ms",
+            "type": "int",
+            "default": 100
+          },
+          {
+            "name": "update_ms",
+            "type": "int",
+            "default": 2000
+          }
+      ],
+      "inputs": {
+        "cmd": {
+          "type": "std_msgs/Bool"
+        }
+      },
+      "dependencies": [
+        {
+          "type": "git",
+          "url": "http://github.com/OpenAgInitiative/openag_firmware_module.git"
+        }
+      ]
     },
     {
-        "_id": "doser_pump",
-        "repository": {
-           "type": "git",
-           "url": "https://github.com/OpenAgInitiative/openag_doser_pump.git"
+      "_id": "doser_pump",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_doser_pump.git"
+      },
+      "header_file": "openag_doser_pump.h",
+      "class_name": "DoserPump",
+      "arguments": [
+        {
+          "name": "pin",
+          "type": "int"
         },
-        "header_file": "openag_doser_pump.h",
-        "class_name": "DoserPump",
-        "arguments": [
-            {
-                "name": "pin",
-                "type": "int"
-            },
-            {
-                "name": "is_active_low",
-                "type": "bool",
-                "default": true
-            }
-        ],
-        "inputs": {
-            "cmd": {
-                "type": "std_msgs/Float32"
-            }
-        },
-        "dependencies": [
-            {"type": "git", "url": "http://github.com/OpenAgInitiative/openag_firmware_module.git"}
-        ]
+        {
+          "name": "is_active_low",
+          "type": "bool",
+          "default": true
+        }
+      ],
+      "inputs": {
+        "cmd": {
+          "type": "std_msgs/Float32"
+        }
+      },
+      "dependencies": [
+        {"type": "git", "url": "http://github.com/OpenAgInitiative/openag_firmware_module.git"}
+      ]
     },
     {
       "_id": "dht22",
