@@ -32,13 +32,23 @@
       "_id": "pump_1_nutrient_a_1",
       "arguments": [28, true],
       "environment": "environment_1",
-      "type": "doser_pump"
+      "type": "doser_pump",
+      "inputs": {
+        "cmd": {
+          "variable": "nutrient_flora_duo_a"
+        }
+      }
     },
     {
       "_id": "pump_2_nutrient_b_1",
       "arguments": [29, true],
       "environment": "environment_1",
-      "type": "doser_pump"
+      "type": "doser_pump",
+      "inputs": {
+        "cmd": {
+          "variable": "nutrient_flora_duo_b"
+        }
+      }
     },
     {
       "_id": "pump_3_ph_up_1",
@@ -214,6 +224,22 @@
       "environment": "environment_1",
       "parameters": {
         "variable": "light_illuminance"
+      }
+    },
+    {
+      "_id": "nutrient_flora_duo_a_controller_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "nutrient_flora_duo_a"
+      }
+    },
+    {
+      "_id": "nutrient_flora_duo_b_controller_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "nutrient_flora_duo_b"
       }
     },
     {
