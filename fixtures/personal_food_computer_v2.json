@@ -26,7 +26,12 @@
       "_id": "led_white_1",
       "arguments": [41, true],
       "environment": "environment_1",
-      "type": "pwm_actuator"
+      "type": "pwm_actuator",
+      "inputs": {
+        "cmd": {
+          "variable": "light_illuminance"
+        }
+      }
     },
     {
       "_id": "pump_1_nutrient_a_1",
@@ -279,6 +284,11 @@
       "parameters": {
         "variable": "water_level_high"
       }
+    },
+    {
+      "_id": "usb_cam_1",
+      "type": "usb_cam:usb_cam_node",
+      "environment": "environment_1"
     }
   ]
 }
