@@ -227,6 +227,22 @@
       }
     },
     {
+      "_id": "nutrient_flora_duo_a_controller_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "nutrient_flora_duo_a"
+      }
+    },
+    {
+      "_id": "nutrient_flora_duo_b_controller_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "nutrient_flora_duo_b"
+      }
+    },
+    {
       "_id": "air_temperature_controller_1",
       "type": "openag_brain:pid.py",
       "environment": "environment_1",
