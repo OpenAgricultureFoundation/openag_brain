@@ -170,7 +170,7 @@
       "_id": "air_flush_1",
       "arguments": [36, true],
       "environment": "environment_1",
-      "type": "binary_actuator",
+      "type": "air_flush",
       "inputs": {
         "cmd": {
           "variable": "air_flush_on"
