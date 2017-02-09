@@ -177,6 +177,8 @@ class RecipeHandler:
         with self.lock:
             if self.__recipe is not None:
                 raise RecipeRunningError("Recipe is already running")
+            rospy.set_param(params.CURRENT_RECIPE, recipe.id)
+            rospy.set_param(params.CURRENT_RECIPE_START, recipe.start_time)
             self.__recipe = recipe
         return self
 
@@ -184,6 +186,8 @@ class RecipeHandler:
         with self.lock:
             if self.__recipe is None:
                 raise RecipeIdleError("No recipe is running")
+            rospy.set_param(params.CURRENT_RECIPE, "")
+            rospy.set_param(params.CURRENT_RECIPE_START, 0)
             self.__recipe = None
         return self
 
@@ -195,8 +199,6 @@ class RecipeHandler:
             # operation, so the recipe will stay in this turn of the loop
             # until it is finished.
             if recipe:
-                rospy.set_param(params.CURRENT_RECIPE, recipe.id)
-                rospy.set_param(params.CURRENT_RECIPE_START, recipe.start_time)
                 rospy.loginfo('Starting recipe "{}"'.format(recipe.id))
                 state = {}
                 for timestamp, variable, value in recipe:
@@ -246,8 +248,6 @@ class RecipeHandler:
                         self.clear_recipe()
                     except RecipeIdleError:
                         pass
-                    rospy.set_param(params.CURRENT_RECIPE, "")
-                    rospy.set_param(params.CURRENT_RECIPE_START, 0)
             rospy.sleep(1)
 
     def start_recipe_service(self, data, start_time=None):
