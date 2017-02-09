@@ -195,9 +195,9 @@ class RecipeHandler:
             # operation, so the recipe will stay in this turn of the loop
             # until it is finished.
             if running_recipe:
-                rospy.set_param(params.CURRENT_RECIPE, recipe.id)
-                rospy.set_param(params.CURRENT_RECIPE_START, recipe.start_time)
-                rospy.loginfo('Starting recipe "{}"'.format(recipe.id))
+                rospy.set_param(params.CURRENT_RECIPE, running_recipe.id)
+                rospy.set_param(params.CURRENT_RECIPE_START, running_recipe.start_time)
+                rospy.loginfo('Starting recipe "{}"'.format(running_recipe.id))
                 state = {}
                 for timestamp, variable, value in running_recipe:
                     # If recipe was canceled or changed, or ROS stopped,
