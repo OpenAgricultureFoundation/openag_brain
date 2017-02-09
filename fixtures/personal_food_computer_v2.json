@@ -253,7 +253,7 @@
       }
     },
     {
-      "_id": "air_flus_on_controller_1",
+      "_id": "air_flush_on_controller_1",
       "type": "openag_brain:direct_controller.py",
       "environment": "environment_1",
       "parameters": {
