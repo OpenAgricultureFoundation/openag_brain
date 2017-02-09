@@ -297,11 +297,6 @@
       "parameters": {
         "variable": "water_level_high"
       }
-    },
-    {
-      "_id": "usb_cam_1",
-      "type": "usb_cam:usb_cam_node",
-      "environment": "environment_1"
     }
   ]
 }
