@@ -200,9 +200,9 @@ class RecipeHandler:
                 rospy.loginfo('Starting recipe "{}"'.format(recipe.id))
                 state = {}
                 for timestamp, variable, value in recipe:
-                    # If recipe was canceled, or ROS stopped, break setpoint
-                    # iteration
-                    if not self.get_recipe() or rospy.is_shutdown():
+                    # If recipe was canceled or changed, or ROS stopped,
+                    # break setpoint iteration
+                    if self.get_recipe() != recipe or rospy.is_shutdown():
                         break
 
                     # Skip invalid variable types
