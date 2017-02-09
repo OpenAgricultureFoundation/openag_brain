@@ -194,15 +194,15 @@ class RecipeHandler:
             # If we have a recipe, process it. Running a recipe is a blocking
             # operation, so the recipe will stay in this turn of the loop
             # until it is finished.
-            if recipe:
+            if running_recipe:
                 rospy.set_param(params.CURRENT_RECIPE, recipe.id)
                 rospy.set_param(params.CURRENT_RECIPE_START, recipe.start_time)
                 rospy.loginfo('Starting recipe "{}"'.format(recipe.id))
                 state = {}
-                for timestamp, variable, value in recipe:
+                for timestamp, variable, value in running_recipe:
                     # If recipe was canceled or changed, or ROS stopped,
                     # break setpoint iteration
-                    if self.get_recipe() != recipe or rospy.is_shutdown():
+                    if self.get_recipe() != running_recipe or rospy.is_shutdown():
                         break
 
                     # Skip invalid variable types
@@ -237,9 +237,17 @@ class RecipeHandler:
                         })
                         doc_id = gen_doc_id(time.time())
                         self.env_data_db[doc_id] = doc
-                self.clear_recipe()
-                rospy.set_param(params.CURRENT_RECIPE, "")
-                rospy.set_param(params.CURRENT_RECIPE_START, 0)
+                # Clear running recipe if we exited by finishing iteration.
+                # If there is a new recipe or recipe was already cleared,
+                # we do nothing, and allow the loop to turn again and pick
+                # up new recipe.
+                if self.get_recipe() == running_recipe:
+                    try:
+                        self.clear_recipe()
+                    except RecipeIdleError:
+                        pass
+                    rospy.set_param(params.CURRENT_RECIPE, "")
+                    rospy.set_param(params.CURRENT_RECIPE_START, 0)
             rospy.sleep(1)
 
     def start_recipe_service(self, data, start_time=None):
