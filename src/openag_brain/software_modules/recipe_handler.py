@@ -194,15 +194,15 @@ class RecipeHandler:
             # If we have a recipe, process it. Running a recipe is a blocking
             # operation, so the recipe will stay in this turn of the loop
             # until it is finished.
-            if running_recipe:
-                rospy.set_param(params.CURRENT_RECIPE, running_recipe.id)
-                rospy.set_param(params.CURRENT_RECIPE_START, running_recipe.start_time)
-                rospy.loginfo('Starting recipe "{}"'.format(running_recipe.id))
+            if recipe:
+                rospy.set_param(params.CURRENT_RECIPE, recipe.id)
+                rospy.set_param(params.CURRENT_RECIPE_START, recipe.start_time)
+                rospy.loginfo('Starting recipe "{}"'.format(recipe.id))
                 state = {}
-                for timestamp, variable, value in running_recipe:
+                for timestamp, variable, value in recipe:
                     # If recipe was canceled or changed, or ROS stopped,
                     # break setpoint iteration
-                    if self.get_recipe() != running_recipe or rospy.is_shutdown():
+                    if self.get_recipe() != recipe or rospy.is_shutdown():
                         break
 
                     # Skip invalid variable types
@@ -241,7 +241,7 @@ class RecipeHandler:
                 # If there is a new recipe or recipe was already cleared,
                 # we do nothing, and allow the loop to turn again and pick
                 # up new recipe.
-                if self.get_recipe() == running_recipe:
+                if self.get_recipe() == recipe:
                     try:
                         self.clear_recipe()
                     except RecipeIdleError:
