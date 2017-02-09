@@ -336,7 +336,7 @@
       ],
       "inputs": {
         "cmd": {
-          "type": "std_msgs/Float32"
+          "type": "std_msgs/UInt32"
         }
       },
       "dependencies": [
