@@ -2,7 +2,7 @@
 Pairs openag environmental variable types with ROS topic types.
 This allows us to construct topic names along with an associated type.
 """
-from std_msgs.msg import Float64, Float32, Int32, Bool
+from std_msgs.msg import Float64, Float32, Int32, Bool, UInt32
 from sensor_msgs.msg import Image
 
 from openag.var_types import (
@@ -17,7 +17,7 @@ SENSOR_VARIABLES = (
     (AIR_TEMPERATURE, Float64),
     (AIR_HUMIDITY, Float64),
     (AIR_CARBON_DIOXIDE, Int32),
-    (AIR_FLUSH_ON, Float64),
+    (AIR_FLUSH_ON, UInt32),
     (WATER_TEMPERATURE, Float64),
     (WATER_POTENTIAL_HYDROGEN, Float64),
     (WATER_ELECTRICAL_CONDUCTIVITY, Float64),
