@@ -167,17 +167,6 @@
       "type": "binary_actuator"
     },
     {
-      "_id": "air_flush_1",
-      "arguments": [36, true],
-      "environment": "environment_1",
-      "type": "air_flush",
-      "inputs": {
-        "cmd": {
-          "variable": "air_flush_on"
-        }
-      }
-    },
-    {
       "_id": "atlas_ec_1",
       "environment": "environment_1",
       "type": "atlas_ec"
