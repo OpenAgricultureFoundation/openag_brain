@@ -5,9 +5,7 @@ generates firmware with which to flash the Arduino using the
 :ref:`OpenagCmdGenerateFirmware` command based on the configuration of firmware
 modules in the database. It then flashes the arduino and spawns an instance of
 `rosserial_python.serial_node.py` to read in the data from the Arduino.
-Whenever the configuration of firmware modules changes, it regenerates firmware
-code and reflashes the Arduino. There should always be exactly one instance of
-this module in the system.
+There should always be exactly one instance of this module in the system.
 
 This module has
 """
