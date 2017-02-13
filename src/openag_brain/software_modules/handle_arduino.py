@@ -20,12 +20,8 @@ import tempfile
 import argparse
 import traceback
 import subprocess
-from openag.cli.config import config as cli_config
-from openag.db_names import FIRMWARE_MODULE
 from openag.categories import default_categories
-from couchdb import Server
-
-from openag_brain import commands, params
+from openag_brain import params
 
 
 class ArduinoHandler(object):
