@@ -13,10 +13,8 @@ expected. There should be exactly one instance of this module in the system
 import rospy
 import rosgraph
 import rostopic
-import json
 from openag.utils import synthesize_firmware_module_info, merge_deep
 from openag.models import FirmwareModule, FirmwareModuleType
-from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from std_msgs.msg import Bool, Float32, Float64
 from openag_brain.msg import SensorInfo
 from roslib.message import get_message_class
@@ -55,17 +53,14 @@ def connect_all_topics(inputs_map, outputs_map):
         connect_topics()
 
 
-def connect_all_topics(modules):
-    module_list = modules[FIRMWARE_MODULE]
-    module_type_list = modules[FIRMWARE_MODULE_TYPE]
-
+def connect_all_topics(firmware_module, firmware_module_type):
     modules = {
-        module_id: FirmwareModule(module_list[module_id]) for module_id in
-        module_list if not module_id.startswith('_')
+        record["_id"]: FirmwareModule(record) for record in
+        firmware_module if not record["_id"].startswith('_')
     }
     module_types = {
-        type_id: FirmwareModuleType(module_type_list[type_id]) for type_id in
-        module_type_list if not type_id.startswith("_")
+        record["_id"]: FirmwareModuleType(record) for record in
+        firmware_module_type if not record["_id"].startswith("_")
     }
     modules = synthesize_firmware_module_info(modules, module_types)
     for module_id, module_info in modules.items():
@@ -105,13 +100,7 @@ def connect_all_topics(modules):
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
-    module_files = (
-        rospy.get_param("~module_files") or
-        ["~/.openag/firmware/personal_food_computer_v2.json"]
-    )
-    modules_json = (
-        merge_deep(json.load(file) for file in module_files)
-        if len(module_files) else {}
-    )
-    connect_all_topics(modules_json)
+    firmware_module = rospy.get_param("/firmware_module")
+    firmware_module_type = rospy.get_param("/firmware_module_type")
+    connect_all_topics(firmware_module, firmware_module_type)
     rospy.spin()

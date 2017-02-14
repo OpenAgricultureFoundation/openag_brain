@@ -3,6 +3,7 @@ import rospkg
 from sys import maxsize
 from random import randint
 from re import match
+import json
 
 def resolve_fixtures(fixtures):
     """
