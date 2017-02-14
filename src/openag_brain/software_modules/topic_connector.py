@@ -105,7 +105,10 @@ def connect_all_topics(modules):
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
-    module_files = rospy.get_param("~module_files")
+    module_files = (
+        rospy.get_param("~module_files") or
+        ["~/.openag/firmware/personal_food_computer_v2.json"]
+    )
     modules_json = (
         merge_deep(json.load(file) for file in module_files)
         if len(module_files) else {}
