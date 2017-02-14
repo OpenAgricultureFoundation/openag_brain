@@ -1,5 +1,5 @@
 <launch>
-  <rosparam param="categories">['sensors', 'actuators', 'persistence', 'control']</rosparam>
+  <rosparam command="load" file="$(find openag_brain)/param/personal_food_computer_v2.yaml" />
   <group ns="environments/environment_1">
     <node pkg="openag_brain" type="linear_controller.py" name="water_level_high_controller_1">
       <param name="variable" value="water_level_high" type="str"/>
@@ -45,8 +45,7 @@
     <param name="serial_port" value="/dev/ttyACM0" type="str"/>
     <param name="should_flash" value="false" type="bool"/>
   </node>
-  </group>
   <node pkg="openag_brain" type="api.py" name="api"/>
-  <node pkg="openag_brain" type="topic_connector.py" name="topic_connector"/>
+  <node pkg="openag_brain" type="topic_connector.py" name="topic_connector" />
   <node pkg="openag_brain" type="sensor_info_publisher.py" name="sensor_info_publisher"/>
 </launch>
