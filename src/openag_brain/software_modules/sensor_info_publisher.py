@@ -4,7 +4,6 @@ import rospy
 from openag.cli.config import config as cli_config
 from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
-from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from couchdb import Server
 from openag_brain.msg import SensorInfo
 
@@ -31,15 +30,15 @@ if __name__ == '__main__':
     server = Server(db_server)
 
     # Get info on all of the modules
-    module_db = server[FIRMWARE_MODULE]
-    module_type_db = server[FIRMWARE_MODULE_TYPE]
+    firmware_module = rospy.get_param("/firmware_module")
+    firmware_module_type = rospy.get_param("/firmware_module_type")
     modules = {
-        module_id: FirmwareModule(module_db[module_id]) for module_id in
-        module_db if not module_id.startswith('_')
+        record["_id"]: FirmwareModule(record) for record in
+        firmware_module if not record["_id"].startswith('_')
     }
     module_types = {
-        type_id: FirmwareModuleType(module_type_db[type_id]) for type_id in
-        module_type_db if not type_id.startswith('_')
+        record["_id"]: FirmwareModuleType(record) for record in
+        firmware_module_type if not record["_id"].startswith('_')
     }
     modules = synthesize_firmware_module_info(modules, module_types)
 

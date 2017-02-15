@@ -18,7 +18,6 @@ import rospy
 from openag.cli.config import config as cli_config
 from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
-from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
 from openag_brain.msg import DiagnosticArray as _DiagnosticArray
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from couchdb import Server
@@ -57,19 +56,15 @@ class DiagnosticsExpander:
 
 if __name__ == '__main__':
     rospy.init_node("expand_diagnostics")
-    db_server = cli_config["local_server"]["url"]
-    if not db_server:
-        raise RuntimeError("No local server specified")
-    server = Server(db_server)
-    module_db = server[FIRMWARE_MODULE]
-    module_type_db = server[FIRMWARE_MODULE_TYPE]
+    firmware_module = rospy.get_param("/firmware_module")
+    firmware_module_type = rospy.get_param("/firmware_module_type")
     modules = {
-        module_id: FirmwareModule(module_db[module_id]) for module_id in
-        module_db if not module_id.startswith('_')
+        record["_id"]: FirmwareModule(record) for record in
+        firmware_module if not record["_id"].startswith('_')
     }
     module_types = {
-        type_id: FirmwareModuleType(module_type_db[type_id]) for type_id in
-        module_type_db if not type_id.startswith('_')
+        record["_id"]: FirmwareModuleType(record) for record in
+        firmware_module_type if not record["_id"].startswith('_')
     }
     modules = synthesize_firmware_module_info(modules, module_types)
     expander = DiagnosticsExpander(modules)
