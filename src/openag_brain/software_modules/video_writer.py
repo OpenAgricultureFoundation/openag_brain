@@ -11,9 +11,14 @@ import subprocess
 from openag.cli.config import config as cli_config
 from openag.couch import Server
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
-from openag.var_types import RECIPE_START, RECIPE_END
-from openag_brain.var_types import CAMERA_VARIABLES
+from openag.var_types import RECIPE_START, RECIPE_END, EnvVar, CATEGORY_CAMERA
 from openag_brain.video_helpers import *
+
+# Filter a list of environmental variables that are specific to camera
+CAMERA_VARIABLES = tuple(
+    var for var in EnvVar.items.values()
+    if CATEGORY_CAMERA in var.categories
+)
 
 IMAGE_ATTACHMENT = "image"
 TIMELAPSE_ATTACHMENT = "timelapse"

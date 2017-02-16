@@ -2,7 +2,14 @@
 import rospy
 
 from std_msgs.msg import Float64
-from openag_brain.var_types import SENSOR_VARIABLES
+from openag.var_types import EnvVar, CATEGORY_ENVIRONMENT
+
+# Filter a list of environmental variables that are specific to environment
+# sensors and actuators
+ENVIRONMENT_VARIABLES = tuple(
+    var for var in EnvVar.items.values()
+    if CATEGORY_ENVIRONMENT in var.categories
+)
 
 class EWMA:
     def __init__(self, a):
@@ -44,5 +51,5 @@ def filter_all_variable_topics(variables):
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
     # Make sure that we're under an environment namespace.
-    filter_all_variable_topics(SENSOR_VARIABLES)
+    filter_all_variable_topics(ENVIRONMENT_VARIABLES)
     rospy.spin()
