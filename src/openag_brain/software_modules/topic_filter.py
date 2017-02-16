@@ -41,7 +41,7 @@ def filter_all_variable_topics(variables):
     Given an iterator publishers, where each publisher is a two-tuple
     `(topic, type)`, publishes a filtered topic endpoint.
     """
-    for env_var, MsgType in variables:
+    for env_var in variables:
         src_topic = "{}/raw".format(env_var)
         dest_topic = "{}/measured".format(env_var)
         # Ignore type associated with environmental variable type and

@@ -81,7 +81,7 @@ def create_persistence_objects(
     server, environment_id, max_update_interval, min_update_interval
 ):
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
-    for variable, MsgType in ENVIRONMENT_VARIABLES:
+    for variable in ENVIRONMENT_VARIABLES:
         variable = str(variable)
         topic = "{}/measured".format(variable)
         TopicPersistence(

@@ -100,7 +100,7 @@ if __name__ == '__main__':
         min_update_interval = 3600
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     persistence_objs = []
-    for variable, MsgType in CAMERA_VARIABLES:
+    for variable in CAMERA_VARIABLES:
         topic = "{}/raw".format(variable)
         persistence_objs.append(ImagePersistence(
             db=env_var_db, topic=topic, variable=variable,

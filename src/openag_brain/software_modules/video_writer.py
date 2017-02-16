@@ -276,7 +276,7 @@ if __name__ == '__main__':
             "designate an environment for this module."
         )
     environment = namespace.split('/')[-2]
-    for (camera_var, topic_type) in CAMERA_VARIABLES:
+    for camera_var in CAMERA_VARIABLES:
         mod = VideoWriter(
             server, environment, camera_var, timelapse_scaling_factor
         )
