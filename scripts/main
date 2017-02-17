@@ -29,32 +29,8 @@ def spawn_modules(launch_file, screen=False):
         roslaunch_command.append("--screen")
     return subprocess.Popen(roslaunch_command)
 
-def run_categories_process(queue):
-    """
-    Start a ROS service that allows the user to changes the set of categories
-    enabled in this run of the system. Whenever the service is called, it adds
-    the new list of categories to the given queue.
 
-    It is convenient to run this service in a new process on every restart
-    because `rospy` assumes that a python process will never outlive its ROS
-    core and that it will certainly never have to register itself with a series
-    of different ROS cores over time, as we would like to do here.
-    """
-    def run_process():
-        import rospy
-        rospy.init_node("categories_service")
-        def callback(req):
-            queue.put(req.categories)
-            return SetCategories._response_class(True, "OK")
-        rospy.Service(
-            "set_categories", SetCategories, callback
-        )
-        rospy.spin()
-    p = mp.Process(target=run_process)
-    p.start()
-    return p
-
-def main(api_server, db_server, launch_file, screen, categories):
+def main(launch_file, api_server, db_server, screen):
     # Initialize the database
     print "Initializing the database"
     db_server = db_server or cli_config["local_server"]["url"]
@@ -70,6 +46,7 @@ def main(api_server, db_server, launch_file, screen, categories):
     global modules
     print "Spawning software modules"
     modules = spawn_modules(launch_file, screen)
+    modules.wait()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -82,7 +59,7 @@ the configuration of the software modules
         """,
     )
     parser.add_argument(
-        'launch_file'
+        "launch_file",
         help="The path to the .launch file to use"
     )
     parser.add_argument(
@@ -99,6 +76,7 @@ the screen. Useful for debugging.
 """)
     vals = parser.parse_args()
     main(
+        launch_file=vals.launch_file,
         api_server=vals.api_server, db_server=vals.db_server,
-        fixtures=fixture_paths, screen=vals.screen, categories=vals.categories
+        screen=vals.screen
     )
