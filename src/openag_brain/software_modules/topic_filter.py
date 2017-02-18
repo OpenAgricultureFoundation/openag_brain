@@ -2,13 +2,13 @@
 import rospy
 
 from std_msgs.msg import Float64
-from openag.var_types import EnvVar, CATEGORY_ENVIRONMENT
+from openag.var_types import EnvVar, GROUP_ENVIRONMENT
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
 ENVIRONMENT_VARIABLES = tuple(
     var for var in EnvVar.items.values()
-    if CATEGORY_ENVIRONMENT in var.categories
+    if GROUP_ENVIRONMENT in var.groups
 )
 
 class EWMA:

@@ -21,7 +21,7 @@ from re import match
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint, SoftwareModule
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, SOFTWARE_MODULE
-from openag.var_types import EnvVar, CATEGORY_CAMERA
+from openag.var_types import EnvVar, GROUP_CAMERA
 
 from openag_brain import params
 from openag_brain.utils import read_environment_from_ns
@@ -29,7 +29,7 @@ from openag_brain.utils import read_environment_from_ns
 # Filter a list of environmental variables that are specific to camera
 CAMERA_VARIABLES = tuple(
     var for var in EnvVar.items.values()
-    if CATEGORY_CAMERA in var.categories
+    if GROUP_CAMERA in var.groups
 )
 
 class ImagePersistence:

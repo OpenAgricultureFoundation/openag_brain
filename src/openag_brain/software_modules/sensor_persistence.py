@@ -19,13 +19,13 @@ from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.utils import read_environment_from_ns
-from openag.var_types import EnvVar, CATEGORY_ENVIRONMENT
+from openag.var_types import EnvVar, GROUP_ENVIRONMENT
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
 ENVIRONMENT_VARIABLES = tuple(
     var for var in EnvVar.items.values()
-    if CATEGORY_ENVIRONMENT in var.categories
+    if GROUP_ENVIRONMENT in var.groups
 )
 
 class TopicPersistence:
