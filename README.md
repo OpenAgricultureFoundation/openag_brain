@@ -1,8 +1,8 @@
 OpenAg Brain
 ============
 
-This repository hold code that runs on the main computing board of an OpenAg
-food computer (usually a Raspberry Pi). It runs on top on [ROS](http://www.ros.org)
+This repository holds code that runs on the main computing board of an OpenAg
+food computer (usually a Raspberry Pi). It runs on top of [ROS](http://www.ros.org)
 and uses [CouchDB](http://couchdb.apache.org/) for data storage.
 
 Installation (Raspberry Pi)
