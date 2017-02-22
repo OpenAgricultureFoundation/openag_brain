@@ -13,7 +13,7 @@ expected. There should be exactly one instance of this module in the system
 import rospy
 import rosgraph
 import rostopic
-from openag.utils import synthesize_firmware_module_info, merge_deep
+from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
 from std_msgs.msg import Bool, Float32, Float64
 from openag_brain.msg import SensorInfo
