@@ -69,8 +69,8 @@ doing so. In newer versions of Ubuntu (13.10 and up), this can be done via::
     sudo apt-get install couchdb
 
 Create a catkin workspace as described `here
-<http://wiki.ros.org/catkin/Tutorials/create_a_workspace/>`_. Then. install the
-code from the `openag_brain` repository in this workspace as follows::
+<http://wiki.ros.org/catkin/Tutorials/create_a_workspace/>`_. Then, install the
+code from the ``openag_brain`` repository in this workspace as follows::
 
     cd ~/catkin_ws/src
     git clone http://github.com/OpenAgInitiative/openag_brain.git
@@ -84,10 +84,11 @@ as follows::
 
     source ~/catkin_ws/devel/setup.bash
 
-Finally, you must install `PlatformIO`. `PlatformIO` and `rosserial` use
-different versions of `pyserial`, so installing them both on the same machine
-will break things. Instead `platformio` should be installed in a python virtual
-environment. There is a script in `openag_brain` that will do this for you::
+Finally, you must install ``PlatformIO``. ``PlatformIO`` and ``rosserial`` use
+different versions of ``pyserial``, so installing them both on the same machine
+will break things. Instead, ``platformio`` should be installed in a python
+virtual environment. There is a script in ``openag_brain`` that will do this
+for you::
 
     rosrun openag_brain install_pio
 
@@ -101,9 +102,9 @@ project can be run as follows::
     rosrun openag_brain main -f default
 
 The :code:`-f default` flag (which is also used by the Docker image) loads a
-fixture named `default` which populates the database with a basic module
+fixture named ``default`` which populates the database with a basic module
 configuration. You should be able to view the CouchDB server by going to
-`http://localhost:5984/_utils` in your browser. This is a good way to test that
-the project is actually running. See :ref:`ModuleConfiguration` for
+``http://localhost:5984/_utils`` in your browser. This is a good way to test
+that the project is actually running. See :ref:`ModuleConfiguration` for
 instructions on how to configure the software to interface with your specific
 hardware.
