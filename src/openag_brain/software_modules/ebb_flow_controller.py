@@ -8,17 +8,17 @@ if __name__ == '__main__':
 
     # Make sure that we're under an environment namespace.
     namespace = rospy.get_namespace()
-    if namespace == '/':
-        raise RuntimeError(
-            "Cannot be run in the global namespace. Please "
-            "designate an environment for this module."
-        )
+#    if namespace == '/':
+#        raise RuntimeError(
+#            "Cannot be run in the global namespace. Please "
+#            "designate an environment for this module."
+#        )
 
     command_pub_name = "cmd"
     state_pub_name = "state"
 
-    on_time = rospy.get_param("~on_time")
-    off_time = rospy.get_param("~off_time")
+    on_time = rospy.get_param("~on_time", None)
+    off_time = rospy.get_param("~off_time", None)
 
     if on_time and off_time is None:
         raise RuntimeError(
@@ -35,12 +35,23 @@ if __name__ == '__main__':
 
     s = sched.scheduler(time.time, time.sleep)
 
-    def publish_both(item, is_off=True):
+    def publish_both(item):
+        print("publishing...{}".format(command_pub_name))
         command_pub.publish(item)
         state_pub.publish(item)
-        time_delay = on_time if is_off else off_time
-        s.enter(time_delay, 1, publish_both, argument=(1.0 - item, not is_off))
+        
+
+    def loop(is_off):
+        freq = 1
+        out = 0.0 if is_off else 1.0
+        time_delay = off_time if is_off else on_time
+        for i in range(int(time_delay / freq)):
+            s.enter(freq+i*freq, 1, publish_both, argument=[out])
+
+        s.enter(time_delay, 1, loop, argument=[not is_off])
         s.run()
+
+    loop(True)
 
     # Keeps this node running, although it might not be necessary given that the code runs indefinitely
     rospy.spin()
