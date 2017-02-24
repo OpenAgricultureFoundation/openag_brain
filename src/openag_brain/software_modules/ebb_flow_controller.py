@@ -8,11 +8,11 @@ if __name__ == '__main__':
 
     # Make sure that we're under an environment namespace.
     namespace = rospy.get_namespace()
-#    if namespace == '/':
-#        raise RuntimeError(
-#            "Cannot be run in the global namespace. Please "
-#            "designate an environment for this module."
-#        )
+    if namespace == '/':
+        raise RuntimeError(
+            "Cannot be run in the global namespace. Please "
+            "designate an environment for this module."
+        )
 
     command_pub_name = "cmd"
     state_pub_name = "state"
