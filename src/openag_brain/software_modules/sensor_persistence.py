@@ -18,8 +18,15 @@ from std_msgs.msg import Float64
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
-from openag_brain.var_types import SENSOR_VARIABLES
 from openag_brain.utils import read_environment_from_ns
+from openag.var_types import EnvVar, GROUP_ENVIRONMENT
+
+# Filter a list of environmental variables that are specific to environment
+# sensors and actuators
+ENVIRONMENT_VARIABLES = tuple(
+    var for var in EnvVar.items.values()
+    if GROUP_ENVIRONMENT in var.groups
+)
 
 class TopicPersistence:
     def __init__(
@@ -74,7 +81,7 @@ def create_persistence_objects(
     server, environment_id, max_update_interval, min_update_interval
 ):
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
-    for variable, MsgType in SENSOR_VARIABLES:
+    for variable in ENVIRONMENT_VARIABLES:
         variable = str(variable)
         topic = "{}/measured".format(variable)
         TopicPersistence(

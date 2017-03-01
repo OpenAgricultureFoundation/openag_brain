@@ -2,7 +2,14 @@
 import rospy
 
 from std_msgs.msg import Float64
-from openag_brain.var_types import SENSOR_VARIABLES
+from openag.var_types import EnvVar, GROUP_ENVIRONMENT
+
+# Filter a list of environmental variables that are specific to environment
+# sensors and actuators
+ENVIRONMENT_VARIABLES = tuple(
+    var for var in EnvVar.items.values()
+    if GROUP_ENVIRONMENT in var.groups
+)
 
 class EWMA:
     def __init__(self, a):
@@ -34,7 +41,7 @@ def filter_all_variable_topics(variables):
     Given an iterator publishers, where each publisher is a two-tuple
     `(topic, type)`, publishes a filtered topic endpoint.
     """
-    for env_var, MsgType in variables:
+    for env_var in variables:
         src_topic = "{}/raw".format(env_var)
         dest_topic = "{}/measured".format(env_var)
         # Ignore type associated with environmental variable type and
@@ -44,5 +51,5 @@ def filter_all_variable_topics(variables):
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
     # Make sure that we're under an environment namespace.
-    filter_all_variable_topics(SENSOR_VARIABLES)
+    filter_all_variable_topics(ENVIRONMENT_VARIABLES)
     rospy.spin()

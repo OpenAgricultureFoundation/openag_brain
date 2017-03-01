@@ -1,13 +1,24 @@
 {
   "firmware_module": [
     {
+      "_id": "air_flush_1",
+      "arguments": [36, true],
+      "environment": "environment_1",
+      "type": "air_flush",
+      "inputs": {
+        "cmd": {
+          "variable": "air_flush_on"
+        }
+      }
+    },
+    {
       "_id": "led_red_1",
       "arguments": [42, true],
       "environment": "environment_1",
       "type": "pwm_actuator",
       "inputs": {
         "cmd": {
-          "variable": "light_illuminance"
+          "variable": "light_intensity_red"
         }
       }
     },
@@ -18,7 +29,7 @@
       "type": "pwm_actuator",
       "inputs": {
         "cmd": {
-          "variable": "light_illuminance"
+          "variable": "light_intensity_blue"
         }
       }
     },
@@ -29,7 +40,7 @@
       "type": "pwm_actuator",
       "inputs": {
         "cmd": {
-          "variable": "light_illuminance"
+          "variable": "light_intensity_white"
         }
       }
     },
@@ -218,11 +229,27 @@
       }
     },
     {
-      "_id": "light_controller_1",
+      "_id": "light_controller_red_1",
       "type": "openag_brain:direct_controller.py",
       "environment": "environment_1",
       "parameters": {
-        "variable": "light_illuminance"
+        "variable": "light_intensity_red"
+      }
+    },
+    {
+      "_id": "light_controller_blue_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "light_intensity_blue"
+      }
+    },
+    {
+      "_id": "light_controller_white_1",
+      "type": "openag_brain:direct_controller.py",
+      "environment": "environment_1",
+      "parameters": {
+        "variable": "light_intensity_white"
       }
     },
     {
