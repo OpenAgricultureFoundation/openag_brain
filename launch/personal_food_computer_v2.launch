@@ -39,7 +39,7 @@
       <param name="max_update_interval" value="600" type="int"/>
       <param name="min_update_interval" value="5" type="int"/>
     </node>
-    <node pkg="usb_cam" type="usb_cam_node" name="usb_cam_1">
+    <node pkg="usb_cam" type="usb_cam_node" name="aerial_image">
       <rosparam file="$(find openag_brain)/launch/usb_cam.yaml" />
       <param name="pixel_format" type="str" value="yuyv"/>
     </node>
