@@ -117,10 +117,10 @@ class VideoWriter(object):
         # would make it more likely for us to miss images
         self.init_video(self.start_doc)
         image_view = self.data_db.view("openag/by_variable", startkey=[
-            self.environment, "measured", AERIAL_IMAGE.name,
+            self.environment, "measured", variable.name,
             self.start_doc["timestamp"]
         ], endkey=[
-            self.environment, "measured", AERIAL_IMAGE.name, {}
+            self.environment, "measured", variable.name, {}
         ], group_level=4)
         for row in image_view:
             self.append_video(row.value)
