@@ -101,7 +101,7 @@ if __name__ == '__main__':
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     persistence_objs = []
     for variable in CAMERA_VARIABLES:
-        topic = "{}/raw".format(variable)
+        topic = "{}/image_raw".format(variable)
         persistence_objs.append(ImagePersistence(
             db=env_var_db, topic=topic, variable=variable,
             environment=environment_id,
