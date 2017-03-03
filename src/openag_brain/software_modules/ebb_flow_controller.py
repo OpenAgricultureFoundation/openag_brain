@@ -30,28 +30,23 @@ if __name__ == '__main__':
         command_pub_name = "{}/commanded".format(variable)
         state_pub_name = "{}/measured".format(variable)
 
+    # Node will publish to ~variable/commanded and ~variable/measured
     command_pub = rospy.Publisher(command_pub_name, Float64, queue_size=10)
     state_pub = rospy.Publisher(state_pub_name, Float64, queue_size=10)
-
-    s = sched.scheduler(time.time, time.sleep)
 
     def publish_both(item):
         print("publishing...{}".format(command_pub_name))
         command_pub.publish(item)
         state_pub.publish(item)
-        
 
-    def loop(is_off):
-        freq = 1
-        out = 0.0 if is_off else 1.0
-        time_delay = off_time if is_off else on_time
-        for i in range(int(time_delay / freq)):
-            s.enter(freq+i*freq, 1, publish_both, argument=[out])
-
-        s.enter(time_delay, 1, loop, argument=[not is_off])
-        s.run()
-
-    loop(True)
-
-    # Keeps this node running, although it might not be necessary given that the code runs indefinitely
-    rospy.spin()
+    on_off_state = False # Boolean value, True is ON and False is OFF
+    time_to_next_state = off_time
+    time = rospy.get_time()
+    while not rospy.is_shutdown(): # Run while ROS is running
+        time_to_next_state -= (rospy.get_time() - time)
+        time = rospy.get_time()
+        if time_to_next_state <= 0:
+            on_off_state = not on_off_state
+            time_to_next_state = on_time if on_off_state else off_time
+        bool_to_float = 1.0 if on_off_state else 0.0
+        publish_both(bool_to_float)
