@@ -1,0 +1,51 @@
+# Default configuration for usb_cam package.
+# http://wiki.ros.org/usb_cam
+# Usage:
+#
+#     <node pkg="usb_cam" type="usb_cam_node" name="usb_cam_1">
+#       <rosparam file="$(find openag_brain)/launch/usb_cam.yaml" />
+#     </node>
+
+# The device the camera is on
+video_device: "/dev/video0"
+
+# Image dimensions
+image_width: 640
+image_height: 480
+
+# Possible values are mjpeg, yuyv, uyvy
+pixel_format: "mjpeg"
+
+# Possible values are mmap, read, userptr
+io_method: "mmap"
+
+# The camera's tf frame
+camera_frame_id: "head_camera"
+
+# The camera's tf frame
+framerate: 1
+
+# Contrast of video image (0-255)
+contrast: 32
+
+# Brightness of video image (0-255)
+brightness: 32
+
+# Saturation of video image (0-255)
+saturation: 32
+
+# Sharpness of video image (0-255)
+sharpness: 22
+
+# Enable camera's autofocus
+autofocus: false
+
+# If autofocus is disabled, the focus of the camera (0=at infinity)
+focus: 51
+
+# A url to the camera calibration file that will be read by the
+# CameraInfoManager class
+camera_info_url: ""
+
+# The camera name. This must match the name in the camera calibration
+camera_name": "head_camera"

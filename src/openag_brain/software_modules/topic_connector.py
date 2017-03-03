@@ -10,21 +10,13 @@ of hardware acts (e.g. /environment_1/measured/air_temperature). This module
 connects topics so as to ensure that both of these system views work as
 expected. There should be exactly one instance of this module in the system
 """
-import sys
-import time
 import rospy
 import rosgraph
 import rostopic
-from openag.cli.config import config as cli_config
 from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
-from openag.db_names import FIRMWARE_MODULE, FIRMWARE_MODULE_TYPE
-from couchdb import Server
 from std_msgs.msg import Bool, Float32, Float64
-
-from openag_brain import params
 from openag_brain.msg import SensorInfo
-from openag_brain.srv import Empty
 from roslib.message import get_message_class
 
 def connect_topics(
@@ -52,14 +44,23 @@ def connect_sensor_info_topics(src_topic, dest_topic):
     pub = rospy.Publisher(dest_topic, SensorInfo, queue_size=1, latch=True)
     sub = rospy.Subscriber(src_topic, SensorInfo, pub.publish)
 
-def connect_all_topics(module_db, module_type_db):
+def connect_all_topics(inputs_map, outputs_map):
+    """
+    Connect sensor topics and actuator topics through environmental variables.
+    We connect keys to values in `connection_map`.
+    """
+    for sensor_topic, measured_topic in inputs_map:
+        connect_topics()
+
+
+def connect_all_topics(firmware_module, firmware_module_type):
     modules = {
-        module_id: FirmwareModule(module_db[module_id]) for module_id in
-        module_db if not module_id.startswith('_')
+        record["_id"]: FirmwareModule(record) for record in
+        firmware_module if not record["_id"].startswith('_')
     }
     module_types = {
-        type_id: FirmwareModuleType(module_type_db[type_id]) for type_id in
-        module_type_db if not type_id.startswith("_")
+        record["_id"]: FirmwareModuleType(record) for record in
+        firmware_module_type if not record["_id"].startswith("_")
     }
     modules = synthesize_firmware_module_info(modules, module_types)
     for module_id, module_info in modules.items():
@@ -99,11 +100,7 @@ def connect_all_topics(module_db, module_type_db):
 
 if __name__ == '__main__':
     rospy.init_node("topic_connector")
-    db_server = cli_config["local_server"]["url"]
-    if not db_server:
-        raise RuntimeError("No local server specified")
-    server = Server(db_server)
-    module_db = server[FIRMWARE_MODULE]
-    module_type_db = server[FIRMWARE_MODULE_TYPE]
-    connect_all_topics(module_db, module_type_db)
+    firmware_module = rospy.get_param("/firmware_module")
+    firmware_module_type = rospy.get_param("/firmware_module_type")
+    connect_all_topics(firmware_module, firmware_module_type)
     rospy.spin()
