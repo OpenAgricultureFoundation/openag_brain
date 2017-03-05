@@ -42,6 +42,7 @@ if __name__ == '__main__':
     on_off_state = False # Boolean value, True is ON and False is OFF
     time_to_next_state = off_time
     time = rospy.get_time()
+    rate = rospy.rate(1)
     while not rospy.is_shutdown(): # Run while ROS is running
         time_to_next_state -= (rospy.get_time() - time)
         time = rospy.get_time()
@@ -50,3 +51,4 @@ if __name__ == '__main__':
             time_to_next_state = on_time if on_off_state else off_time
         bool_to_float = 1.0 if on_off_state else 0.0
         publish_both(bool_to_float)
+        rate.sleep()
