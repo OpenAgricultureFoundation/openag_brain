@@ -20,7 +20,7 @@ if __name__ == '__main__':
     on_time = rospy.get_param("~on_time", None)
     off_time = rospy.get_param("~off_time", None)
 
-    if on_time and off_time is None:
+    if on_time is None or off_time is None:
         raise RuntimeError(
             "There is no on_time or off_time set for this module."
         )
@@ -35,14 +35,13 @@ if __name__ == '__main__':
     state_pub = rospy.Publisher(state_pub_name, Float64, queue_size=10)
 
     def publish_both(item):
-        print("publishing...{}".format(command_pub_name))
         command_pub.publish(item)
         state_pub.publish(item)
 
     on_off_state = False # Boolean value, True is ON and False is OFF
     time_to_next_state = off_time
     time = rospy.get_time()
-    rate = rospy.rate(1)
+    rate = rospy.Rate(1)
     while not rospy.is_shutdown(): # Run while ROS is running
         time_to_next_state -= (rospy.get_time() - time)
         time = rospy.get_time()
