@@ -1,0 +1,604 @@
+---
+# Firmware categories to include
+categories:
+- sensors
+- actuators
+- persistence
+- control
+firmware_module:
+- _id: led_red_1
+  arguments:
+  - 42
+  - true
+  environment: environment_1
+  type: pwm_actuator
+  inputs:
+    cmd:
+      variable: light_illuminance
+- _id: led_blue_1
+  arguments:
+  - 40
+  - true
+  environment: environment_1
+  type: pwm_actuator
+  inputs:
+    cmd:
+      variable: light_illuminance
+- _id: led_white_1
+  arguments:
+  - 41
+  - true
+  environment: environment_1
+  type: pwm_actuator
+  inputs:
+    cmd:
+      variable: light_illuminance
+- _id: pump_1_nutrient_a_1
+  arguments:
+  - 28
+  - true
+  environment: environment_1
+  type: doser_pump
+  inputs:
+    cmd:
+      variable: nutrient_flora_duo_a
+- _id: pump_2_nutrient_b_1
+  arguments:
+  - 29
+  - true
+  environment: environment_1
+  type: doser_pump
+  inputs:
+    cmd:
+      variable: nutrient_flora_duo_b
+- _id: pump_3_ph_up_1
+  arguments:
+  - 30
+  - true
+  - 50
+  - 4000
+  environment: environment_1
+  type: pulse_actuator
+  inputs:
+    cmd:
+      variable: water_potential_hydrogen
+- _id: pump_4_ph_down_1
+  arguments:
+  - 31
+  - true
+  - 50
+  - 4000
+  environment: environment_1
+  type: pulse_actuator
+  inputs:
+    cmd:
+      variable: water_potential_hydrogen
+      multiplier: -1
+- _id: pump_5_water_1
+  arguments:
+  - 32
+  - true
+  environment: environment_1
+  type: binary_actuator
+  inputs:
+    cmd:
+      variable: water_level_high
+      multiplier: -1
+- _id: heater_core_1_1
+  arguments:
+  - 43
+  - true
+  environment: environment_1
+  type: binary_actuator
+  inputs:
+    cmd:
+      variable: air_temperature
+- _id: heater_core_2_1
+  arguments:
+  - 35
+  - true
+  environment: environment_1
+  type: binary_actuator
+  inputs:
+    cmd:
+      variable: air_temperature
+- _id: chiller_pump_1
+  arguments:
+  - 34
+  - true
+  environment: environment_1
+  type: binary_actuator
+  inputs:
+    cmd:
+      variable: air_temperature
+      multiplier: -1
+- _id: chiller_fan_1
+  arguments:
+  - 33
+  - true
+  environment: environment_1
+  type: binary_actuator
+  inputs:
+    cmd:
+      variable: air_temperature
+      multiplier: -1
+- _id: chiller_compressor_1
+  arguments:
+  - 10
+  - false
+  environment: environment_1
+  type: binary_actuator
+  inputs:
+    cmd:
+      variable: air_temperature
+      multiplier: -1
+# This configuration sets up a second chiller pin that does not
+# rely on pulse modulation HW. Instead, it uses the tone_actuator firmware
+# to modulate in software.
+# @FIXME eventually we should have only one chiller compressor in firmware.
+- _id: chiller_compressor_1_1
+  arguments:
+  - 9
+  - false
+  environment: environment_1
+  type: tone_actuator
+  inputs:
+    cmd:
+      variable: air_temperature
+      multiplier: -1
+- _id: chamber_fan_1
+  arguments:
+  - 39
+  - false
+  environment: environment_1
+  type: binary_actuator
+- _id: water_circulation_pump_1
+  arguments:
+  - 38
+  - false
+  environment: environment_1
+  type: binary_actuator
+- _id: water_aeration_pump_1
+  arguments:
+  - 37
+  - false
+  environment: environment_1
+  type: binary_actuator
+- _id: atlas_ec_1
+  environment: environment_1
+  type: atlas_ec
+- _id: atlas_ph_1
+  environment: environment_1
+  type: atlas_ph
+- _id: mhz16_1
+  environment: environment_1
+  type: mhz16
+- _id: am2315_1
+  type: am2315
+  environment: environment_1
+- _id: ds18b20_1
+  type: ds18b20
+  arguments:
+  - 5
+  environment: environment_1
+  outputs:
+    temperature:
+      variable: water_temperature
+- _id: water_level_sensor_high_1
+  type: binary_sensor
+  environment: environment_1
+  arguments:
+  - 4
+  - true
+  outputs:
+    is_on:
+      variable: water_level_high
+firmware_module_type:
+- _id: am2315
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_am2315.git
+  header_file: openag_am2315.h
+  class_name: Am2315
+  description: Driver for the am2315 sensor
+  outputs:
+    air_temperature:
+      type: std_msgs/Float32
+      accuracy: 0.1
+      repeatability: 0.2
+    air_humidity:
+      type: std_msgs/Float32
+      accuracy: 2
+      repeatability: 0.1
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': Sensor responded with the wrong function code
+    '2': Sensor did not return enough information
+- _id: atlas_do
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_atlas_do.git
+  description: ''
+  header_file: openag_atlas_do.h
+  class_name: AtlasDo
+  arguments:
+  - name: i2c_address
+    type: int
+    default: 97
+  inputs:
+    atmospheric_calibration:
+      type: std_msgs/Empty
+      categories:
+      - calibration
+    zero_calibration:
+      type: std_msgs/Empty
+      categories:
+      - calibration
+  outputs:
+    water_dissolved_oxygen:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': No response
+    '2': Request failed
+    '3': Unknown error
+- _id: atlas_ec
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_atlas_ec.git
+  description: Driver for the Atlas Scientific electrical conductivity sensor
+  header_file: openag_atlas_ec.h
+  class_name: AtlasEc
+  arguments:
+  - name: i2c_address
+    type: int
+    default: 100
+  outputs:
+    water_electrical_conductivity:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': No response
+    '2': Request failed
+    '3': Unknown error
+- _id: atlas_orp
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_atlas_orp.git
+  header_file: openag_atlas_orp.h
+  class_name: AtlasOrp
+  description: ''
+  arguments:
+  - name: i2c_address
+    type: int
+    default: 98
+  inputs:
+    calibration:
+      type: std_msgs/Float32
+      categories:
+      - calibration
+  outputs:
+    water_oxidation_reduction_potential:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': No data
+    '2': Request failed
+    '3': Unknown error
+- _id: atlas_ph
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_atlas_ph.git
+  header_file: openag_atlas_ph.h
+  class_name: AtlasPh
+  description: Driver for the Atlas Scientific pH sensor
+  arguments:
+  - name: i2c_address
+    type: int
+    default: 99
+  inputs: {}
+  outputs:
+    water_potential_hydrogen:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': No response
+    '2': Request failed
+    '3': Unknown error
+- _id: atlas_rgb
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_atlas_rgb.git
+  header_file: openag_atlas_rgb.h
+  class_name: AtlasRgb
+  description: Driver for the Atlas Scientific light spectrum and intensity sensor
+  arguments:
+  - name: serial_port
+    type: int
+    description: Index of the serial port to which this sensor is connected
+  outputs:
+    light_illuminance:
+      type: std_msgs/UInt16
+    light_spectrum:
+      type: std_msgs/UInt8MultiArray
+      description: 3-element array with red, green, and blue values
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': Failed to read data
+    '2': Invalid response. Recalibration required
+- _id: binary_actuator
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_binary_actuator.git
+  header_file: openag_binary_actuator.h
+  class_name: BinaryActuator
+  description: Driver for an actuator that can only be set ot binary values
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  - name: shutoff_ms
+    type: int
+    default: 10000
+  inputs:
+    cmd:
+      type: std_msgs/Bool
+      categories:
+      - actuators
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+- _id: tone_actuator
+  header_file: openag_tone_actuator.h
+  class_name: ToneActuator
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  - name: tone_frequency
+    type: int
+    default: 140
+  - name: tone_duration
+    type: int
+    default: -1
+  inputs:
+    cmd:
+      type: std_msgs/Bool
+  repository:
+    url: https://github.com/OpenAgInitiative/openag_tone_actuator.git
+    type: git
+  dependencies:
+  - type: git
+    url: http://github.com/OpenAgInitiative/openag_firmware_module.git
+- _id: pulse_actuator
+  description: Driver for binary actuators with very granular timescales
+  repository:
+    url: https://github.com/OpenAgInitiative/openag_pulse_actuator.git
+    type: git
+  header_file: openag_pulse_actuator.h
+  class_name: PulseActuator
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  - name: pulse_ms
+    type: int
+    default: 100
+  - name: update_ms
+    type: int
+    default: 2000
+  inputs:
+    cmd:
+      type: std_msgs/Bool
+  dependencies:
+  - type: git
+    url: http://github.com/OpenAgInitiative/openag_firmware_module.git
+- _id: doser_pump
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_doser_pump.git
+  header_file: openag_doser_pump.h
+  class_name: DoserPump
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: true
+  inputs:
+    cmd:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: http://github.com/OpenAgInitiative/openag_firmware_module.git
+- _id: air_flush
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_air_flush.git
+  header_file: openag_air_flush.h
+  class_name: AirFlush
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  inputs:
+    cmd:
+      type: std_msgs/UInt32
+  dependencies:
+  - type: git
+    url: http://github.com/OpenAgInitiative/openag_firmware_module.git
+- _id: dht22
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_dht22.git
+  header_file: openag_dht22.h
+  class_name: Dht22
+  description: ''
+  arguments:
+  - name: pin
+    type: int
+  outputs:
+    air_temperature:
+      type: std_msgs/Float32
+    air_humidity:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': Failed to read from sensor
+- _id: ds18b20
+  header_file: openag_ds18b20.h
+  class_name: Ds18b20
+  description: ''
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_ds18b20.git
+  arguments:
+  - name: pin
+    type: int
+  outputs:
+    temperature:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  - type: pio
+    id: 54
+  status_codes:
+    '1': Unable to find address for sensor
+    '2': Sensor isn't responding to queries
+- _id: gc0012
+  header_file: openag_gc0012.h
+  class_name: Gc0012
+  description: ''
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_gc0012.git
+  arguments:
+  - name: serial_port
+    type: int
+    default: 1
+  outputs:
+    air_carbon_dioxide:
+      type: std_msgs/Float32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '2': Failed to read from sensor
+- _id: mhz16
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_mhz16.git
+  header_file: openag_mhz16.h
+  class_name: MHZ16
+  description: ''
+  arguments:
+  - name: i2c_address
+    type: int
+    default: 77
+  outputs:
+    air_carbon_dioxide:
+      type: std_msgs/Int32
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': Initializing
+    '2': Sensor powered off to prevent autocalibration
+    '3': Failed to initialize sensor
+    '4': Failed to read from sensor
+- _id: pwm_actuator
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_pwm_actuator.git
+  header_file: openag_pwm_actuator.h
+  class_name: PwmActuator
+  description: Driver for an actuator that can take any value between 0 and 1
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  - name: threshold
+    type: float
+    default: 0
+    description: Command threshold at which the actuator turns on
+  inputs:
+    cmd:
+      type: std_msgs/Float32
+      categories:
+      - actuators
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes:
+    '1': Invalid command received
+- _id: software_pwm_actuator
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_software_pwm_actuator.git
+  header_file: openag_software_pwm_actuator.h
+  class_name: SoftwarePwmActuator
+  description: 'OpenAg driver for an actuator. Does pwm in software to allow for more
+    flexibility in configuration: particularly to allow for longer periods for actuators
+    that exhibit a nonlinear response to normal pwm.'
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  - name: period
+    type: int
+    default: 1000
+  inputs:
+    cmd:
+      type: std_msgs/Float32
+      categories:
+      - actuators
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+- _id: binary_sensor
+  repository:
+    type: git
+    url: https://github.com/OpenAgInitiative/openag_binary_sensor.git
+  description: Driver for any binary sensor that flips a pin
+  class_name: BinarySensor
+  header_file: openag_binary_sensor.h
+  arguments:
+  - name: pin
+    type: int
+  - name: is_active_low
+    type: bool
+    default: false
+  outputs:
+    is_on:
+      type: std_msgs/Bool
+  dependencies:
+  - type: git
+    url: https://github.com/OpenAgInitiative/openag_firmware_module.git
+  status_codes: {}
