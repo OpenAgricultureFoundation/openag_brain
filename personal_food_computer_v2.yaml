@@ -132,20 +132,6 @@ firmware_module:
     cmd:
       variable: air_temperature
       multiplier: -1
-# This configuration sets up a second chiller pin that does not
-# rely on pulse modulation HW. Instead, it uses the tone_actuator firmware
-# to modulate in software.
-# @FIXME eventually we should have only one chiller compressor in firmware.
-- _id: chiller_compressor_1_1
-  arguments:
-  - 9
-  - false
-  environment: environment_1
-  type: tone_actuator
-  inputs:
-    cmd:
-      variable: air_temperature
-      multiplier: -1
 - _id: chamber_fan_1
   arguments:
   - 39
