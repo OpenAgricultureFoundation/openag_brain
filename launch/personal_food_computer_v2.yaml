@@ -438,7 +438,7 @@ firmware_module_type:
     default: false
   inputs:
     cmd:
-      type: std_msgs/UInt32
+      type: std_msgs/Float32
   dependencies:
   - type: git
     url: http://github.com/OpenAgInitiative/openag_firmware_module.git
