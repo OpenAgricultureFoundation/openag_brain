@@ -6,6 +6,15 @@ categories:
 - persistence
 - control
 firmware_module:
+- _id: air_flush_1
+  arguments:
+  - 36
+  - true
+  environment: environment_1
+  type: air_flush
+  inputs:
+    cmd:
+      variable: air_flush_on
 - _id: led_red_1
   arguments:
   - 42
@@ -429,7 +438,7 @@ firmware_module_type:
     default: false
   inputs:
     cmd:
-      type: std_msgs/UInt32
+      type: std_msgs/Float32
   dependencies:
   - type: git
     url: http://github.com/OpenAgInitiative/openag_firmware_module.git
