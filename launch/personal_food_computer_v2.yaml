@@ -14,7 +14,7 @@ firmware_module:
   type: pwm_actuator
   inputs:
     cmd:
-      variable: light_illuminance
+      variable: light_intensity_red
 - _id: led_blue_1
   arguments:
   - 40
@@ -23,7 +23,7 @@ firmware_module:
   type: pwm_actuator
   inputs:
     cmd:
-      variable: light_illuminance
+      variable: light_intensity_blue
 - _id: led_white_1
   arguments:
   - 41
@@ -32,7 +32,7 @@ firmware_module:
   type: pwm_actuator
   inputs:
     cmd:
-      variable: light_illuminance
+      variable: light_intensity_white
 - _id: pump_1_nutrient_a_1
   arguments:
   - 28
