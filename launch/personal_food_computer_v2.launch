@@ -32,8 +32,14 @@
     <node pkg="openag_brain" type="image_persistence.py" name="image_persistence_1">
       <param name="min_update_interval" value="3600" type="int"/>
     </node>
-    <node pkg="openag_brain" type="direct_controller.py" name="light_controller_1">
-      <param name="variable" value="light_illuminance" type="str"/>
+    <node pkg="openag_brain" type="direct_controller.py" name="light_controller_red_1">
+      <param name="variable" value="light_intensity_red" type="str"/>
+    </node>
+    <node pkg="openag_brain" type="direct_controller.py" name="light_controller_blue_1">
+      <param name="variable" value="light_intensity_blue" type="str"/>
+    </node>
+    <node pkg="openag_brain" type="direct_controller.py" name="light_controller_white_1">
+      <param name="variable" value="light_intensity_white" type="str"/>
     </node>
     <node pkg="openag_brain" type="sensor_persistence.py" name="sensor_persistence_1">
       <param name="max_update_interval" value="600" type="int"/>
