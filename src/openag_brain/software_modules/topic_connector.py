@@ -44,15 +44,6 @@ def connect_sensor_info_topics(src_topic, dest_topic):
     pub = rospy.Publisher(dest_topic, SensorInfo, queue_size=1, latch=True)
     sub = rospy.Subscriber(src_topic, SensorInfo, pub.publish)
 
-def connect_all_topics(inputs_map, outputs_map):
-    """
-    Connect sensor topics and actuator topics through environmental variables.
-    We connect keys to values in `connection_map`.
-    """
-    for sensor_topic, measured_topic in inputs_map:
-        connect_topics()
-
-
 def connect_all_topics(firmware_module, firmware_module_type):
     modules = {
         record["_id"]: FirmwareModule(record) for record in
