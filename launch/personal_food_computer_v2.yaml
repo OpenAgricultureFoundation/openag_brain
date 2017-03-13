@@ -6,6 +6,15 @@ categories:
 - persistence
 - control
 firmware_module:
+- _id: air_flush_1
+  arguments:
+  - 36
+  - true
+  environment: environment_1
+  type: air_flush
+  inputs:
+    cmd:
+      variable: air_flush_on
 - _id: led_red_1
   arguments:
   - 42
