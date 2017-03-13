@@ -71,7 +71,7 @@ def filter_all_variable_topics(variables):
         #
         # In future, we should change the architecture of the system to support
         # standard ros types under `/environment/<id>`.
-        if env_var == WATER_LEVEL_HIGH.name:
+        if env_var == WATER_LEVEL_HIGH:
             forward_topic(src_topic, dest_topic, Float64)
         else:
             filter_topic(src_topic, dest_topic, Float64)
