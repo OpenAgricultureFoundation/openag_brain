@@ -93,6 +93,7 @@ firmware_module:
     cmd:
       variable: water_level_high
       multiplier: -1
+      deadband: -0.5
 - _id: heater_core_1_1
   arguments:
   - 43
