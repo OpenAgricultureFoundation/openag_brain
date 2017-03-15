@@ -3,7 +3,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['openag_brain'],
+    packages=['openag_brain', 'openag_brain.commands'],
     package_dir={'': 'src'},
 )
 
