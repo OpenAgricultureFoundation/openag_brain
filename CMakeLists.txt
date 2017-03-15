@@ -166,6 +166,15 @@ catkin_package(
 #   PATTERN ".svn" EXCLUDE
 # )
 
+# Install everything in the launch/ directory.
+# This CMake macro can also be used to install data files, etc.
+# See http://wiki.ros.org/catkin/CMakeLists.txt#Installing_roslaunch_Files_or_Other_Resources
+# - gordonb 2017-03-15
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".svn" EXCLUDE
+)
+
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
 #   # myfile1
