@@ -152,6 +152,30 @@ catkin_package(
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
+# Mark executable scripts (Python etc.) for installation
+# in contrast to setup.py, you can choose the destination.
+#
+# We search for script files using the FILE(GLOB ...) macro, then assign the
+# result to openag_script_files.
+#
+# http://docs.ros.org/kinetic/api/catkin/html/howto/format2/installing_python.html
+# https://cmake.org/cmake/help/v3.7/command/install_programs.html
+# https://cmake.org/Wiki/CMake:Install_Commands
+# https://cmake.org/cmake/help/v3.7/command/file.html
+# https://cmake.org/cmake/help/v3.5/command/install.html#id4
+# - gordonb 2017-03-15
+FILE(GLOB openag_script_files "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*")
+catkin_install_python(PROGRAMS
+  ${openag_script_files}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+FILE(GLOB openag_node_files "${CMAKE_CURRENT_SOURCE_DIR}/nodes/*")
+catkin_install_python(PROGRAMS
+  ${openag_node_files}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 ## Mark executables and/or libraries for installation
 # install(TARGETS test test_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -165,6 +189,15 @@ catkin_package(
 #   FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
 # )
+
+# Install everything in the launch/ directory.
+# This CMake macro can also be used to install data files, etc.
+# See http://wiki.ros.org/catkin/CMakeLists.txt#Installing_roslaunch_Files_or_Other_Resources
+# - gordonb 2017-03-15
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
