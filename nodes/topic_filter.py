@@ -11,7 +11,14 @@ ENVIRONMENT_VARIABLES = tuple(
     if GROUP_ENVIRONMENT in var.groups
 )
 
+
 class EWMA:
+    """
+    Calculate the Exponentially Weighted Moving Average (EWMA) for an input variable.
+    EWMAi = alpha * Xi + (1 - alpha) * EWMAi-1
+    Params:
+        a : Alpha is the dapening coefficient. The lower the value the less damped. Should be between 0 and 1
+    """
     def __init__(self, a):
         self.a = a
         self.average = None
@@ -23,7 +30,15 @@ class EWMA:
             return
         self.average = self.a * sample + (1 - self.a) * self.average
 
+
 def filter_topic(src_topic, dest_topic, topic_type):
+    """
+    Publishes a measured data point given the raw value by applying the EWMA function to the data.
+    :param src_topic: String? - Source topic signal to be filtered
+    :param dest_topic: String? - Output topic to publish new data to
+    :param topic_type: The data type of the topic, aka Float64, Int32, etc
+    :return: sub, pub : subscribed topic (raw measured value) and published topic (filtered (smoothed) value)
+    """
     rospy.loginfo("Filtering topic {} to topic {}".format(
         src_topic, dest_topic
     ))
@@ -36,6 +51,7 @@ def filter_topic(src_topic, dest_topic, topic_type):
     sub = rospy.Subscriber(src_topic, topic_type, callback)
     return sub, pub
 
+
 def forward_topic(src_topic, dest_topic, topic_type):
     rospy.loginfo("Forwarding topic {} to topic {}".format(
         src_topic, dest_topic
@@ -46,6 +62,7 @@ def forward_topic(src_topic, dest_topic, topic_type):
         pub.publish(dest_item)
     sub = rospy.Subscriber(src_topic, topic_type, callback)
     return sub, pub
+
 
 def filter_all_variable_topics(variables):
     """
