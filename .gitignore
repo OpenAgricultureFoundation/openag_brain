@@ -1,9 +1,16 @@
+# PlatformIO firmware-specific stuff
+# Added 2017-03-22 gordonb
+**.pioenvs
+firmware/src
+
+# Python
 *.swp
 *.pyc
 *.egg-info
 __pycache__
 .idea
-modules.launch
+
+# Docs
 doc/html
 doc/manifest.yaml
 doc/_build
