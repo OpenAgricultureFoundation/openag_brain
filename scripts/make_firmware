@@ -25,45 +25,8 @@ MODULE_FILE = "module.json"
 FIRMWARE_MODULE_TYPE = "firmware_module_type"
 FIRMWARE_MODULE = "firmware_module"
 
-parser = argparse.ArgumentParser(
-    description="""
-    Tools for dealing with firmware modules.
-    """,
-)
-parser.add_argument(
-    "param_file",
-    type=argparse.FileType("r"),
-    help="""YAML file describing the firmware module configuration to be flashed.
-    This is the same file that is used for rosparam in the launch file."""
-)
-parser.add_argument(
-    "-p", "--plugin",
-    help="Enable a specific plugin",
-    nargs='*',
-    choices=["ros", "csv"],
-    default=["ros"]
-)
-parser.add_argument(
-    "-t", "--target",
-    help="PlatformIO target (e.g.  upload)",
-    default="upload"
-)
-parser.add_argument(
-    "--status_update_interval",
-    help="Minimum interval between driver status updates (in seconds)",
-    default=5
-)
-parser.add_argument(
-    "-c", "--categories",
-    help="A list of the categories of inputs and outputs that should "
-        "be enabled",
-    default=default_categories,
-    choices=all_categories,
-    nargs="*"
-)
-
 def gen_firmware(
-    categories, params, project_dir, plugin, target,
+    categories, params, project_dir, plugin,
     status_update_interval
 ):
     """
@@ -126,7 +89,51 @@ def gen_firmware(
     with open(src_file_path, "w") as f:
         codegen.write_to(f)
 
+def build_firmware(project_dir, target):
+    cmd = (
+        ("pio", "run", "--target", target)
+        if target else
+        ("pio", "run")
+    )
+    return subprocess.call(cmd, cwd=project_dir)
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="""
+        Tools for dealing with firmware modules.
+        """,
+    )
+    parser.add_argument(
+        "param_file",
+        type=argparse.FileType("r"),
+        help="""YAML file describing the firmware module configuration to be flashed.
+        This is the same file that is used for rosparam in the launch file."""
+    )
+    parser.add_argument(
+        "-p", "--plugin",
+        help="Enable a specific plugin",
+        nargs='*',
+        choices=["ros", "csv"],
+        default=["ros"]
+    )
+    parser.add_argument(
+        "-t", "--target",
+        help="PlatformIO target (e.g.  upload)"
+    )
+    parser.add_argument(
+        "--status_update_interval",
+        help="Minimum interval between driver status updates (in seconds)",
+        default=5
+    )
+    parser.add_argument(
+        "-c", "--categories",
+        help="A list of the categories of inputs and outputs that should "
+            "be enabled",
+        default=default_categories,
+        choices=all_categories,
+        nargs="*"
+    )
+
     args = parser.parse_args()
     params = yaml.load(args.param_file)
     gen_firmware(
@@ -134,6 +141,9 @@ if __name__ == "__main__":
         project_dir=PROJECT_DIR,
         categories=args.categories,
         plugin=args.plugin,
-        target=args.target,
         status_update_interval=args.status_update_interval
+    )
+    build_firmware(
+        project_dir=PROJECT_DIR,
+        target=args.target
     )
