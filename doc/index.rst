@@ -16,10 +16,10 @@ Contents
     :maxdepth: 2
 
     getting_started
-    module_configuration
+    ros_nodes
+    firmware
     commands
     api
-    fixtures
     docker
 
 Indices and tables

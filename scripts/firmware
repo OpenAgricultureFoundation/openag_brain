@@ -6,7 +6,7 @@ This script is used to:
 - Build a hex file using ``platformio``
 - (Optionally) flash that hex file to the Arduino.
 
-For information on how to use it:
+For information on how to use it::
 
     ./scripts/firmware -h
 

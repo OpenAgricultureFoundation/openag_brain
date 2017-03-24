@@ -30,28 +30,24 @@ environment. This script automates that process.
 
     rosrun openag_brain install_pio
 
-.. _OpenagCmdLoadFixture:
+.. _OpenagCmdFirmware:
 
-Load Fixture
-------------
+Build and Flash Firmware
+------------------------
 
-Fixtures are JSON documents containing a list of objects to create on the
-CouchDB server. They are mostly used for bootstrapping an installation of the
-system.
+For more information on the firmware system, see :ref:`Firmware`.
 
 .. code-block:: bash
 
-    rosrun openag_brain load_fixture
+    rosrun openag_brain firmware
 
-.. program-output:: rosrun openag_brain load_fixture -h
+.. program-output:: rosrun openag_brain firmware -h
 
-.. _OpenagCmdUpdateLaunch:
+Init PlatformIO
+---------------
 
-Update Roslaunch File
----------------------
+PlatformIO projects need to be configured once. A default configuration is already checked in, so you shoudn't have to do this yourself. However, if you want to change the default configuration, you can use `platformio init <http://docs.platformio.org/en/latest/userguide/cmd_init.html>`_. For example:
 
 .. code-block:: bash
 
-    rosrun openag_brain update_launch
-
-.. program-output:: rosrun openag_brain update_launch -h
+    platformio init --board chiwawa
