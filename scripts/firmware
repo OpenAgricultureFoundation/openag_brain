@@ -1,8 +1,23 @@
 #!/usr/bin/env python
 """
-Generate an Arduino sketch from individual OpenAg firmware module classes.
+This script is used to:
 
-Generated sketch is placed in ``firmware/src/src.ino`` by default.
+- Generate an Arduino sketch from individual OpenAg firmware module classes.
+- Build a hex file using ``platformio``
+- (Optionally) flash that hex file to the Arduino.
+
+For information on how to use it:
+
+    ./scripts/firmware -h
+
+Where to find things:
+
+- Individual firmware libraries are in ``firmware/lib``. These module files
+  are compiled into an Arduino sketch by the codegen system.
+- The generated sketch is placed in ``firmware/src/src.ino`` by default.
+- The compiled ``.hex`` file is placed in
+  ``firmware/.pioenvs/megaatmega2560/firmware.hex``. This is the default
+  location in which platformio places hex files.
 """
 import yaml
 import argparse
