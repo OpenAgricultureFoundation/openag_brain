@@ -1,0 +1,39 @@
+{
+    "description": "Driver for the Atlas Scientific pH sensor",
+    "class_name": "AtlasPh",
+    "header_file": "openag_atlas_ph.h",
+    "arguments": [
+        {
+            "name": "i2c_address",
+            "type": "int",
+            "default": 99
+        }
+    ],
+    "inputs": {
+        "midpoint_calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        },
+        "lowpoint_calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        },
+        "highpoint_calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        }
+    },
+    "outputs": {
+        "water_potential_hydrogen": {
+            "type": "std_msgs/Float32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "No response",
+        "2": "Request failed",
+        "3": "Unknown error"
+    }
+}

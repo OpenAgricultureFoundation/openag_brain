@@ -1,0 +1,16 @@
+{
+    "name": "openag_doser_pump",
+    "keywords": "openag, doser, pump",
+    "description": "OpenAg driver doser pumps, send volume cmd and pump will dose",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_doser_pump.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

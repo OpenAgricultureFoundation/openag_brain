@@ -1,0 +1,16 @@
+{
+    "name": "openag_tone_actuator",
+    "keywords": "openag, actuator, binary, tone",
+    "description": "OpenAg driver for an tone actuator that can only be turned on or off",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_tone_actuator.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

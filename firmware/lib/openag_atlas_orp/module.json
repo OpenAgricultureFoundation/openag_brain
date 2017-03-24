@@ -1,0 +1,31 @@
+{
+    "description": "Driver for the Atlas Scientific ORP sensor",
+    "class_name": "AtlasOrp",
+    "header_file": "openag_atlas_orp.h",
+    "arguments": [
+        {
+            "name": "i2c_address",
+            "type": "int",
+            "default": 98
+        }
+    ],
+    "inputs": {
+        "calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        }
+    },
+    "outputs": {
+        "water_oxidation_reduction_potential": {
+            "type": "std_msgs/Float32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "No data",
+        "2": "Request failed",
+        "3": "Unknown error"
+    }
+}

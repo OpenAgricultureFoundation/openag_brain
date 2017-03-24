@@ -1,0 +1,16 @@
+{
+    "name": "openag_mhz16",
+    "keywords": "openag, mhz16",
+    "description": "OpenAg driver for the MH-Z16 NDIR CO2 sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_mhz16.git"
+    },
+    "framworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

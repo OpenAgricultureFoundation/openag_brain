@@ -1,0 +1,25 @@
+{
+    "class_name": "AtlasRgb",
+    "header_file": "openag_atlas_rgb.h",
+    "arguments": [
+        {
+            "name": "serial_port",
+            "type": "int"
+        }
+    ],
+    "outputs": {
+        "light_illuminance": {
+            "type": "std_msgs/UInt16"
+        },
+        "light_spectrum": {
+            "type": "std_msgs/UInt8MultiArray"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "Failed to read data",
+        "2": "Invalid response. Recalibration required"
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "header_file": "openag_pulse_actuator.h",
+    "class_name": "PulseActuator",
+    "arguments": [
+        {
+            "name": "pin",
+            "type": "int"
+        },
+        {
+            "name": "is_active_low",
+            "type": "bool",
+            "default": false
+        },
+        {
+            "name": "pulse_ms",
+            "type": "int",
+            "default": 50
+        },
+        {
+            "name": "update_ms",
+            "type": "int",
+            "default": 4000
+        }
+
+    ],
+    "inputs": {
+        "cmd": {
+            "type": "std_msgs/Bool"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "http://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ]
+}

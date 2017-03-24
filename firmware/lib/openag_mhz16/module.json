@@ -1,0 +1,26 @@
+{
+    "description": "Driver for the MHZ-16 NDIR CO2 sensor",
+    "class_name": "MHZ16",
+    "header_file": "openag_mhz16.h",
+    "arguments": [
+        {
+            "name": "i2c_address",
+            "type": "int",
+            "default": 77
+        }
+    ],
+    "outputs": {
+        "air_carbon_dioxide": {
+            "type": "std_msgs/Int32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "Initializing",
+        "2": "Sensor powered off to prevent autocalibration",
+        "3": "Failed to initialize sensor",
+        "4": "Failed to read from sensor"
+    }
+}

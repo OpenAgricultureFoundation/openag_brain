@@ -1,0 +1,16 @@
+{
+    "name": "openag_atlas_do",
+    "keywords": "openag, atlas, do",
+    "description": "OpenAg driver for the Atlas Scientific DO sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_do.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

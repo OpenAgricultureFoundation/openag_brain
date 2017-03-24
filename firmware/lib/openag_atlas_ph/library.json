@@ -1,0 +1,16 @@
+{
+    "name": "openag_atlas_ph",
+    "keywords": "openag, atlas, ph",
+    "description": "OpenAg driver for the Atlas Scientific pH sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_ph.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}
