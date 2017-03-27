@@ -62,7 +62,7 @@ class AM2315:
             return
         if self.sensor_is_connected:
             try:
-                self.temperature, self.humidity = self.__am2315.getTempHumid()
+                self.temperature, self.humidity = self.__am2315.get_temp_humid()
             except:
                 self.temperature = None
                 self.humidity = None
@@ -70,18 +70,7 @@ class AM2315:
         else:
             self.connect()
 
-
-    def transmitToConsole(self, temperature_id='Air Temperature', humidity_id='Humidity'):
-        if self.temperature is not None:
-            print(temperature_id, ': ', self.temperature, 'C')
-            print(humidity_id, ':', self.humidity, '%')
-
-    def transmitToMemcache(self, memcache_shared, temperature_id='air_temperature', humidity_id='humidity'):
-        if self.temperature is not None:
-            memcache_shared.set(temperature_id, "{0:.1f}".format(self.temperature))
-            memcache_shared.set(humidity_id, "{0:.1f}".format(self.humidity))
-
-    def getSigned(self, unsigned):
+    def get_signed(self, unsigned):
         """
         Converts the temp reading from the AM2315 to a signed int.
         """
@@ -98,9 +87,9 @@ class AM2315:
         # Return the unsigned int.
         return signednum
 
-    def getTempHumid(self):
+    def get_temp_humid(self):
         """
-        getTempHumid()
+        get_temp_humid()
 
         Get the temperature and humidity from the sensor. Returns an array with two integers - temp. [0] and humidity [1]
         """
@@ -156,7 +145,7 @@ class AM2315:
         humidRaw = (rawTH[2] << 8) | rawTH[3]
 
         # Get signed int from AND'd temperature bytes.
-        tempRaw = self.getSigned((rawTH[4] << 8) | rawTH[5])
+        tempRaw = self.get_signed((rawTH[4] << 8) | rawTH[5])
 
         # The return data is sacled up by 10x, so compensate.
         retVal.append(tempRaw / 10.0)
