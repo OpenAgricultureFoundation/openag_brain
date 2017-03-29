@@ -5,7 +5,7 @@ humidity sensor.
 
 import rospy
 import time
-from periphery import I2C
+from periphery import I2C, I2CError
 
 class AM2315:
     """
@@ -38,6 +38,8 @@ class AM2315:
         self.regUsrBMSB = 0x12
         self.regUsrBLSB = 0x13
         self.cmdReadReg = 0x03
+        # Attempt I2C connect.
+        self.connect()
 
     def __del__(self):
         """
@@ -57,26 +59,35 @@ class AM2315:
             with AM2315() as am2315:
               am2315.poll()
         """
-        pass
+        return self
 
-    def __exit__(self):
+    def __exit__(self, exception_type, exception_value, exception_traceback):
         # Close the I2C manager on exit.
         if self.__i2c_master:
             self.__i2c_master.close()
 
     def connect(self):
         # Instantiate the periphery I2C manager. If it fails it will raise
-        # an I2CError.
+        # an I2CError, which we then catch.
+        # If we have an ``__i2c_master`` it means we have a successful
+        # connection.
         # See http://python-periphery.readthedocs.io/en/latest/i2c.html
-        self.__i2c_master = I2C(self.i2c_bus)
+        try:
+            self.__i2c_master = I2C(self.i2c_bus)
+            rospy.loginfo("Connected to AM2315")
+        except I2CError:
+            rospy.logwarn("Failed to connect to AM2315")
+            pass
 
     def poll(self):
-        try:
-            self.temperature, self.humidity = self.__am2315.get_temp_humid()
-        except:
-            self.temperature = None
-            self.humidity = None
-            self.sensor_is_connected = False
+        if self.__i2c_master:
+            try:
+                self.temperature, self.humidity = self.get_temp_humid()
+            except:
+                self.temperature = None
+                self.humidity = None
+        else:
+            self.connect()
 
     def get_signed(self, unsigned):
         """
@@ -109,19 +120,15 @@ class AM2315:
         # Raw temperature and humidity data.
         rawTH = 0
 
-        # Return value
-        retVal = []
-
         # Loop sentinel values
         failCount = 0
         notDone = True
 
         # Commands to get data temp and humidity data from AM2315
-        cmd_data = bytearray(self.cmdReadReg, 0x00, 0x04)
+        cmd_data = bytearray((self.cmdReadReg, 0x00, 0x04))
 
         # If we have failed more than twice to read the data, or have finished getting data break the loop.
         while ((failCount < 2) and notDone):
-
             try:
                 cmd_msgs = [I2C.Message(cmd_data)]
                 self.__i2c_master.transfer(self.i2c_addr, cmd_msgs)
@@ -130,8 +137,8 @@ class AM2315:
                 time.sleep(0.1)
 
                 # Now read 8 bytes from the AM2315.
-                read_data = bytearray(0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                        0x00, 0x00)
+                read_data = bytearray((0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00))
                 read_msgs = [I2C.Message(read_data, read=True)]
                 self.__i2c_master.transfer(self.i2c_addr, read_msgs)
 
@@ -143,7 +150,9 @@ class AM2315:
                 if (rawTH[0] == self.cmdReadReg) and (rawTH[1] == 0x04):
                     # We're done. flag the loop to exit so we can interpret the data sent back to us.
                     notDone = False
-
+            # No connection yet
+            except AttributeError:
+                return None, None
             # We usually fail to read data 50% of the time because the sensor goes to sleep, so try twice.
             except IOError:
                 if failCount > 1:
@@ -158,7 +167,4 @@ class AM2315:
         tempRaw = self.get_signed((rawTH[4] << 8) | rawTH[5])
 
         # The return data is sacled up by 10x, so compensate.
-        retVal.append(tempRaw / 10.0)
-        retVal.append(humidRaw / 10.0)
-
-        return retVal
+        return (tempRaw / 10.0, humidRaw / 10.0)
