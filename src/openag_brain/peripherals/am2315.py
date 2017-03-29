@@ -5,21 +5,22 @@ humidity sensor.
 
 import rospy
 import time
-import quick2wire.i2c as qI2c
+from periphery import I2C
 
 class AM2315:
     """
     Class that represents a AM2315 temperature and humidity sensor instance
     and provides functions for interfacing with the sensor.
+
+    One instance = 1 successful i2c connection.
     """
 
-    def __init__(self, i2c_addr = 0x5c, i2c_bus = 1, pseudo=False):
+    def __init__(self, i2c_addr = 0x5c, i2c_bus = "/dev/i2c-1"):
+        self.__i2c_master = None
         self.i2c_addr = i2c_addr
         self.i2c_bus = i2c_bus
-        self.pseudo = pseudo
         self.temperature = None
         self.humidity = None
-        self.sensor_is_connected = True
         self.regRhMSB = 0x00
         self.regRhLSB = 0x01
         self.regTmpMSB = 0x02
@@ -38,37 +39,44 @@ class AM2315:
         self.regUsrBLSB = 0x13
         self.cmdReadReg = 0x03
 
-        self.connect()
+    def __del__(self):
+        """
+        Destructor will close the I2C manager if instance is garbage collected.
+        """
+        if self.__i2c_master:
+            self.__i2c_master.close()
+
+    def __enter__(self):
+        """
+        We use the __enter__ and exit methods to manage the lifecycle of
+        i2c managers. This class can be used with the ``with`` keyword.
+        See https://www.python.org/dev/peps/pep-0343/ for more on `with`.
+
+        Example::
+
+            with AM2315() as am2315:
+              am2315.poll()
+        """
+        pass
+
+    def __exit__(self):
+        # Close the I2C manager on exit.
+        if self.__i2c_master:
+            self.__i2c_master.close()
 
     def connect(self):
-        if self.pseudo:
-            rospy.loginfo('Connected to pseudo AM2315 temperature & humidity sensor')
-            return
-        try:
-            self.__i2c = qI2c
-            self.__i2cMaster = qI2c.I2CMaster(self.i2c_bus)
-            if not self.sensor_is_connected:
-                self.sensor_is_connected = True
-                rospy.loginfo('Connected to AM2315 temperature & humidity sensor')
-        except:
-            if self.sensor_is_connected:
-                self.sensor_is_connected = False
-                rospy.logwarn('Unable to connect to AM2315 temp/humidity sensor')
+        # Instantiate the periphery I2C manager. If it fails it will raise
+        # an I2CError.
+        # See http://python-periphery.readthedocs.io/en/latest/i2c.html
+        self.__i2c_master = I2C(self.i2c_bus)
 
     def poll(self):
-        if self.pseudo:
-            self.temperature = 23.1
-            self.humidity = 46.6
-            return
-        if self.sensor_is_connected:
-            try:
-                self.temperature, self.humidity = self.__am2315.get_temp_humid()
-            except:
-                self.temperature = None
-                self.humidity = None
-                self.sensor_is_connected = False
-        else:
-            self.connect()
+        try:
+            self.temperature, self.humidity = self.__am2315.get_temp_humid()
+        except:
+            self.temperature = None
+            self.humidity = None
+            self.sensor_is_connected = False
 
     def get_signed(self, unsigned):
         """
@@ -109,28 +117,30 @@ class AM2315:
         notDone = True
 
         # Commands to get data temp and humidity data from AM2315
-        thCmd = bytearray([0x00,0x04])
+        cmd_data = bytearray(self.cmdReadReg, 0x00, 0x04)
 
         # If we have failed more than twice to read the data, or have finished getting data break the loop.
         while ((failCount < 2) and notDone):
 
             try:
-                # Request data from the sensor, using a reference to the command bytes.
-                self.__i2cMaster.transaction(self.__i2c.writing_bytes(self.i2c_addr, self.cmdReadReg, *thCmd))
+                cmd_msgs = [I2C.Message(cmd_data)]
+                self.__i2c_master.transfer(self.i2c_addr, cmd_msgs)
 
                 # Wait for the sensor to supply data to read.
                 time.sleep(0.1)
 
                 # Now read 8 bytes from the AM2315.
-                rawTH = self.__i2cMaster.transaction(self.__i2c.reading(self.i2c_addr, 8))
+                read_data = bytearray(0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00)
+                read_msgs = [I2C.Message(read_data, read=True)]
+                self.__i2c_master.transfer(self.i2c_addr, read_msgs)
 
                 # Break the string we want out of the array the transaction returns.
-                rawTH = bytearray(rawTH[0])
+                rawTH = bytearray(read_msgs[0].data)
 
                 # Confirm the command worked by checking the response for the command we executed
                 # and the number of bytes we asked for.
                 if (rawTH[0] == self.cmdReadReg) and (rawTH[1] == 0x04):
-
                     # We're done. flag the loop to exit so we can interpret the data sent back to us.
                     notDone = False
 
