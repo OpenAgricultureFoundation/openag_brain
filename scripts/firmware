@@ -24,10 +24,10 @@ import argparse
 import subprocess
 from os import path, makedirs
 
-from support.util import index_by_id
-from support.firmware.base import CodeGen
-from support.categories import all_categories, default_categories
-from support.firmware.util import (
+from openag_lib.util import index_by_id
+from openag_lib.firmware.base import CodeGen
+from openag_lib.firmware.categories import all_categories, default_categories
+from openag_lib.firmware.util import (
     synthesize_firmware_module_info, prune_unspecified_categories,
     load_firmware_type_manifests, load_plugin)
 
