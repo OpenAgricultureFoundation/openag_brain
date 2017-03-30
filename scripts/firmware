@@ -124,26 +124,31 @@ if __name__ == "__main__":
         help="""YAML file describing the firmware module configuration to be flashed.
         This is the same file that is used for rosparam in the launch file."""
     )
+    default_plugin = "ros"
     parser.add_argument(
         "-p", "--plugin",
-        help="Enable a specific plugin",
+        help="Enable a specific codegen plugin. (Default {})"
+            .format(default_plugin),
         nargs='*',
         choices=["ros", "csv"],
-        default=["ros"]
+        default=[default_plugin]
     )
     parser.add_argument(
         "-t", "--target",
-        help="PlatformIO target (e.g.  upload)"
+        help="PlatformIO target (e.g. upload). You can omit this if you just "
+            "want to generate a .hex file. If you want to flash the Arduino "
+            "specify \"upload\"."
     )
     parser.add_argument(
         "--status_update_interval",
-        help="Minimum interval between driver status updates (in seconds)",
+        help="Minimum interval between driver status updates, in seconds. "
+            "(Default 5)",
         default=5
     )
     parser.add_argument(
         "-c", "--categories",
         help="A list of the categories of inputs and outputs that should "
-            "be enabled",
+            "be enabled. (Default {})".format(default_categories),
         default=default_categories,
         choices=all_categories,
         nargs="*"
