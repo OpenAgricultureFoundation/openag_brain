@@ -1,0 +1,28 @@
+#!/bin/bash
+# Install script for openag_brain distributions.
+#
+# - Fetches and installs Python dependencies
+
+# Tell apt to read from the ROS package repository
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu jessie main" > /etc/apt/sources.list.d/ros-latest.list'
+wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+
+# Update apt
+sudo apt-get update
+sudo apt-get -y upgrade
+
+sudo apt-get install -y python-pip
+sudo pip install rosdep
+
+# Initialize rosdep
+# Remove any previous rosdep init list so this script is idempotent.
+if [ -f /etc/ros/rosdep/sources.list.d/20-default.list ];
+    then sudo rm /etc/ros/rosdep/sources.list.d/20-default.list
+fi
+sudo rosdep init
+# Note DO NOT run rosdep update with sudo
+# See http://wiki.ros.org/rosdep
+rosdep update
+
+# Install dependencies for all installed packages
+rosdep install --from-paths src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
