@@ -112,23 +112,12 @@ class AM2315:
 
         Get the temperature and humidity from the sensor. Returns an array with two integers - temp. [0] and humidity [1]
         """
-
-        # Track temperature data.
-        tempRaw = 0
-        humidRaw = 0
-
-        # Raw temperature and humidity data.
-        rawTH = 0
-
         # Loop sentinel values
         failCount = 0
-        notDone = True
-
         # Commands to get data temp and humidity data from AM2315
         cmd_data = bytearray((self.cmdReadReg, 0x00, 0x04))
-
         # If we have failed more than twice to read the data, or have finished getting data break the loop.
-        while ((failCount < 2) and notDone):
+        while (failCount < 2):
             try:
                 cmd_msgs = [I2C.Message(cmd_data)]
                 self.__i2c_master.transfer(self.i2c_addr, cmd_msgs)
@@ -148,23 +137,21 @@ class AM2315:
                 # Confirm the command worked by checking the response for the command we executed
                 # and the number of bytes we asked for.
                 if (rawTH[0] == self.cmdReadReg) and (rawTH[1] == 0x04):
-                    # We're done. flag the loop to exit so we can interpret the data sent back to us.
-                    notDone = False
+                    # And the MSB and LSB for each value together to yield our raw values.
+                    humidRaw = (rawTH[2] << 8) | rawTH[3]
+
+                    # Get signed int from AND'd temperature bytes.
+                    tempRaw = self.get_signed((rawTH[4] << 8) | rawTH[5])
+
+                    # The return data is scaled up by 10x, so compensate.
+                    return (tempRaw / 10.0, humidRaw / 10.0)
             # No connection yet
             except AttributeError:
-                return None, None
+               pass
             # We usually fail to read data 50% of the time because the sensor goes to sleep, so try twice.
             except IOError:
                 if failCount > 1:
                     raise IOError("am2315 IO Error: failed to read from sensor.")
                 else:
                     failCount = failCount + 1
-
-        # And the MSB and LSB for each value together to yield our raw values.
-        humidRaw = (rawTH[2] << 8) | rawTH[3]
-
-        # Get signed int from AND'd temperature bytes.
-        tempRaw = self.get_signed((rawTH[4] << 8) | rawTH[5])
-
-        # The return data is sacled up by 10x, so compensate.
-        return (tempRaw / 10.0, humidRaw / 10.0)
+        return None, None
