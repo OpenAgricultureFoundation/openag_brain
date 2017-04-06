@@ -26,7 +26,7 @@ def create_variables(var_dict):
         name, description, units
     """
     variables = []
-    for item in var.items.keys():
+    for item in var_dict.items.keys():
         variable = VariableInfo(item['name'], var['description'], var['units'])
         variables.append(variable)
     return tuple(variables)
