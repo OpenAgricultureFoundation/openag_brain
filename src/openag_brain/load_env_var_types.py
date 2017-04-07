@@ -1,11 +1,18 @@
 class VariableInfo(dict):
-    items = {}
     def __init__(self, name, description, units=None):
         self.name = name
         self.__doc__ = description
         self.units = units
+    def __key(self):
+        return self.name
     def __str__(self):
         return self.name
+    def __repr__(self):
+        return self.name
+    def __hash__(self):     # Needed to be used as a key in a dictionary lookup
+        return hash(self.name)
+    def __eq__(x, y):       # Needed to be used as a key in a dictionary lookup
+        return x.name == y
 
 # env_var = rospy.get_param('/environment_variables')
 # recipe_var = rospy.get_param('/recipe_variables')
