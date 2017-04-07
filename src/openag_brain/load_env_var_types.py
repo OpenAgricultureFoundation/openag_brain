@@ -1,14 +1,9 @@
-import rospy
-
-
 class VariableInfo(dict):
     items = {}
-
     def __init__(self, name, description, units=None):
         self.name = name
         self.__doc__ = description
         self.units = units
-
     def __str__(self):
         return self.name
 
@@ -26,7 +21,10 @@ def create_variables(var_dict):
         name, description, units
     """
     variables = []
-    for item in var_dict.items.keys():
-        variable = VariableInfo(item['name'], var['description'], var['units'])
-        variables.append(variable)
-    return tuple(variables)
+    for name, value in var_dict.items():
+        if 'units' in value:
+            var = VariableInfo(name, value['description'], value['units'])
+        else:
+            var = VariableInfo(name, value['description'])
+        variables.append(var)
+    return variables
