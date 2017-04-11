@@ -1,8 +1,9 @@
 class VariableInfo(dict):
-    def __init__(self, name, description, units=None):
+    def __init__(self, name, description, _type=None, units=None):
         self.name = name
         self.__doc__ = description
         self.units = units
+        self.type = _type
     def __key(self):
         return self.name
     def __str__(self):
@@ -28,9 +29,13 @@ def create_variables(var_dict):
         name, description, units
     """
     variables = []
+    ## Need to change this later so it is generic to work for any number of
+    ## items in the dictionary, so this file doesn't need to be modified when
+    ## new items are added to the var_types definition.
     for name, value in var_dict.items():
-        if 'units' in value:
-            var = VariableInfo(name, value['description'], value['units'])
+        if 'units' in value and 'type' in value:
+            var = VariableInfo(name, value['description'], value['type'],
+                               value['units'])
         else:
             var = VariableInfo(name, value['description'])
         variables.append(var)
