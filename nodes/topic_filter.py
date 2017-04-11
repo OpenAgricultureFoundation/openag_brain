@@ -84,7 +84,7 @@ def filter_all_variable_topics(variables):
         #
         # In future, we should change the architecture of the system to support
         # standard ros types under `/environment/<id>`.
-        if 'boolean' in env_var.type.lower():
+        if env_var.type is None or 'boolean' in env_var.type.lower():
             forward_topic(src_topic, dest_topic, Float64)
         else:
             filter_topic(src_topic, dest_topic, Float64)
