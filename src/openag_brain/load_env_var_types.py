@@ -33,9 +33,12 @@ def create_variables(var_dict):
     ## items in the dictionary, so this file doesn't need to be modified when
     ## new items are added to the var_types definition.
     for name, value in var_dict.items():
-        if 'units' in value and 'type' in value:
-            var = VariableInfo(name, value['description'], value['type'],
+        if 'units' in value:
+            if 'type' in value:
+                var = VariableInfo(name, value['description'], value['type'],
                                value['units'])
+            else:
+                var = VariableInfo(name, value['description'], value['units'])
         else:
             var = VariableInfo(name, value['description'])
         variables.append(var)
