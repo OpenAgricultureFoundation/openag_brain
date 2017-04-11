@@ -1,29 +1,43 @@
-FROM pablogn/rpi-ros-core-indigo
+FROM resin/rpi-raspbian
+USER root
+# Install python and some barebones tools
+# (Things you would typically have in the Pi's environment)
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+    wget git vim
+# Tell apt to read from the ROS package repository
+RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu jessie main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+# Create pi user
+RUN useradd pi && echo 'pi:hypriot' | chpasswd && echo "pi ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && mkdir -p /home/pi && chown pi:pi /home/pi
 
 USER pi
+WORKDIR /home/pi/
 # Give the pi user access to the usb drive for flashing an Arduino
 RUN sudo usermod -a -G dialout pi
+RUN mkdir ~/catkin_ws
+# Add catkin install dir (built with catkin)
+# Note you must run `docker build` from `install` dir so the build context
+# includes the install directory. Typically this is done like so:
+#
+#    cd ~/catkin_ws
+#    docker build -f ./src/openag_brain/Dockerfile .
+ADD install catkin_ws/install
+# Install ROS boostrapping tool
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+    python-pip python-rosdep
+# Install dependencies with rosdep
+RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/install/share/openag_brain --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 # Install openag_python from the git repository
 RUN cd ~ && git clone http://github.com/OpenAgInitiative/openag_python.git
-RUN sudo easy_install pip==9.0.0 && sudo pip install ./openag_python
-RUN sudo pip install Pillow==3.4.0 --global-option="build_ext" --global-option="--disable-zlib" --global-option="--disable-jpeg"
-# Set up a catkin workspace
-RUN mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/src && \
-    /opt/ros/indigo/env.sh catkin_init_workspace
-# Copy in the openag_brain code
-ADD . catkin_ws/src/openag_brain
-# Install rosserial and openag_brain in the workspace
-RUN sudo chown -R pi:pi ~/catkin_ws/src/openag_brain && cd ~/catkin_ws/src && \
-    git clone https://github.com/ros-drivers/rosserial.git && \
-    cd ~/catkin_ws && /opt/ros/indigo/env.sh catkin_make && \
-    sudo apt-get update && \
-    sudo apt-get install -y ros-indigo-tf ros-indigo-angles && \
-    rosdep update && \
-    ~/catkin_ws/devel/env.sh rosdep install -i -y openag_brain && \
-    ~/catkin_ws/devel/env.sh rosdep install -i -y rosserial_python && \
-    ~/catkin_ws/devel/env.sh rosrun openag_brain install_pio
-# Add .bashrc 
+RUN sudo pip install ./openag_python
+RUN sudo locale-gen en_US.UTF-8
+# Add .bashrc
 RUN echo -e '[ -z "$PS1" ] && return' >~/.bashrc
-RUN echo -e 'source ./catkin_ws/devel/setup.bash' >>~/.bashrc
+RUN echo -e 'source ~/catkin_ws/install/setup.bash' >>~/.bashrc
+
+# Set up ROS environment vars
+ENV LANG=en_US.UTF-8 ROS_DISTRO=indigo
 # Run the project
-CMD ["~/catkin_ws/devel/env.sh", "rosrun", "openag_brain", "main", "personal_food_computer_v2.launch"]
+CMD ["~/catkin_ws/install/env.sh", "rosrun", "openag_brain", "main", "personal_food_computer_v2.launch"]
+USER pi
