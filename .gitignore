@@ -7,3 +7,4 @@ modules.launch
 doc/html
 doc/manifest.yaml
 doc/_build
+.cache/
