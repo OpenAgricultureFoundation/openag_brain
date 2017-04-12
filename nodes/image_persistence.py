@@ -26,7 +26,7 @@ from openag_brain import params
 from openag_brain.utils import read_environment_from_ns
 
 # Filter a list of environmental variables that are specific to camera
-CAMERA_VARIABLES = create_variables(rospy.get_param('/camera_variables'))
+CAMERA_VARIABLES = create_variables(rospy.get_param('/var_types/camera_variables'))
 
 class ImagePersistence:
     image_format_mapping = {

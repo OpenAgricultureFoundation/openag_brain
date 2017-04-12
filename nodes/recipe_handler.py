@@ -32,11 +32,11 @@ from openag_brain.load_env_var_types import create_variables
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
 VALID_VARIABLES = frozenset(
-                     create_variables(rospy.get_param('/environment_variables'))
+                     create_variables(rospy.get_param('/var_types/environment_variables'))
                 )
 
 # Need to check if the correct order is maintained?
-RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/recipe_variables'))
+RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/var_types/recipe_variables'))
 
 
 @memoize

@@ -14,8 +14,8 @@ from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.video_helpers import *
 from openag_brain.load_env_var_types import create_variables
 # Filter a list of environmental variables that are specific to camera
-CAMERA_VARIABLES = create_variables(rospy.get_param('/camera_variables'))
-RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/recipe_variables'))
+CAMERA_VARIABLES = create_variables(rospy.get_param('/var_types/camera_variables'))
+RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/var_types/recipe_variables'))
 
 IMAGE_ATTACHMENT = "image"
 TIMELAPSE_ATTACHMENT = "timelapse"

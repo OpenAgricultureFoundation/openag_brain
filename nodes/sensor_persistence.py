@@ -23,7 +23,7 @@ from openag_brain.load_env_var_types import create_variables
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
-ENVIRONMENT_VARIABLES = create_variables(rospy.get_param('/environment_variables'))
+ENVIRONMENT_VARIABLES = create_variables(rospy.get_param('/var_types/environment_variables'))
 
 class TopicPersistence:
     def __init__(
