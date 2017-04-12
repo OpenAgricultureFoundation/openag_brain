@@ -22,6 +22,7 @@ RUN sudo usermod -a -G dialout pi
 #    cd ~/catkin_ws
 #    docker build -f ./src/openag_brain/Dockerfile .
 ADD install /home/pi/catkin_ws/install/
+RUN sudo chown -R pi:pi ~/catkin_ws
 # Install ROS boostrapping tool
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
     python-pip python-rosdep
@@ -38,5 +39,5 @@ RUN echo -e 'source ~/catkin_ws/install/setup.bash' >>~/.bashrc
 # Set up ROS environment vars
 ENV LANG=en_US.UTF-8 ROS_DISTRO=indigo
 # Run the project
-CMD ["~/catkin_ws/install/env.sh", "rosrun", "openag_brain", "main", "personal_food_computer_v2.launch"]
+CMD ["/home/pi/catkin_ws/install/env.sh", "rosrun", "openag_brain", "main", "personal_food_computer_v2.launch"]
 USER pi
