@@ -29,7 +29,7 @@ class TestDirectController(unittest.TestCase):
                                             Float64, self.callback)
         for msg in msgs:
             print(msg)
-            self.pub_desired(msg)
+            self.pub_desired.publish(msg)
         rospy.sleep(5)
         print(_received)
         self.assertTrue(all(msgs == self._received))
