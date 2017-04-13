@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 PKG = 'openag_brain'
 NAME = 'test_direct_controller'
 
@@ -34,7 +34,7 @@ class TestDirectController(unittest.TestCase):
         print(_received)
         self.assertTrue(all(msgs == self._received))
 
-        
+
 if __name__ == "__main__":
     import rostest
     rostest.rosrun(PKG, NAME, TestDirectController)
