@@ -11,7 +11,6 @@ from openag.db_names import (
     SOFTWARE_MODULE, FIRMWARE_MODULE, ENVIRONMENTAL_DATA_POINT
 )
 
-from openag_brain import commands
 from openag_brain.srv import SetCategories
 from openag_brain.utils import resolve_fixtures
 
