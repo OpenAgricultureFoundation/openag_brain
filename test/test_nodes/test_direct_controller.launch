@@ -3,6 +3,6 @@
     <node pkg="openag_brain" type="direct_controller.py" name="mock_controller">
       <param name="variable" value="mock_controller" type="str"/>
     </node>
-    <test pkg="openag_brain" test-name="test_direct_controller" type="str" />
+    <test pkg="openag_brain" test-name="test_direct_controller" type="test_direct_controller.py" />
   </group>
 </launch>
