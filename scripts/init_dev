@@ -15,10 +15,8 @@
 if [ ! -d ~/catkin_ws/src/openag_brain/ ] ; then
   echo "Location \"~/catkin_ws/src/openag_brain\" does not exist. openag_brain must be placed in \"~/catkin_ws/src\" for this script to work." && exit 1
 fi
-echo "---"
 echo "Setting up development environment..."
 echo "Location: ~/catkin_ws"
-echo "---"
 
 set -e
 
@@ -66,7 +64,7 @@ fi
 # Installable sources are typically apt-get packages or pip packages.
 # http://wiki.ros.org/rosdep
 echo "Installing binary dependencies with rosdep"
+# Install dependency binary deps
 rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 
-echo "---"
-echo "All finished, thanks! Ready to build with catkin_make."
+echo "Finished setting up development environment. Ready to build with catkin_make."
