@@ -68,4 +68,17 @@ echo "Installing binary dependencies with rosdep"
 # Install dependency binary deps
 rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 
+# Install openag_python
+mkdir -p ~/openag/src
+cd ~/openag/src
+if [ -x openag_python ]; then
+    cd openag_python
+    git pull
+else
+    git clone https://github.com/OpenAgInitiative/openag_python.git
+    cd openag_python
+fi
+sudo pip install -e .
+cd ~/catkin_ws
+
 echo "Finished setting up development environment. Ready to build with catkin_make."
