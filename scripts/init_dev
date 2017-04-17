@@ -15,8 +15,10 @@
 if [ ! -d ~/catkin_ws/src/openag_brain/ ] ; then
   echo "Location \"~/catkin_ws/src/openag_brain\" does not exist. openag_brain must be placed in \"~/catkin_ws/src\" for this script to work." && exit 1
 fi
+echo "~~~"
 echo "Setting up development environment..."
 echo "Location: ~/catkin_ws"
+echo "~~~"
 
 set -e
 
@@ -36,13 +38,12 @@ sudo apt-get install -y -q python-pip couchdb
 # Install bootstrapping dependencies
 sudo pip install rosdep wstool
 
-# Initialize rosdep
-# Remove any old sources list. This makes script idempotent.
+# Initialize rosdep if it hasn't been already.
+# Checking for the .list file first makes this script idempotent.
 echo "Setup and update rosdep"
-if [ -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
-  sudo rm /etc/ros/rosdep/sources.list.d/20-default.list
+if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+  sudo rosdep init
 fi
-sudo rosdep init
 rosdep update
 
 # Set up ROS and dependencies in workspace with .rosinstall file.
