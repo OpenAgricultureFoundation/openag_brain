@@ -1,3 +1,6 @@
+# For mac developers
+.DS_Store
+
 *.swp
 *.pyc
 *.egg-info
