@@ -3,8 +3,24 @@ USER root
 # Install python and some barebones tools
 # (Things you would typically have in the Pi's environment)
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
-    wget git vim locales
+    apt-get install -y -q \
+    wget \
+    git \
+    vim \
+    locales \
+    build-essential \
+    python \
+    libpython-dev \
+    libboost-chrono-dev \
+    libboost-date-time-dev \
+    libboost-program-options-dev \
+    libboost-regex-dev \
+    libboost-system-dev \
+    libboost-thread-dev \
+    libtinyxml-dev \
+    libboost-filesystem-dev \
+    libxml2-dev \
+    libgtest-dev
 # Tell apt to read from the ROS package repository
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu jessie main" > /etc/apt/sources.list.d/ros-latest.list'
 RUN wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
