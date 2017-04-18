@@ -43,7 +43,7 @@ RUN sudo chown -R pi:pi ~/catkin_ws
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
     python-pip python-rosdep
 # Install dependencies with rosdep
-RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/install/share/openag_brain --ignore-src --rosdistro indigo -y -r --os=debian:jessie
+RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/install --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 # Install openag_python from the git repository
 RUN cd ~ && git clone http://github.com/OpenAgInitiative/openag_python.git
 RUN sudo pip install ./openag_python
