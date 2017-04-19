@@ -1,0 +1,10 @@
+[Unit]
+Description=openag_brain Service
+Documentation=https://wiki.openag.media.mit.edu/
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/opt/openag_brain_run_service

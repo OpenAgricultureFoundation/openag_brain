@@ -1,0 +1,7 @@
+#!/bin/bash
+# This script is used in a developer environment to configure a
+# Linux system service. The script is copied to /opt and is launched
+# by a service (openag_brain.service).
+# This is all handled by the `install_dev` script.
+source /opt/ros/indigo/setup.bash
+rosrun openag_brain main personal_food_computer_v2.launch

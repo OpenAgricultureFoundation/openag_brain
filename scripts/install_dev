@@ -16,6 +16,9 @@ echo "~~~"
 # Install packages in system directory
 cd ~/catkin_ws && sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/indigo -j2
 
+# Install openag_brain startup service
+~/catkin_ws/src/openag_brain/scripts/install_openag_brain_service
+
 # Activate the ROS environment
 source /opt/ros/indigo/setup.bash
 echo "Adding /opt/ros/indigo/setup.bash to ~/.bashrc"

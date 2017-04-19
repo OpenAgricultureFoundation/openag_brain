@@ -1,0 +1,5 @@
+#!/bin/bash
+# Create system service
+echo "Installing service to /lib/systemd/system/openag_brain.service"
+sudo cp ~/catkin_ws/src/openag_brain/scripts/openag_brain_run_service /opt/openag_brain_run_service
+sudo cp ~/catkin_ws/src/openag_brain/scripts/openag_brain.service /lib/systemd/system/openag_brain.service
