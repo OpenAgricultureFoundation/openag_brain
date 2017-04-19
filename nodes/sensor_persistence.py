@@ -19,14 +19,11 @@ from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.utils import read_environment_from_ns
-from openag.var_types import EnvVar, GROUP_ENVIRONMENT
+from openag_brain.load_env_var_types import create_variables
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
-ENVIRONMENT_VARIABLES = tuple(
-    var for var in EnvVar.items.values()
-    if GROUP_ENVIRONMENT in var.groups
-)
+ENVIRONMENT_VARIABLES = create_variables(rospy.get_param('/var_types/environment_variables'))
 
 class TopicPersistence:
     def __init__(

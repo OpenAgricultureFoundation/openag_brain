@@ -1,0 +1,97 @@
+recipe_variables:
+  recipe_start:
+    name: recipe_start
+    description: "Represents the start of a recipe"
+  recipe_end:
+    name: recipe_end
+    description: "Represents the end of a recipe"
+environment_variables:
+  air_temperature:
+    name: air_temperature
+    description: "Temperature of the air in degrees Celcius"
+    units: "degrees C"
+    type: "std_msgs/Float64"
+  air_humidity:
+    name: air_humidity
+    description: "A measure of the concentration of water in the air relative to the maximum concentration at the current temperature"
+    units: "percent relative"
+    type: "std_msgs/Float64"
+  air_carbon_dioxide:
+    name: air_carbon_dioxide
+    description: "The amount of Carbon Dioxide in the air"
+    units: "ppm"
+    type: "std_msgs/Float64"
+  air_flush_on:
+    name: air_flush_on
+    description: "Turn on air flush (off by default)"
+    type: "std_msgs/Boolean"
+  water_temperature:
+    name: water_temperature
+    description: "Temperature of the water in degrees Celcius"
+    units: "degrees C"
+    type: "std_msgs/Float64"
+  water_potential_hydrogen:
+    name: water_potential_hydrogen
+    description: "Potential Hydrogen of the water"
+    units: "pH"
+    type: "std_msgs/Float64"
+  water_electrical_conductivity:
+    name: water_electrical_conductivity
+    description: "Electrical conductivity of the water"
+    units: "uS/cm"
+    type: "std_msgs/Float64"
+  water_oxidation_reduction_potential:
+    name: water_oxidation_reduction_potential
+    description: "Oxidation-reduction potential of the water"
+    units: "mV"
+    type: "std_msgs/Float64"
+  water_dissolved_oxygen:
+    name: water_dissolved_oxygen
+    description: "A measure of the amount of oxygen in the water"
+    units: "mg/L"
+    type: "std_msgs/Float64"
+  water_level_high:
+    name: water_level_high
+    description: "Is water above threshold?"
+    type: "std_msgs/Boolean"
+  nutrient_flora_duo_a:
+    name: nutrient_flora_duo_a
+    description: "FloraDuo nutrient A"
+    type: "std_msgs/Float64"
+  nutrient_flora_duo_b:
+    name: nutrient_flora_duo_b
+    description: "FloraDuo nutrient B"
+    type: "std_msgs/Float64"
+  light_illuminance:
+    name: light_illuminance
+    description: "The intensity of light falling at the plants"
+    units: "lux"
+    type: "std_msgs/Float64"
+  light_intensity_red:
+    name: light_intensity_red
+    description: "The intensity setting for light panel"
+    units: "percent relative"
+    type: "std_msgs/Float64"
+  light_intensity_blue:
+    name: light_intensity_blue
+    description: "The intensity setting for light panel"
+    units: "percent relative"
+    type: "std_msgs/Float64"
+  light_intensity_white:
+    name: light_intensity_white
+    description: "The intensity setting for light panel"
+    units: "percent relative"
+    type: "std_msgs/Float64"
+camera_variables:
+  aerial_image:
+    name: aerial_image
+    description: "Image from above the tray looking down on the plants"
+    units: "png"
+  frontal_image:
+    name: frontal_image
+    description: "Image from in front of the tray looking towards the plants"
+    units: "png"
+user_variables:
+  marker:
+    name: marker
+    description: "Marks some user-defined event"
