@@ -2,15 +2,11 @@
 import rospy
 
 from std_msgs.msg import Float64
-from openag.var_types import EnvVar, GROUP_ENVIRONMENT, WATER_LEVEL_HIGH
+from openag_brain.load_env_var_types import create_variables
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
-ENVIRONMENT_VARIABLES = tuple(
-    var for var in EnvVar.items.values()
-    if GROUP_ENVIRONMENT in var.groups
-)
-
+ENVIRONMENT_VARIABLES = create_variables(rospy.get_param('/var_types/environment_variables'))
 
 class EWMA:
     """
@@ -88,7 +84,7 @@ def filter_all_variable_topics(variables):
         #
         # In future, we should change the architecture of the system to support
         # standard ros types under `/environment/<id>`.
-        if env_var == WATER_LEVEL_HIGH:
+        if env_var.type is None or 'boolean' in env_var.type.lower():
             forward_topic(src_topic, dest_topic, Float64)
         else:
             filter_topic(src_topic, dest_topic, Float64)

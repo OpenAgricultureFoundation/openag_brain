@@ -17,3 +17,4 @@ __pycache__
 doc/html
 doc/manifest.yaml
 doc/_build
+.cache/
