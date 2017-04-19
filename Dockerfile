@@ -40,7 +40,7 @@ RUN sudo usermod -a -G dialout pi
 ADD install /home/pi/catkin_ws/install/
 RUN sudo chown -R pi:pi ~/catkin_ws
 # Install ROS boostrapping tool
-RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y -q \
     python-pip python-rosdep
 # Install dependencies with rosdep
 RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/install --ignore-src --rosdistro indigo -y -r --os=debian:jessie
