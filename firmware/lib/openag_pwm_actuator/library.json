@@ -1,0 +1,16 @@
+{
+    "name": "openag_pwm_actuator",
+    "keywords": "openag, pwm, analog, actuator",
+    "description": "OpenAg driver for an actuator that can accept a pwm signal",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_pwm_actuator.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

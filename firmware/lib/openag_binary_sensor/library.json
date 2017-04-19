@@ -1,0 +1,16 @@
+{
+    "name": "openag_binary_sensor",
+    "keywords": "openag",
+    "description": "OpenAg driver for any binary sensor that flips a pin",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_binary_sensor.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

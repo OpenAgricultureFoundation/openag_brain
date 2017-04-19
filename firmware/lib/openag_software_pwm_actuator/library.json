@@ -1,0 +1,16 @@
+{
+    "name": "openag_software_pwm_actuator",
+    "keywords": "openag, pwm, analog, actuator",
+    "description": "OpenAg driver for an actuator. Does pwm in software to allow for more flexibility in configuration: particularly to allow for longer periods for actuators that exhibit a nonlinear response to normal pwm.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_software_pwm_actuator.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

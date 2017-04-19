@@ -1,0 +1,16 @@
+{
+    "name": "openag_gc0012",
+    "keywords": "openag, gc0012",
+    "description": "OpenAg driver for the GC-0012 CO2 sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_gc0012.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

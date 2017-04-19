@@ -1,0 +1,16 @@
+{
+    "name": "openag_atlas_rgb",
+    "keywords": "openag, atlas, light",
+    "description": "OpenAg driver for the Atlas Scientific light spectrum and intensity sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_rgb.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

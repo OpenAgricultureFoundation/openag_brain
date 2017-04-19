@@ -1,0 +1,24 @@
+{
+    "header_file": "openag_dht22.h",
+    "class_name": "Dht22",
+    "arguments": [
+        {
+            "name": "pin",
+            "type": "int"
+        }
+    ],
+    "outputs": {
+        "air_temperature": {
+            "type": "std_msgs/Float32"
+        },
+        "air_humidity": {
+            "type": "std_msgs/Float32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "Failed to read from sensor"
+    }
+}

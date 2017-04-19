@@ -1,0 +1,16 @@
+{
+    "name": "openag_air_flush",
+    "keywords": "openag, air flush, pulse",
+    "description": "OpenAg driver for air flush actuators",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_air_flush.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "rosserial_arduino"
+        }
+    ]
+}

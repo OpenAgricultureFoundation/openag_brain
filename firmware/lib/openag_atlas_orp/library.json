@@ -1,0 +1,16 @@
+{
+    "name": "openag_atlas_orp",
+    "keywords": "openag, atlas, orp",
+    "description": "OpenAg driver for the Atlas Scientific ORP sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_atlas_orp.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

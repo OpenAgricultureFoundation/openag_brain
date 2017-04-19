@@ -1,0 +1,22 @@
+{
+    "header_file": "openag_gc0012.h",
+    "class_name": "Gc0012",
+    "arguments": [
+        {
+            "name": "serial_port",
+            "type": "int",
+            "default": 1
+        }
+    ],
+    "outputs": {
+        "air_carbon_dioxide": {
+            "type": "std_msgs/Float32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "2": "Failed to read from sensor"
+    }
+}
