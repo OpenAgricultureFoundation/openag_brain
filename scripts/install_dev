@@ -23,4 +23,8 @@ cd ~/catkin_ws && sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_B
 source /opt/ros/indigo/setup.bash
 echo "Adding /opt/ros/indigo/setup.bash to ~/.bashrc"
 echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
+
+# Install platformio
+rosrun openag_brain install_pio
+
 echo "Build successful. All finished!"
