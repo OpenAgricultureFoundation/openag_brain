@@ -118,7 +118,7 @@ found at ``http://wiki.ros.org/rostest``.
 Tests can be run using rostest which runs the <test> tags in a launch file.
 For example, here's how to test a single ROS node::
 
-    rostest test/test_nodes/test_direct_controller.launch
+    rostest openag_brain test_direct_controller.launch
 
 The log files for debugging can be found at:
 
