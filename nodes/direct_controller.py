@@ -1,4 +1,18 @@
 #!/usr/bin/env python
+""" Direct Controller
+This ROS node controls the variables which do not have any feedback and the
+output setting is just set once and maintained.
+
+The command and measured topics are simply echo's of the desired topic.
+
+This is called from the launch file, for example:
+
+<node pkg="openag_brain" type="direct_controller.py" name="light_controller_red_1">
+  <param name="variable" value="light_intensity_red" type="str"/>
+</node>
+
+
+"""
 import rospy
 from std_msgs.msg import Float64
 
