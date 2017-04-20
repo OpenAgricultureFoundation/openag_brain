@@ -1,0 +1,11 @@
+{
+  "name": "openag_module",
+  "keywords": "openag, module",
+  "description": "Superclass for OpenAg firmware modules",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "*"
+}

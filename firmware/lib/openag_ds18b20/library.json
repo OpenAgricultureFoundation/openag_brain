@@ -1,0 +1,16 @@
+{
+    "name": "openag_ds18b20",
+    "keywords": "openag, ds18b20",
+    "description": "OpenAg driver for the DS18B20 temperature sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_ds18b20.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "DallasTemperature"
+        }
+    ]
+}

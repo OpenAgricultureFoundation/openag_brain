@@ -1,0 +1,16 @@
+{
+    "name": "openag_am2315",
+    "keywords": "openag, am2315",
+    "description": "OpenAg driver for the Am2315 temperature/humidity sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_am2315.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

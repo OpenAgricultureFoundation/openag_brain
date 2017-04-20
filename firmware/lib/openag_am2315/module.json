@@ -1,0 +1,20 @@
+{
+    "description": "Driver for the AdaFruit Am2315 sensor",
+    "class_name": "Am2315",
+    "header_file": "openag_am2315.h",
+    "outputs": {
+        "air_temperature": {
+            "type": "std_msgs/Float32"
+        },
+        "air_humidity": {
+            "type": "std_msgs/Float32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "Sensor responsed with the wrong function code",
+        "2": "Sensor did not return enough information"
+    }
+}

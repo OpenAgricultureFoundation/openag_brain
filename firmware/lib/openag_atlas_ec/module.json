@@ -1,0 +1,43 @@
+{
+    "description": "Driver for the Atlas Scientific EC sensor",
+    "class_name": "AtlasEc",
+    "header_file": "openag_atlas_ec.h",
+    "arguments": [
+        {
+            "name": "i2c_address",
+            "type": "int",
+            "default": 100
+        }
+    ],
+    "inputs": {
+        "dry_calibration": {
+            "type": "std_msgs/Empty",
+            "categories": ["calibration"]
+        },
+        "single_calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        },
+        "lowpoint_calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        },
+        "highpoint_calibration": {
+            "type": "std_msgs/Float32",
+            "categories": ["calibration"]
+        }
+    },
+    "outputs": {
+        "water_electrical_conductivity": {
+            "type": "std_msgs/Float32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"}
+    ],
+    "status_codes": {
+        "1": "No response",
+        "2": "Request failed",
+        "3": "Unknown error"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "name": "openag_dht22",
+    "keywords": "openag, dht22",
+    "description": "OpenAg driver for the DHT22 air temperature and humidity sensor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/OpenAgInitiative/openag_dht22.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "openag_module"
+        }
+    ]
+}

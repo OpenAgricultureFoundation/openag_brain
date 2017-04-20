@@ -1,0 +1,18 @@
+{
+    "description": "Driver for the MH-Z19 CO2 sensor",
+    "class_name": "Mhz19",
+    "header_file": "openag_mhz19.h",
+    "outputs": {
+        "air_carbon_dioxide": {
+            "type": "std_msgs/Int32"
+        }
+    },
+    "dependencies": [
+        {"type": "git", "url": "https://github.com/OpenAgInitiative/openag_firmware_module.git"},
+        {"type": "pio", "id": 14},
+        {"type": "pio", "id": 15}
+    ],
+    "status_codes": {
+        "31": "CRC error"
+    }
+}
