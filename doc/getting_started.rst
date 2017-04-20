@@ -108,3 +108,24 @@ configuration. You should be able to view the CouchDB server by going to
 that the project is actually running. See :ref:`ROSNodes` for
 instructions on how to configure the software to interface with your specific
 hardware.
+
+Testing
+-------
+
+ROS allows for Node level testing and Unit Level testing, the details can be
+found at ``http://wiki.ros.org/rostest``.
+
+Tests can be run using rostest which runs the <test> tags in a launch file.
+For example, here's how to test a single ROS node:
+
+    rostest test/test_nodes/test_direct_controller.launch
+
+The log files for debugging can be found at:
+
+    Test log files:
+    ~/.ros/test_results/openag_brain/rosunit-test_direct_controller.xml
+
+    rosmaster stdout:
+    ~/.ros/test_results/openag_brain/rostest-test_test_nodes_test_direct_controller.xml
+
+Happy Testing!
