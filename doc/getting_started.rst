@@ -116,7 +116,7 @@ ROS allows for Node level testing and Unit Level testing, the details can be
 found at ``http://wiki.ros.org/rostest``.
 
 Tests can be run using rostest which runs the <test> tags in a launch file.
-For example, here's how to test a single ROS node:
+For example, here's how to test a single ROS node::
 
     rostest test/test_nodes/test_direct_controller.launch
 
