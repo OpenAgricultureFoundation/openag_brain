@@ -55,7 +55,7 @@ if [ -f ~/catkin_ws/.catkin_workspace ]; then
   wstool merge -t ~/catkin_ws/src ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall
 else
   echo "Init workspace with wstool"
-  wstool init ~/catkin_ws/src openag_brain_ros_indigo_deps_wet.rosinstall
+  wstool init ~/catkin_ws/src ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall
 fi
 
 # Install binary and Python dependencies for all packages.
