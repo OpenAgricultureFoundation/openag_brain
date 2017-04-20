@@ -1,5 +1,5 @@
 <launch>
-  <group ns="tests/">
+  <group ns="tests">
     <node pkg="openag_brain" type="direct_controller.py" name="mock_controller">
       <param name="variable" value="mock_controller" type="str"/>
     </node>
