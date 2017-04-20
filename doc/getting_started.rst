@@ -122,10 +122,10 @@ For example, here's how to test a single ROS node:
 
 The log files for debugging can be found at:
 
-    Test log files:
+test logs:
     ~/.ros/test_results/openag_brain/rosunit-test_direct_controller.xml
 
-    rosmaster stdout:
+rosmaster stdout:
     ~/.ros/test_results/openag_brain/rostest-test_test_nodes_test_direct_controller.xml
 
 Happy Testing!
