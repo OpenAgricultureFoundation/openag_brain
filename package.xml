@@ -53,6 +53,7 @@
   <run_depend>python-gevent</run_depend>
   <run_depend>python-flask</run_depend>
 
+  <test_depend>rostest</test_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
