@@ -24,6 +24,7 @@ RUN apt-get update && \
 # Tell apt to read from the ROS package repository
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu jessie main" > /etc/apt/sources.list.d/ros-latest.list'
 RUN wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+RUN sudo locale-gen en_US.UTF-8
 # Create pi user
 RUN useradd pi && echo 'pi:hypriot' | chpasswd && echo "pi ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && mkdir -p /home/pi && chown pi:pi /home/pi
 
@@ -32,25 +33,27 @@ WORKDIR /home/pi/
 # Give the pi user access to the usb drive for flashing an Arduino
 RUN sudo usermod -a -G dialout pi
 # Add catkin install dir (built with catkin)
-# Note you must run `docker build` from `install` dir so the build context
-# includes the install directory. Typically this is done like so:
+# Note that you must run docker builds from ~/catkin_ws
 #
 #    cd ~/catkin_ws
 #    docker build -f ./src/openag_brain/Dockerfile .
-ADD install /home/pi/catkin_ws/install/
+#
+# We use COPY rather than ADD, as COPY is preferred for local files.
+# https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#add-or-copy
+COPY . /home/pi/catkin_ws
 RUN sudo chown -R pi:pi ~/catkin_ws
 # Install ROS boostrapping tool
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y -q \
     python-pip python-rosdep
 # Install dependencies with rosdep
-RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/install --ignore-src --rosdistro indigo -y -r --os=debian:jessie
-# Install openag_python from the git repository
-RUN cd ~ && git clone http://github.com/OpenAgInitiative/openag_python.git
-RUN sudo pip install ./openag_python
-RUN sudo locale-gen en_US.UTF-8
+RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
+RUN cd ~/catkin_ws && ./src/catkin/bin/catkin_make install
 # Add .bashrc
 RUN echo -e '[ -z "$PS1" ] && return' >~/.bashrc
 RUN echo -e 'source ~/catkin_ws/install/setup.bash' >>~/.bashrc
+# Install openag_python from the git repository
+RUN cd ~ && git clone http://github.com/OpenAgInitiative/openag_python.git
+RUN sudo pip install ./openag_python
 
 # Set up ROS environment vars
 ENV LANG=en_US.UTF-8 ROS_DISTRO=indigo
