@@ -5,7 +5,6 @@ from catkin_pkg.python_setup import generate_distutils_setup
 setup_args = generate_distutils_setup(
     packages=[
         'openag_brain',
-        'openag_brain.commands',
         'openag_lib',
         'openag_lib.firmware',
         'openag_lib.firmware.plugins'

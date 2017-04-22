@@ -71,18 +71,45 @@ To learn more about ROS, check out the `ROS wiki <http://wiki.ros.org/>`_.
 Compiling and Publishing a new Docker Image
 -------------------------------------------
 
-Updated docker images will be published by the core team from the openag_brain repository.
+Updated docker images will be published by the core team from the openag_brain
+repository. "Official" OpenAg Docker images are published by the core team
+from the openag_brain repository. If you want to contribute to a release,
+`issue a pull request <https://github.com/OpenAgInitiative/openag_brain/compare>`_.
+If you want to publish Docker images under your own account, you can follow
+these steps, substituting your own Docker info:
 
-"Official" OpenAg Docker images are published by the core team from the openag_brain repository. If you want to contribute to a release, `issue a pull request <https://github.com/OpenAgInitiative/openag_brain/compare>`_. If you want to publish Docker images under your own account, you can follow these steps, substituting your own Docker info:
+Note: this section assumes you have a development environment set up with the
+``install_dev`` script that can be found in ``openag_brain/scripts``.
 
-First, build the image::
+First, build ROS with ``catkin_make``::
 
-    docker build -t openag/rpi_brain .
+    cd ~/catkin_ws
+    catkin_make install
 
-Then, log in to docker::
+This make take a while... Once it's done, you should see a
+``~/catkin_ws/install`` directory.
+
+Note: the Dockerfile in ``openag_brain`` will ``ADD`` the contents
+of the ``install`` directory to the Docker image, so it's necessary that
+you run ``catkin_make install`` first, so Docker has something to copy.
+
+Next, build the Docker image::
+
+  cd ~/catkin_ws
+  docker build -t openag/rpi_brain -f ./src/openag_brain/Dockerfile .
+
+This will send the entire contents of the ``catkin_ws`` directory as the
+Docker build context.
+
+To publish the image, first log into Docker Hub::
 
     docker login
 
 Finally, push the image to `Docker Hub <https://hub.docker.com/>`_::
 
     docker push openag/rpi_brain
+
+More resources:
+
+- http://wiki.openag.media.mit.edu/openag_brain/installing/installing_globally
+- http://wiki.openag.media.mit.edu/docker

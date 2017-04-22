@@ -1,0 +1,84 @@
+#!/bin/bash
+# This script sets up a developer workspace to build openag_brain and its
+# dependencies from source.
+#
+# - Adds ROS package manager source
+# - Installs ROS tools for boostrapping install
+# - Fetches and adds source dependencies to catkin workspace
+#
+# Adapted from these instructions:
+# http://wiki.ros.org/ROSberryPi/Installing%20ROS%20Indigo%20on%20Raspberry%20Pi
+
+# Read the workspace location from arguments. Default to ~/catkin_ws.
+
+# Make sure we're running this from the correct directory
+if [ ! -d ~/catkin_ws/src/openag_brain/ ] ; then
+  echo "Location \"~/catkin_ws/src/openag_brain\" does not exist. openag_brain must be placed in \"~/catkin_ws/src\" for this script to work." && exit 1
+fi
+echo "~~~"
+echo "Setting up development environment..."
+echo "Location: ~/catkin_ws"
+echo "~~~"
+
+set -e
+
+# Tell apt to read from the ROS package repository
+echo "Add ROS package repository"
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu jessie main" > /etc/apt/sources.list.d/ros-latest.list'
+wget -q https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+
+# Update apt
+echo "Update apt"
+sudo apt-get update -q
+# sudo apt-get -y upgrade
+
+# Install pip and couchdb (couchdb is not available via rosdep -- see below)
+echo "Install pip, couchdb and boostrapping tools"
+sudo apt-get install -y -q python-pip couchdb
+# Install bootstrapping dependencies
+sudo pip install rosdep wstool
+
+# Initialize rosdep if it hasn't been already.
+# Checking for the .list file first makes this script idempotent.
+echo "Setup and update rosdep"
+if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+  sudo rosdep init
+fi
+rosdep update
+
+# Set up ROS and dependencies in workspace with .rosinstall file.
+# http://wiki.ros.org/wstool
+# http://wiki.ros.org/rosinstall
+# If wstool has already been run, merge the rosinstall. Otherwise, init.
+if [ -f ~/catkin_ws/.catkin_workspace ]; then
+  echo "Workspace exists. Merge openag_brain_ros_indigo_deps_wet.rosinstall into existing workspace with wstool."
+  wstool merge -t ~/catkin_ws/src ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall
+else
+  echo "Init workspace with wstool"
+  wstool init ~/catkin_ws/src ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall
+fi
+
+# Install binary and Python dependencies for all packages.
+# Walks workspace for `package.xml` files and looks up packages in rosdep
+# sources list. Sources list for rosdep can be found here
+# https://github.com/ros/rosdistro
+# Installable sources are typically apt-get packages or pip packages.
+# http://wiki.ros.org/rosdep
+echo "Installing binary dependencies with rosdep"
+# Install dependency binary deps
+rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
+
+# Install openag_python
+mkdir -p ~/openag/src
+cd ~/openag/src
+if [ -x openag_python ]; then
+    cd openag_python
+    git pull
+else
+    git clone https://github.com/OpenAgInitiative/openag_python.git
+    cd openag_python
+fi
+sudo pip install -e .
+cd ~/catkin_ws
+
+echo "Finished setting up development environment. Ready to build with catkin_make."

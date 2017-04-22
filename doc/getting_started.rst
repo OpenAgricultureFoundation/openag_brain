@@ -41,14 +41,22 @@ Raspberry Pi Installation From Source
 
 If you plan to work on the code for the project, it might make more sense to
 install the software directly on your machine instead of running everything in
-Docker containers. For the Raspberry Pi, there is a script in `this repo
-<https://github.com/OpenAgInitiative/openag_brain_install_rpi>`_ for installing
-everything. All you have to do is clone the repository and run the install
-script::
+Docker containers. openag_brain ships with an install script.
 
-    git clone https://github.com/OpenAgInitiative/openag_brain_install_rpi
-    cd openag_brain_install_rpi
-    sh install.sh
+To run it, first, clone openag_brain into ``~/catkin_ws/src``
+(``~/catkin_ws`` is the ROS build space)::
+
+    mkdir -p ~/catkin_ws/src
+    cd ~/catkin_ws/src
+    git clone https://github.com/OpenAgInitiative/openag_brain
+
+Now that openag_brain is in the catkin_build space, you can run the
+install script::
+
+    cd ~/catkin_ws/src/openag_brain
+    ./scripts/install_dev
+
+This will set up a full development environment for openag_brain and ROS.
 
 Generic Installation From Source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

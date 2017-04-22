@@ -1,0 +1,30 @@
+#!/bin/bash
+# This script sets up a developer workspace for openag_brain and its
+# dependencies, then builds everything using `catkin_make_isolated` and
+# installs it in `/opt/ros/indigo/`.
+
+# Make sure we're running this from the correct directory
+if [ ! -d ~/catkin_ws/src/openag_brain/ ] ; then
+  echo "Location \"~/catkin_ws/src/openag_brain\" does not exist. openag_brain must be placed in \"~/catkin_ws/src\" for this script to work." && exit 1
+fi
+~/catkin_ws/src/openag_brain/scripts/init_dev || exit 1
+echo "~~~"
+echo "Now building..."
+echo "Location: /opt/ros/indigo"
+echo "~~~"
+
+# Install packages in system directory
+cd ~/catkin_ws && sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/indigo -j2
+
+# Install openag_brain startup service
+~/catkin_ws/src/openag_brain/scripts/install_openag_brain_service
+
+# Activate the ROS environment
+source /opt/ros/indigo/setup.bash
+echo "Adding /opt/ros/indigo/setup.bash to ~/.bashrc"
+echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
+
+# Install platformio
+rosrun openag_brain install_pio
+
+echo "Build successful. All finished!"
