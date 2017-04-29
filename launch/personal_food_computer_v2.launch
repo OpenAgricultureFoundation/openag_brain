@@ -59,6 +59,7 @@
       <rosparam file="$(find openag_brain)/launch/usb_cam.yaml" />
       <param name="pixel_format" type="str" value="yuyv"/>
     </node>
+    <test pkg="openag_brain" test-name="test_pub_desired_topics" type="test_pub_desired_topics.py" />
   </group>
   <node pkg="openag_brain" type="expand_diagnostics.py" name="expand_diagnostics"/>
   <node pkg="openag_brain" type="handle_arduino.py" name="arduino_handler">
