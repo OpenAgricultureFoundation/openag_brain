@@ -155,7 +155,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d", "--project_dir",
         help="the path to the platformio project dir "
-            "(Default {}".format(),
+            "(Default {}".format(DEFAULT_PROJECT_DIR),
         default=DEFAULT_PROJECT_DIR
     )
 
