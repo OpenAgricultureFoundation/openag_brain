@@ -52,8 +52,9 @@ def init(project_dir, board):
 
 def main():
     args = parser.parse_args()
+    project_dir = path.normpath(path.expanduser(args.project_dir))
     init(
-        project_dir=args.project_dir,
+        project_dir=project_dir,
         board=args.board
     )
 
