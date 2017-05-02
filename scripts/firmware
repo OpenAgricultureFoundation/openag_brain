@@ -32,8 +32,7 @@ from openag_lib.firmware.util import (
     load_firmware_type_manifests, load_plugin)
 
 # Relative path (from script execution) to the ROS package root.
-OPENAG_BRAIN_DIR = path.normpath(path.join(path.dirname(__file__), ".."))
-PROJECT_DIR = path.join(OPENAG_BRAIN_DIR, "firmware")
+DEFAULT_PROJECT_DIR = "~/catkin_ws/src/openag_brain/firmware"
 
 # The name of the module manifest file.
 MODULE_FILE = "module.json"
@@ -153,17 +152,23 @@ if __name__ == "__main__":
         choices=all_categories,
         nargs="*"
     )
+    parser.add_argument(
+        "-d", "--project_dir",
+        help="the path to the platformio project dir "
+            "(Default {}".format(),
+        default=DEFAULT_PROJECT_DIR
+    )
 
     args = parser.parse_args()
     params = yaml.load(args.param_file)
     gen_firmware(
         params=params,
-        project_dir=PROJECT_DIR,
+        project_dir=args.project_dir,
         categories=args.categories,
         plugin=args.plugin,
         status_update_interval=args.status_update_interval
     )
     build_firmware(
-        project_dir=PROJECT_DIR,
+        project_dir=args.project_dir,
         target=args.target
     )
