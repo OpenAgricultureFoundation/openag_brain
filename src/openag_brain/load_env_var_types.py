@@ -1,4 +1,17 @@
 class VariableInfo(dict):
+    @staticmethod
+    def from_dict(desc_dict):
+        """
+        Construct a variable from the description dictionaries we have
+        in the yaml file.
+        """
+        return VariableInfo(
+            desc_dict["name"],
+            desc_dict["description"],
+            type=desc_dict.get("type", None),
+            units=desc_dict.get("units", None)
+        )
+
     def __init__(self, name, description, _type=None, units=None):
         self.name = name
         self.__doc__ = description
