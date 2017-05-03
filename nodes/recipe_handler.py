@@ -15,6 +15,7 @@ instance of this module per environment in the system.
 import time
 import rospy
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
+from openag_brain.constants import NULL_SETPOINT_SENTINAL
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from couchdb import Server
@@ -122,6 +123,11 @@ class SimpleRecipe:
         # on the last iteration, then yield a RECIPE_END setpoint.
         for state_variable, state_value in state.iteritems():
             yield (time.time(), variable, value)
+        for variable in ENVIRONMENTAL_VARIABLES:
+            # Yield null setpoint sentinal values for all environmental
+            # variables. This breaks the feedback loop on controllers and
+            # puts the system in an idle state.
+            yield (time.time(), variable.name, NULL_SETPOINT_SENTINAL)
         yield (time.time(), RECIPE_END.name, self.id)
 
 def hrs_to_seconds(hrs):
@@ -165,6 +171,11 @@ class PhasedRecipeInterpreter:
                     for key in VALID_VARIABLES.intersection(phase_keys):
                         yield (rospy.get_time(), key, float(phase[key]))
                     rospy.sleep(self.timeout)
+        for variable in ENVIRONMENTAL_VARIABLES:
+            # Yield null setpoint sentinal values for all environmental
+            # variables. This breaks the feedback loop on controllers and
+            # puts the system in an idle state.
+            yield (rospy.get_time(), variable.name, NULL_SETPOINT_SENTINAL)
         yield (rospy.get_time(), RECIPE_END.name, self.id)
 
 class RecipeRunningError(Exception):
