@@ -22,6 +22,11 @@ echo "~~~"
 
 set -e
 
+# Give pi dialout privileges.
+# https://github.com/OpenAgInitiative/openag_brain/issues/169
+echo "Give user pi dialout permissions"
+sudo usermod -a -G dialout pi
+
 # Tell apt to read from the ROS package repository
 echo "Add ROS package repository"
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu jessie main" > /etc/apt/sources.list.d/ros-latest.list'
