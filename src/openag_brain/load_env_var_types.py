@@ -37,22 +37,16 @@ def create_variables(var_dict):
     """
     Converts each dictionary item into the VariableInfo class to allow for them
     to be referenced by name directly without having to look up the name key.
-    For example, print(variable) instead of print(variable['name'])
+    For example, print(variable) instead of print(variable['name']).
+    Returns a dict of VariableInfo instances.
+
     :param: var_dict : dictionary with each value being a dictionary containing
         name, description, units
     """
-    variables = []
     ## Need to change this later so it is generic to work for any number of
     ## items in the dictionary, so this file doesn't need to be modified when
     ## new items are added to the var_types definition.
-    for name, value in var_dict.items():
-        if 'units' in value:
-            if 'type' in value:
-                var = VariableInfo(name, value['description'], value['type'],
-                               value['units'])
-            else:
-                var = VariableInfo(name, value['description'], value['units'])
-        else:
-            var = VariableInfo(name, value['description'])
-        variables.append(var)
-    return variables
+    return {
+        name: VariableInfo.from_dict(desc_dict)
+        for name, desc_dict in var_dict.iteritems()
+    }
