@@ -32,8 +32,7 @@ from openag_lib.firmware.util import (
     load_firmware_type_manifests, load_plugin)
 
 # Relative path (from script execution) to the ROS package root.
-OPENAG_BRAIN_DIR = path.normpath(path.join(path.dirname(__file__), ".."))
-PROJECT_DIR = path.join(OPENAG_BRAIN_DIR, "firmware")
+DEFAULT_PROJECT_DIR = "~/catkin_ws/src/openag_brain/firmware"
 
 # The name of the module manifest file.
 MODULE_FILE = "module.json"
@@ -48,14 +47,12 @@ def gen_firmware(
     Generate code for this project and run it.
     Internal function we use for both run and flash commands.
     """
-    project_dir = path.abspath(project_dir)
-
     # Make sure the project has been initialized
     pio_config = path.join(project_dir, "platformio.ini")
     if not path.isfile(pio_config):
         raise RuntimeError(
             "Not an OpenAg firmware project. To initialize a new project "
-            "please use the ``openag firmware init`` command"
+            "please use \"rosrun openag_brain init_pio\" command"
         )
 
     firmware_type_params = params.get(FIRMWARE_MODULE_TYPE, [])
@@ -95,7 +92,7 @@ def gen_firmware(
     )
     pio_ids = (dep["id"] for dep in codegen.all_pio_dependencies())
     for _id in pio_ids:
-        subprocess.call(["platformio", "lib", "install", str(_id)])
+        subprocess.call(["platformio", "lib", "install", str(_id)], cwd=project_dir)
     # Create src dir if it doesn't already exist.
     try:
         makedirs(src_dir)
@@ -153,17 +150,25 @@ if __name__ == "__main__":
         choices=all_categories,
         nargs="*"
     )
+    parser.add_argument(
+        "-d", "--project_dir",
+        help="the path to the platformio project dir "
+            "(Default {}".format(DEFAULT_PROJECT_DIR),
+        default=DEFAULT_PROJECT_DIR
+    )
 
     args = parser.parse_args()
     params = yaml.load(args.param_file)
+    # Expand project dir path
+    project_dir = path.normpath(path.expanduser(args.project_dir))
     gen_firmware(
         params=params,
-        project_dir=PROJECT_DIR,
+        project_dir=project_dir,
         categories=args.categories,
         plugin=args.plugin,
         status_update_interval=args.status_update_interval
     )
     build_firmware(
-        project_dir=PROJECT_DIR,
+        project_dir=project_dir,
         target=args.target
     )

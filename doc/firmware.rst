@@ -46,6 +46,12 @@ Build firmware and flash to Arduino::
 
     rosrun openag_brain firmware --target upload launch/personal_food_computer_v2.yaml
 
+Under the Hood
+~~~~~~~~~~~~~~
+
+`firmware` is actually just a thin wrapper around [platformio](http://docs.platformio.org/en/latest/ide/atom.html), a tool for building Arduino binaries. The `install_dev` script installs platformio automatically.
+
+
 Authoring Firmware Modules
 --------------------------
 

@@ -7,7 +7,7 @@ from os import path
 import argparse
 import subprocess
 
-FIRMWARE_PATH = path.normpath(path.join(path.dirname(__file__), '../firmware'))
+DEFAULT_PROJECT_DIR = "~/catkin_ws/src/openag_brain/firmware"
 
 parser = argparse.ArgumentParser(
     description="""
@@ -22,14 +22,14 @@ parser.add_argument(
     default="megaatmega2560"
 )
 parser.add_argument(
-    "-d", "--build_dir",
+    "-d", "--project_dir",
     help='The directory in which to initialize the PlatformIO project. '
-        'Defaults to "{}"'.format(FIRMWARE_PATH),
-    default=FIRMWARE_PATH
+        'Defaults to "{}"'.format(DEFAULT_PROJECT_DIR),
+    default=DEFAULT_PROJECT_DIR
 )
 
 
-def init(build_dir, board):
+def init(project_dir, board):
     """
     Initialize a PlatformIO project.
     Just a thin wrapper around `platformio init` that provides some defaults
@@ -39,7 +39,7 @@ def init(build_dir, board):
         init = subprocess.Popen(
             ["platformio", "init", "-b", board],
             stdin=subprocess.PIPE,
-            cwd=build_dir
+            cwd=project_dir
         )
         init.communicate("y\n")
     except OSError as e:
@@ -52,8 +52,9 @@ def init(build_dir, board):
 
 def main():
     args = parser.parse_args()
+    project_dir = path.normpath(path.expanduser(args.project_dir))
     init(
-        build_dir=args.build_dir,
+        project_dir=project_dir,
         board=args.board
     )
 
