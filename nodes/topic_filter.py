@@ -3,7 +3,7 @@ import rospy
 
 from std_msgs.msg import Float64
 from openag_brain.load_env_var_types import create_variables
-from openag_brain.constants import SENTINALS
+from openag_brain.constants import SENTINELS
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
@@ -44,7 +44,7 @@ def filter_topic(src_topic, dest_topic, topic_type):
     def callback(src_item):
         value = src_item.data
         # If the value is our magic number, leave it alone
-        if data in SENTINALS:
+        if data in SENTINELS:
             dest_item = value
         else:
             f(src_item.data)

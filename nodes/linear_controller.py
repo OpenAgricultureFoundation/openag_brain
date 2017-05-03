@@ -7,7 +7,7 @@ actuation command.
 """
 import rospy
 from std_msgs.msg import Float64
-from openag_brain.constants import NULL_SETPOINT_SENTINAL
+from openag_brain.constants import NULL_SETPOINT_SENTINEL
 
 if __name__ == '__main__':
     rospy.init_node('linear_controller')
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     command_pub = rospy.Publisher(command_pub_name, Float64, queue_size=10)
 
     def state_callback(item):
-        if item.data is not NULL_SETPOINT_SENTINAL:
+        if item.data is not NULL_SETPOINT_SENTINEL:
             command_pub.publish(item)
 
     state_sub = rospy.Subscriber(state_pub_name, Float64, state_callback)
