@@ -8,16 +8,16 @@ class VariableInfo(dict):
         return VariableInfo(
             desc_dict["name"],
             desc_dict["description"],
-            ros_type=desc_dict.get("type", None),
+            type=desc_dict.get("type", None),
             units=desc_dict.get("units", None)
         )
 
-    def __init__(self, name, description, ros_type=None, units=None):
+    def __init__(self, name, description, type=None, units=None):
         self.name = name
         self.__doc__ = description
         self.units = units
         # A valid ROS type string, like std_msgs/Float64
-        self.ros_type = ros_type
+        self.type = type
     def __key(self):
         return self.name
     def __str__(self):

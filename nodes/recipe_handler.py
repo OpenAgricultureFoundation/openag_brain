@@ -38,7 +38,7 @@ RECIPE_VARIABLES = frozenset(
     VariableInfo.from_dict(d)
     for d in rospy.get_param("/var_types/recipe_variables").itervalues())
 
-VALID_VARIABLES = ENVIRONMENTAL_VARIABLES + RECIPE_VARIABLES
+VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
 
 RECIPE_START = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_start'))
