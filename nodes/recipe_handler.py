@@ -26,18 +26,25 @@ from openag_brain.utils import gen_doc_id, read_environment_from_ns
 from openag_brain.memoize import memoize
 from openag_brain.multidispatch import multidispatch
 
-from openag_brain.load_env_var_types import create_variables
-
+from openag_brain.load_env_var_types import VariableInfo
 
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
-VALID_VARIABLES = frozenset(
-                     create_variables(rospy.get_param('/var_types/environment_variables'))
-                )
+ENVIRONMENTAL_VARIABLES = frozenset(
+    VariableInfo.from_dict(d)
+    for d in rospy.get_param("/var_types/environment_variables").itervalues())
 
-# Need to check if the correct order is maintained?
-RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/var_types/recipe_variables'))
+RECIPE_VARIABLES = frozenset(
+    VariableInfo.from_dict(d)
+    for d in rospy.get_param("/var_types/recipe_variables").itervalues())
 
+VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
+
+RECIPE_START = VariableInfo.from_dict(
+    rospy.get_param('/var_types/recipe_variables/recipe_start'))
+
+RECIPE_END = VariableInfo.from_dict(
+    rospy.get_param('/var_types/recipe_variables/recipe_end'))
 
 @memoize
 def publisher_memo(topic, MsgType, queue_size):

@@ -5,7 +5,7 @@
 sudo apt-get install -y python-virtualenv
 virtualenv ~/pio_env
 source ~/pio_env/bin/activate
-pip install platformio==2.11.2
+pip install platformio==3.3.0
 # Create symlink to virtualenv pio in global bin
 if [ ! -e /usr/local/bin/pio ]; then
     sudo ln -s ~/pio_env/bin/pio /usr/local/bin/pio
