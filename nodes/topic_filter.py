@@ -92,5 +92,5 @@ def filter_all_variable_topics(variables):
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
     # Make sure that we're under an environment namespace.
-    filter_all_variable_topics(ENVIRONMENT_VARIABLES)
+    filter_all_variable_topics(ENVIRONMENT_VARIABLES.values())
     rospy.spin()

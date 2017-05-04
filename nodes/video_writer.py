@@ -12,11 +12,14 @@ from openag.cli.config import config as cli_config
 from openag.couch import Server
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.video_helpers import *
-from openag_brain.load_env_var_types import create_variables
+from openag_brain.load_env_var_types import create_variables, VariableInfo
 # Filter a list of environmental variables that are specific to camera
-CAMERA_VARIABLES = create_variables(rospy.get_param('/var_types/camera_variables'))
-RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/var_types/recipe_variables'))
-
+CAMERA_VARIABLES = create_variables(
+    rospy.get_param('/var_types/camera_variables'))
+RECIPE_START = VariableInfo.from_dict(
+    rospy.get_param('/var_types/recipe_variables/recipe_start'))
+RECIPE_END = VariableInfo.from_dict(
+    rospy.get_param('/var_types/recipe_variables/recipe_end'))
 IMAGE_ATTACHMENT = "image"
 TIMELAPSE_ATTACHMENT = "timelapse"
 
@@ -273,7 +276,7 @@ if __name__ == '__main__':
             "designate an environment for this module."
         )
     environment = namespace.split('/')[-2]
-    for camera_var in CAMERA_VARIABLES:
+    for camera_var in CAMERA_VARIABLES.itervalues():
         mod = VideoWriter(
             server, environment, camera_var, timelapse_scaling_factor
         )
