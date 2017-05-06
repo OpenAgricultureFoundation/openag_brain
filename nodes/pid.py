@@ -47,7 +47,6 @@ class PID:
             self.set_point = None
         # If setpoint was made null, or was already null, do nothing.
         if self.set_point is None:
-            self.set_point = None
             return
 
         error = self.set_point - state
