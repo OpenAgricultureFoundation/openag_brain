@@ -44,7 +44,7 @@ def filter_topic(src_topic, dest_topic, topic_type):
     def callback(src_item):
         value = src_item.data
         # If the value is our magic number, leave it alone
-        if data in SENTINELS:
+        if value in SENTINELS:
             dest_item = value
         else:
             f(src_item.data)
