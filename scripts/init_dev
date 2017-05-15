@@ -39,7 +39,7 @@ sudo apt-get update -q
 
 # Install pip and couchdb (couchdb is not available via rosdep -- see below)
 echo "Install pip, couchdb and ROS bootstrapping tools"
-sudo apt-get install -y -q couchdb
+sudo apt-get install -y -q couchdb python-setuptools
 # Install bootstrapping dependencies
 # We install pip with easy_install because the ARM/Debian apt package
 # `python-pip` is way out of date and causes a version conflict with Requests
