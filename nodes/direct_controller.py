@@ -15,6 +15,7 @@ This is called from the launch file, for example:
 """
 import rospy
 from std_msgs.msg import Float64
+from openag_brain.constants import NULL_SETPOINT_SENTINEL
 
 if __name__ == '__main__':
     rospy.init_node('direct_controller')
@@ -41,8 +42,9 @@ if __name__ == '__main__':
     state_pub = rospy.Publisher(state_pub_name, Float64, queue_size=10)
 
     def desired_callback(item):
-        command_pub.publish(item)
-        state_pub.publish(item)
+        if item.data is not NULL_SETPOINT_SENTINEL:
+            command_pub.publish(item)
+            state_pub.publish(item)
 
     desired_sub = rospy.Subscriber(desired_sub_name, Float64, desired_callback)
 
