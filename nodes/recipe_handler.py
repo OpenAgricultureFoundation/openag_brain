@@ -190,7 +190,7 @@ class RecipeHandler:
         rospy.Service(services.STOP_RECIPE, Empty, self.stop_recipe_service)
         rospy.set_param(
             params.SUPPORTED_RECIPE_FORMATS,
-            ','.join(interpret_recipe.methods.keys())
+            ','.join(RECIPE_INTERPRETERS.keys())
         )
         return self
 
