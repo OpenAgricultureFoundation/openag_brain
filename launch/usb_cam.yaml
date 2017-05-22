@@ -10,8 +10,8 @@
 video_device: "/dev/video0"
 
 # Image dimensions
-image_width: 640
-image_height: 480
+image_width: 1280
+image_height: 1024
 
 # Possible values are mjpeg, yuyv, uyvy
 pixel_format: "mjpeg"
@@ -48,4 +48,4 @@ focus: 51
 camera_info_url: ""
 
 # The camera name. This must match the name in the camera calibration
-camera_name": "head_camera"
+camera_name: "head_camera"

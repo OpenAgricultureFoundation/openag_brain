@@ -14,6 +14,7 @@ instance of this module per environment in the system.
 import rospy
 from roslib.message import get_message_class
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
+from openag_brain.constants import NULL_SETPOINT_SENTINEL
 from openag.cli.config import config as cli_config
 from couchdb import Server
 from threading import RLock

@@ -1,11 +1,23 @@
 - tar:
     local-name: actionlib
-    uri: https://github.com/ros-gbp/actionlib-release/archive/release/indigo/actionlib/1.11.7-0.tar.gz
-    version: actionlib-release-release-indigo-actionlib-1.11.7-0
+    uri: https://github.com/ros-gbp/actionlib-release/archive/release/indigo/actionlib/1.11.9-0.tar.gz
+    version: actionlib-release-release-indigo-actionlib-1.11.9-0
 - tar:
     local-name: angles
-    uri: https://github.com/ros-gbp/geometry_angles_utils-release/archive/release/indigo/angles/1.9.10-0.tar.gz
-    version: geometry_angles_utils-release-release-indigo-angles-1.9.10-0
+    uri: https://github.com/ros-gbp/geometry_angles_utils-release/archive/release/indigo/angles/1.9.11-0.tar.gz
+    version: geometry_angles_utils-release-release-indigo-angles-1.9.11-0
+- tar:
+    local-name: bond_core/bond
+    uri: https://github.com/ros-gbp/bond_core-release/archive/release/indigo/bond/1.7.19-0.tar.gz
+    version: bond_core-release-release-indigo-bond-1.7.19-0
+- tar:
+    local-name: bond_core/bondcpp
+    uri: https://github.com/ros-gbp/bond_core-release/archive/release/indigo/bondcpp/1.7.19-0.tar.gz
+    version: bond_core-release-release-indigo-bondcpp-1.7.19-0
+- tar:
+    local-name: bond_core/smclib
+    uri: https://github.com/ros-gbp/bond_core-release/archive/release/indigo/smclib/1.7.19-0.tar.gz
+    version: bond_core-release-release-indigo-smclib-1.7.19-0
 - tar:
     local-name: catkin
     uri: https://github.com/ros-gbp/catkin-release/archive/release/indigo/catkin/0.6.19-0.tar.gz
@@ -34,6 +46,14 @@
     local-name: common_msgs/sensor_msgs
     uri: https://github.com/ros-gbp/common_msgs-release/archive/release/indigo/sensor_msgs/1.11.9-0.tar.gz
     version: common_msgs-release-release-indigo-sensor_msgs-1.11.9-0
+- tar:
+    local-name: common_msgs/stereo_msgs
+    uri: https://github.com/ros-gbp/common_msgs-release/archive/release/indigo/stereo_msgs/1.11.9-0.tar.gz
+    version: common_msgs-release-release-indigo-stereo_msgs-1.11.9-0
+- tar:
+    local-name: dynamic_reconfigure
+    uri: https://github.com/ros-gbp/dynamic_reconfigure-release/archive/release/indigo/dynamic_reconfigure/1.5.48-0.tar.gz
+    version: dynamic_reconfigure-release-release-indigo-dynamic_reconfigure-1.5.48-0
 - tar:
     local-name: gencpp
     uri: https://github.com/ros-gbp/gencpp-release/archive/release/indigo/gencpp/0.5.5-0.tar.gz
@@ -83,6 +103,10 @@
     uri: https://github.com/ros-gbp/image_common-release/archive/release/indigo/image_transport/1.11.12-0.tar.gz
     version: image_common-release-release-indigo-image_transport-1.11.12-0
 - tar:
+    local-name: image_pipeline/image_view
+    uri: https://github.com/ros-gbp/image_pipeline-release/archive/release/indigo/image_view/1.12.20-0.tar.gz
+    version: image_pipeline-release-release-indigo-image_view-1.12.20-0
+- tar:
     local-name: message_generation
     uri: https://github.com/ros-gbp/message_generation-release/archive/release/indigo/message_generation/0.2.10-0.tar.gz
     version: message_generation-release-release-indigo-message_generation-0.2.10-0
@@ -91,9 +115,13 @@
     uri: https://github.com/ros-gbp/message_runtime-release/archive/release/indigo/message_runtime/0.4.12-0.tar.gz
     version: message_runtime-release-release-indigo-message_runtime-0.4.12-0
 - tar:
+    local-name: nodelet_core/nodelet
+    uri: https://github.com/ros-gbp/nodelet_core-release/archive/release/indigo/nodelet/1.9.10-0.tar.gz
+    version: nodelet_core-release-release-indigo-nodelet-1.9.10-0
+- tar:
     local-name: pluginlib
-    uri: https://github.com/ros-gbp/pluginlib-release/archive/release/indigo/pluginlib/1.10.4-0.tar.gz
-    version: pluginlib-release-release-indigo-pluginlib-1.10.4-0
+    uri: https://github.com/ros-gbp/pluginlib-release/archive/release/indigo/pluginlib/1.10.5-0.tar.gz
+    version: pluginlib-release-release-indigo-pluginlib-1.10.5-0
 - tar:
     local-name: ros/mk
     uri: https://github.com/ros-gbp/ros-release/archive/release/indigo/mk/1.11.14-0.tar.gz
@@ -278,4 +306,8 @@
     local-name: usb_cam
     uri: https://github.com/bosch-ros-pkg-release/usb_cam-release/archive/release/indigo/usb_cam/0.3.4-0.tar.gz
     version: usb_cam-release-release-indigo-usb_cam-0.3.4-0
+- tar:
+    local-name: vision_opencv/cv_bridge
+    uri: https://github.com/ros-gbp/vision_opencv-release/archive/release/indigo/cv_bridge/1.11.15-0.tar.gz
+    version: vision_opencv-release-release-indigo-cv_bridge-1.11.15-0
 
