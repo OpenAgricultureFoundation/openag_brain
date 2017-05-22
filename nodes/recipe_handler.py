@@ -51,7 +51,7 @@ PUBLISHERS = {
 
 THRESHOLD = 1
 
-def simple_recipe(recipe, start_time, now_time):
+def interpret_simple_recipe(recipe, start_time, now_time):
     """
     Produces a tuple of ``(variable, value)`` pairs by building up
     a recipe state from walking through the recipe keyframes
@@ -91,7 +91,7 @@ def simple_recipe(recipe, start_time, now_time):
 
 
 RECIPE_INTERPRETERS = {
-    "simple": simple_recipe
+    "simple": interpret_simple_recipe
 }
 
 class RecipeHandler:

@@ -14,7 +14,7 @@ MOCK_RECIPE_A = {
     ]
 }
 
-def test_interpet_simple_recipe():
+def test_interpret_simple_recipe():
     now_time = time()
     start_time = now_time - 100
     setpoints = recipe_handler.interpet_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
