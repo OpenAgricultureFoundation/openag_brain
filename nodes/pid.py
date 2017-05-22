@@ -23,6 +23,7 @@ changed to 0.
 """
 import rospy
 from std_msgs.msg import Float64
+from openag_brain.constants import NULL_SETPOINT_SENTINEL
 
 class PID:
     """ Discrete PID control """
@@ -41,6 +42,10 @@ class PID:
         self.integrator = 0
 
     def update(self, state):
+        # Set a null setpoint if we see the magic number.
+        if state is NULL_SETPOINT_SENTINEL:
+            self.set_point = None
+        # If setpoint was made null, or was already null, do nothing.
         if self.set_point is None:
             return
 
