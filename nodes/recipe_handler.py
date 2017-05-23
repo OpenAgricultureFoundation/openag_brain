@@ -41,16 +41,6 @@ RECIPE_START = VariableInfo.from_dict(
 RECIPE_END = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_end'))
 
-# This builds a dictionary of publisher instances using a
-# "dictionary comprehension" (syntactic sugar for building dictionaries).
-PUBLISHERS = {
-    variable.name: rospy.Publisher(
-        "{}/desired".format(variable.name),
-        get_message_class(variable.type),
-        queue_size=10)
-    for variable in VALID_VARIABLES
-}
-
 THRESHOLD = 1
 
 def interpret_simple_recipe(recipe, start_time, now_time):
@@ -237,6 +227,18 @@ if __name__ == '__main__':
 
     namespace = rospy.get_namespace()
     environment = read_environment_from_ns(namespace)
+
+    # This builds a dictionary of publisher instances using a
+    # "dictionary comprehension" (syntactic sugar for building dictionaries).
+    # The constant has to be declared here because get_message_class
+    # needs to be called after the node is initialized.
+    PUBLISHERS = {
+        variable.name: rospy.Publisher(
+            "{}/desired".format(variable.name),
+            get_message_class(variable.type),
+            queue_size=10)
+        for variable in VALID_VARIABLES
+    }
 
     recipe_handler = RecipeHandler(server)
     recipe_handler.register_services()
