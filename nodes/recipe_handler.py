@@ -20,6 +20,7 @@ from couchdb import Server
 from threading import RLock
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
+from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import read_environment_from_ns
 
 # Create a tuple constant of valid environmental variables
