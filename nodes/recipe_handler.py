@@ -256,7 +256,7 @@ if __name__ == '__main__':
                 recipe_handler.clear_recipe()
                 rospy.logwarn("Invalid recipe format {}",
                     recipe.get("format"))
-                    continue
+                continue
 
             # Get recipe state and publish it
             setpoints = interpret_recipe(recipe_doc, start_time, now_time)
