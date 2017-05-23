@@ -48,4 +48,4 @@ focus: 51
 camera_info_url: ""
 
 # The camera name. This must match the name in the camera calibration
-camera_name": "head_camera"
+camera_name: "head_camera"

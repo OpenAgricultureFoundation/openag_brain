@@ -2,7 +2,7 @@
 
 import time
 import rospy
-from roslib import get_message_class
+from roslib.message import get_message_class
 from couchdb import Server
 
 from openag.db_names import ENVIRONMENTAL_DATA_POINT
