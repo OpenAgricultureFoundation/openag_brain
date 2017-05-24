@@ -100,6 +100,15 @@ RECIPE_INTERPRETERS = {
     "simple": interpret_simple_recipe
 }
 
+class RecipeRunningError(Exception):
+    """Thrown when trying to set a recipe, but recipe is already running."""
+    pass
+
+class RecipeIdleError(Exception):
+    """Thrown when trying to clear a recipe, but recipe is already clear."""
+    pass
+
+
 class RecipeHandler:
     """
     RecipeHandler is a manger for keeping track of the currently running recipe
