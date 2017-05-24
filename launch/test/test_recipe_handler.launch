@@ -1,0 +1,6 @@
+<launch>
+  <group ns="tests">
+    <node pkg="openag_brain" type="recipe_handler.py" name="test_recipe_handler" />
+    <test pkg="openag_brain" test-name="test_direct_controller" type="test_direct_controller.py" />
+  </group>
+</launch>

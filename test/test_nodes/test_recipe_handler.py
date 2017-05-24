@@ -7,36 +7,11 @@ import unittest
 
 import rospy
 from std_msgs.msg import Float64
-DIR_NAME = os.path.dirname(__file__)
-print(sys.path.append(os.path.join(DIR_NAME, '../..')))
-print(os.getcwd())
-from nodes.recipe_handler import interpret_simple_recipe
-
-from time import time
-
-MOCK_RECIPE_A = {
-            "format": "simple",
-            "version": "0.0.1",
-            "operations": [
-                            [0, "air_temperature", 24],
-                            [0, "water_temperature", 22]
-                          ]
-            }
-
-
-class TestRecipeInterpreter(unittest.TestCase):
-
-    def test_interpret_simple_recipe():
-        now_time = time()
-        start_time = now_time - 100
-        setpoints = interpet_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
-        print("Recipe Handler returns expected number of setpoints")
-        assert len(setpoints) == 2
 
 
 class TestRecipeHandler(unittest.TestCase):
     """
-    Test the direct_controller.py node to verify it is returning the topics
+    Test the recipe_handler.py node to verify it is returning the topics
     correctly.
     """
     def setUp(self):
@@ -61,7 +36,7 @@ class TestRecipeHandler(unittest.TestCase):
             rospy.loginfo("Published: {:f}".format(msg))
             self.pub_desired.publish(msg)
         rospy.sleep(15)  # Wait until all messages are received.
-        
+
         self.assertTrue(self.msgs == self._received)
         rospy.loginfo("Received: " + ' '.join([str(x) for x in self._received]))
         rospy.loginfo("There were " + str(len(self._received)) + " messages received.")
@@ -70,4 +45,3 @@ class TestRecipeHandler(unittest.TestCase):
 if __name__ == "__main__":
     import rostest
     rostest.rosrun(PKG, NAME, TestRecipeHandler)
-
