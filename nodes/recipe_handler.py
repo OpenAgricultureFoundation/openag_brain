@@ -53,6 +53,8 @@ PUBLISHERS = {
     for variable in VALID_VARIABLES
 }
 
+print(PUBLISHERS)
+
 THRESHOLD = 1
 
 def interpret_simple_recipe(recipe, start_time, now_time):
@@ -265,11 +267,8 @@ if __name__ == '__main__':
             # Get recipe state and publish it
             setpoints = interpret_recipe(recipe_doc, start_time, now_time)
             for variable, value in setpoints:
-                topic_name = "{}/desired".format(variable)
-                # Look up the publisher. If there is no publisher for this
-                # variable, it's an invalid variable.
                 try:
-                    pub = PUBLISHERS[topic_name]
+                    pub = PUBLISHERS[variable]
                 except KeyError:
                     msg = 'Recipe references invalid variable "{}"'
                     rospy.logwarn(msg.format(variable))
