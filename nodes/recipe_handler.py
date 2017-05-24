@@ -127,7 +127,7 @@ class RecipeHandler:
         """
         Get the state-related variables of the currently running recipe
         """
-        now_time = rospy.time()
+        now_time = rospy.get_time()
         start_time = self.__start_time or now_time
         return self.get_recipe(), start_time, now_time
 
@@ -140,7 +140,7 @@ class RecipeHandler:
                 raise RecipeRunningError("Recipe is already running")
             # Set recipe and time
             self.__recipe = recipe
-            self.__start_time = rospy.time()
+            self.__start_time = rospy.get_time()
             rospy.set_param(params.CURRENT_RECIPE, recipe["_id"])
             rospy.set_param(params.CURRENT_RECIPE_START, self.__recipe)
         return self
