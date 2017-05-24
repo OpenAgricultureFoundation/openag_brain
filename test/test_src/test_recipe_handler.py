@@ -1,8 +1,9 @@
-"""
-@FIXME this doesn't work yet because of Python import problems.
-Figure out how to do unit testing in ROS environment.
-"""
-from ...src.openag_brain import recipe_handler
+#!/usr/bin/env python
+PKG="openag_brain"
+
+import sys
+import unittest
+
 from time import time
 
 MOCK_RECIPE_A = {
@@ -14,9 +15,18 @@ MOCK_RECIPE_A = {
     ]
 }
 
-def test_interpret_simple_recipe():
-    now_time = time()
-    start_time = now_time - 100
-    setpoints = recipe_handler.interpet_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
-    print("Recipe Handler returns expected number of setpoints")
-    assert len(setpoints) == 2
+
+class TestRecipeInterpreter(unittest.TestCase):
+
+    def test_interpret_simple_recipe():
+       now_time = time()
+       start_time = now_time - 100
+       setpoints = recipe_handler.interpet_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
+       print("Recipe Handler returns expected number of setpoints")
+       assert len(setpoints) == 2
+
+
+if __name__ == '__main__':
+   import rosunit
+   rosunit.unitrun(PKG, 'test_recipe_interpreter', TestRecipeInterpreter)
+
