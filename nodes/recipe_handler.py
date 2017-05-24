@@ -41,6 +41,18 @@ RECIPE_START = VariableInfo.from_dict(
 RECIPE_END = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_end'))
 
+# This builds a dictionary of publisher instances using a
+# "dictionary comprehension" (syntactic sugar for building dictionaries).
+# The constant has to be declared here because get_message_class
+# needs to be called after the node is initialized.
+PUBLISHERS = {
+    variable.name: rospy.Publisher(
+        "{}/desired".format(variable.name),
+        get_message_class(variable.type),
+        queue_size=10)
+    for variable in VALID_VARIABLES
+}
+
 THRESHOLD = 1
 
 def interpret_simple_recipe(recipe, start_time, now_time):
@@ -115,7 +127,7 @@ class RecipeHandler:
         """
         Get the state-related variables of the currently running recipe
         """
-        now_time = rospy.time()
+        now_time = rospy.get_time()
         start_time = self.__start_time or now_time
         return self.get_recipe(), start_time, now_time
 
@@ -128,7 +140,7 @@ class RecipeHandler:
                 raise RecipeRunningError("Recipe is already running")
             # Set recipe and time
             self.__recipe = recipe
-            self.__start_time = rospy.time()
+            self.__start_time = rospy.get_time()
             rospy.set_param(params.CURRENT_RECIPE, recipe["_id"])
             rospy.set_param(params.CURRENT_RECIPE_START, self.__recipe)
         return self
@@ -220,6 +232,7 @@ class RecipeHandler:
         )
 
 if __name__ == '__main__':
+    rospy.init_node("recipe_handler")
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No local database specified")
@@ -227,18 +240,6 @@ if __name__ == '__main__':
 
     namespace = rospy.get_namespace()
     environment = read_environment_from_ns(namespace)
-
-    # This builds a dictionary of publisher instances using a
-    # "dictionary comprehension" (syntactic sugar for building dictionaries).
-    # The constant has to be declared here because get_message_class
-    # needs to be called after the node is initialized.
-    PUBLISHERS = {
-        variable.name: rospy.Publisher(
-            "{}/desired".format(variable.name),
-            get_message_class(variable.type),
-            queue_size=10)
-        for variable in VALID_VARIABLES
-    }
 
     recipe_handler = RecipeHandler(server)
     recipe_handler.register_services()
@@ -254,11 +255,11 @@ if __name__ == '__main__':
         # until it is finished.
         if recipe_doc:
             try:
-                interpret_recipe = RECIPE_INTERPRETERS[recipe["format"]]
+                interpret_recipe = RECIPE_INTERPRETERS[recipe_doc["format"]]
             except KeyError:
                 recipe_handler.clear_recipe()
                 rospy.logwarn("Invalid recipe format {}",
-                    recipe.get("format"))
+                    recipe_doc.get("format"))
                 continue
 
             # Get recipe state and publish it
