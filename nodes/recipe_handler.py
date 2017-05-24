@@ -255,11 +255,11 @@ if __name__ == '__main__':
         # until it is finished.
         if recipe_doc:
             try:
-                interpret_recipe = RECIPE_INTERPRETERS[recipe["format"]]
+                interpret_recipe = RECIPE_INTERPRETERS[recipe_doc["format"]]
             except KeyError:
                 recipe_handler.clear_recipe()
                 rospy.logwarn("Invalid recipe format {}",
-                    recipe.get("format"))
+                    recipe_doc.get("format"))
                 continue
 
             # Get recipe state and publish it
