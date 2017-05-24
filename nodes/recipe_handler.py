@@ -53,8 +53,6 @@ PUBLISHERS = {
     for variable in VALID_VARIABLES
 }
 
-print(PUBLISHERS)
-
 THRESHOLD = 1
 
 def interpret_simple_recipe(recipe, start_time, now_time):
@@ -153,7 +151,7 @@ class RecipeHandler:
             self.__recipe = recipe
             self.__start_time = rospy.get_time()
             rospy.set_param(params.CURRENT_RECIPE, recipe["_id"])
-            rospy.set_param(params.CURRENT_RECIPE_START, self.__start_time)
+            rospy.set_param(params.CURRENT_RECIPE_START, self.__start_time  )
         return self
 
     def clear_recipe(self):
