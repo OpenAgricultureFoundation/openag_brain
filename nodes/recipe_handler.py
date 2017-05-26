@@ -16,12 +16,14 @@ from roslib.message import get_message_class
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
 from openag_brain.constants import NULL_SETPOINT_SENTINEL
 from openag.cli.config import config as cli_config
+from openag.models import EnvironmentalDataPoint
 from couchdb import Server
 from threading import RLock
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.load_env_var_types import VariableInfo
-from openag_brain.utils import read_environment_from_ns
+from openag_brain.utils import gen_doc_id, read_environment_from_ns
+from std_msgs.msg import String 
 
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
@@ -53,10 +55,17 @@ PUBLISHERS = {
     for variable in VALID_VARIABLES
 }
 
-print(PUBLISHERS)
-
+# A threshold to compare time values in seconds.
 THRESHOLD = 1
 
+# Turn on logic tracing by making the variable below True
+TRACE = False
+def trace(msg, *args):
+    if TRACE:
+        rospy.logfatal(msg, *args)
+
+
+#------------------------------------------------------------------------------
 def interpret_simple_recipe(recipe, start_time, now_time):
     """
     Produces a tuple of ``(variable, value)`` pairs by building up
@@ -65,6 +74,8 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     _id = recipe["_id"]
     operations = recipe["operations"]
     end_time_relative = operations[-1][0]
+    trace("recipe_handler: interpret_simple_recipe end_time_relative=%s", 
+        end_time_relative)
     end_time = start_time + end_time_relative
     # If start time is at some point in the future beyond the threshold
     if start_time - now_time > THRESHOLD:
@@ -76,7 +87,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
             (RECIPE_START.name, _id),
             (RECIPE_END.name, _id),
         )
-    if now_time >= end_time:
+    if now_time >= (end_time + THRESHOLD):
         return ((RECIPE_END.name, _id),)
     if abs(now_time - start_time) < THRESHOLD:
         return ((RECIPE_START.name, _id),)
@@ -86,10 +97,13 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     # Create a state object to accrue recipe setpoint values.
     state = {}
     # Build up state up until now_time (inclusive).
+    trace("recipe_handler: interpret_simple_recipe now=%s", now_relative)
     for timestamp, variable, value in operations:
         if timestamp > now_relative:
             break
         state[variable] = value
+        trace("recipe_handler: interpret_simple_recipe: %s %s %s", 
+            timestamp, variable, value)
     return tuple(
         (variable, value)
         for variable, value in state.iteritems()
@@ -100,15 +114,21 @@ RECIPE_INTERPRETERS = {
     "simple": interpret_simple_recipe
 }
 
+
+#------------------------------------------------------------------------------
 class RecipeRunningError(Exception):
     """Thrown when trying to set a recipe, but recipe is already running."""
     pass
 
+
+#------------------------------------------------------------------------------
 class RecipeIdleError(Exception):
     """Thrown when trying to clear a recipe, but recipe is already clear."""
     pass
 
 
+#------------------------------------------------------------------------------
+# Our 'babysitting' class that keeps state for the module.
 class RecipeHandler:
     """
     RecipeHandler is a manger for keeping track of the currently running recipe
@@ -121,12 +141,13 @@ class RecipeHandler:
     and other things. It also contains handlers for the start_recipe
     and stop_recipe services.
     """
-    def __init__(self, server):
+    def __init__(self, server, environment):
         # We create a lock to ensure threadsafety, since service handlers are
         # run in a separate thread by ROS.
         self.lock = RLock()
         self.env_data_db = server[ENVIRONMENTAL_DATA_POINT]
         self.recipe_db = server[RECIPE]
+        self.environment = environment
         self.__start_time = None
         self.__recipe = None
 
@@ -142,7 +163,7 @@ class RecipeHandler:
         start_time = self.__start_time or now_time
         return self.get_recipe(), start_time, now_time
 
-    def set_recipe(self, recipe):
+    def set_recipe(self, recipe, start_time):
         """
         Set the currently running recipe... this is the CouchDB recipe document.
         """
@@ -151,7 +172,9 @@ class RecipeHandler:
                 raise RecipeRunningError("Recipe is already running")
             # Set recipe and time
             self.__recipe = recipe
-            self.__start_time = rospy.get_time()
+            self.__start_time = start_time
+            if self.__start_time is None:
+                self.__start_time = rospy.get_time()
             rospy.set_param(params.CURRENT_RECIPE, recipe["_id"])
             rospy.set_param(params.CURRENT_RECIPE_START, self.__start_time)
         return self
@@ -179,16 +202,18 @@ class RecipeHandler:
             return False, "\"{}\" does not reference a valid "\
             "recipe".format(recipe_id)
 
+        #trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
+        trace("recipe_handler: recipe=%s", recipe)
+
         try:
             # Set the recipe document
-            self.set_recipe(recipe)
+            self.set_recipe(recipe, start_time)
         except RecipeRunningError:
             return (
                 False,
                 "There is already a recipe running. Please stop it "
                 "before attempting to start a new one"
             )
-
         return True, "Success"
 
     def stop_recipe_service(self, data):
@@ -201,7 +226,8 @@ class RecipeHandler:
 
     def register_services(self):
         """Register services for instance"""
-        rospy.Service(services.START_RECIPE, StartRecipe, self.start_recipe_service)
+        rospy.Service(services.START_RECIPE, StartRecipe, 
+            self.start_recipe_service)
         rospy.Service(services.STOP_RECIPE, Empty, self.stop_recipe_service)
         rospy.set_param(
             params.SUPPORTED_RECIPE_FORMATS,
@@ -209,7 +235,7 @@ class RecipeHandler:
         )
         return self
 
-    def recover_any_previous_recipe(self, environment):
+    def recover_any_previous_recipe(self):
         """
         Attempt to resume any previous recipe that was started but
         not completed.
@@ -217,31 +243,56 @@ class RecipeHandler:
         # Get the recipe that has been started most recently
         start_view = self.env_data_db.view(
             "openag/by_variable",
-            startkey=[environment, "desired", RECIPE_START.name],
-            endkey=[environment, "desired", RECIPE_START.name, {}],
+            startkey=[self.environment, "desired", RECIPE_START.name],
+            endkey=[self.environment, "desired", RECIPE_START.name, {}],
             group_level=3
         )
         if len(start_view) == 0:
+            trace("recipe_handler: No previous recipe to recover.")
             return
         start_doc = start_view.rows[0].value
+        trace("recipe_handler: start_doc=%s", start_doc)
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view(
             "openag/by_variable",
-            startkey=[environment, "desired", RECIPE_END.name],
-            endkey=[environment, "desired", RECIPE_END.name, {}],
+            startkey=[self.environment, "desired", RECIPE_END.name],
+            endkey=[self.environment, "desired", RECIPE_END.name, {}],
             group_level=3
         )
         if len(end_view):
             end_doc = end_view.rows[0].value
+            trace("recipe_handler: end_doc=%s", end_doc)
             if (end_doc["timestamp"] > start_doc["timestamp"]):
+                trace("recipe_handler: RETURNING: end_time=%s > start_time=%s", 
+                    end_doc["timestamp"], start_doc["timestamp"])
                 return
         # Run the recipe
+        trace("recipe_handler: restarting recipe=%s at time=%s", 
+            start_doc["value"], start_doc["timestamp"])
         self.start_recipe_service(
             StartRecipe._request_class(start_doc["value"]),
             start_doc["timestamp"]
         )
+        
+    def save_recipe_dp(self, variable):
+        """
+        Save the recipe start/end to the env. data pt. DB, so we can restart
+        the recipe if necessary.
+        """
+        doc = EnvironmentalDataPoint({
+            "environment": self.environment,
+            "variable": variable,
+            "is_desired": True,
+            "value": rospy.get_param(params.CURRENT_RECIPE), 
+            "timestamp": rospy.get_time()
+        })
+        doc_id = gen_doc_id(rospy.get_time())
+        self.env_data_db[doc_id] = doc
+    
 
+#------------------------------------------------------------------------------
+# Our ROS node main entry point.  Starts up the node and then waits forever.
 if __name__ == '__main__':
     rospy.init_node("recipe_handler")
     db_server = cli_config["local_server"]["url"]
@@ -252,9 +303,17 @@ if __name__ == '__main__':
     namespace = rospy.get_namespace()
     environment = read_environment_from_ns(namespace)
 
-    recipe_handler = RecipeHandler(server)
+    recipe_handler = RecipeHandler(server, environment)
     recipe_handler.register_services()
-    recipe_handler.recover_any_previous_recipe(environment)
+    recipe_handler.recover_any_previous_recipe()
+
+    # Subscribe to our own 'recipe_end' message so we can stop publishing
+    # and clear the recipe when we get it.
+    topic_name = "{}/desired".format(RECIPE_END.name)
+    def callback(data):
+        recipe_handler.clear_recipe()
+        trace("recipe_handler.Subscriber: clearing current recipe.")
+    sub = rospy.Subscriber(topic_name, String, callback)
 
     rate_hz = rospy.get_param('~rate_hz', 1)
     rate = rospy.Rate(rate_hz)
@@ -269,7 +328,7 @@ if __name__ == '__main__':
                 interpret_recipe = RECIPE_INTERPRETERS[recipe_doc["format"]]
             except KeyError:
                 recipe_handler.clear_recipe()
-                rospy.logwarn("Invalid recipe format {}",
+                rospy.logwarn("Invalid recipe format: '%s'",
                     recipe_doc.get("format"))
                 continue
 
@@ -284,8 +343,21 @@ if __name__ == '__main__':
                     continue
 
                 # Publish any setpoints that we can
+                trace("recipe_handler publish: %s, %s", variable, value)
+                if variable == RECIPE_END.name:
+                    trace("recipe_handler publish: END!")
+                    # Write an env. data pt. for when we stopped this recipe.
+                    recipe_handler.save_recipe_dp(variable)
+                elif variable == RECIPE_START.name:
+                    # Write an env. data pt. for when we started this recipe.
+                    recipe_handler.save_recipe_dp(variable)
                 try:
                     pub.publish(value)
                 except ValueError:
                     pass
+
         rate.sleep()
+        # end of while loop in main
+
+
+
