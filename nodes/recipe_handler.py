@@ -58,11 +58,14 @@ PUBLISHERS = {
 # A threshold to compare time values in seconds.
 THRESHOLD = 1
 
-# Turn on logic tracing by making the variable below True
+# Turn on logic tracing by making the variable below True.  
+# Output ONLY is written to this node's log file:
+# tail -f ~/.ros/log/latest/environments-environment_1-recipe_handler_1-6.log
 TRACE = False
 def trace(msg, *args):
     if TRACE:
-        rospy.logfatal(msg, *args)
+        msg = '\nTRACE> ' + msg
+        rospy.logdebug(msg, *args)
 
 
 #------------------------------------------------------------------------------
@@ -294,7 +297,10 @@ class RecipeHandler:
 #------------------------------------------------------------------------------
 # Our ROS node main entry point.  Starts up the node and then waits forever.
 if __name__ == '__main__':
-    rospy.init_node("recipe_handler")
+    if TRACE:
+        rospy.init_node("recipe_handler", log_level=rospy.DEBUG)
+    else:
+        rospy.init_node("recipe_handler")
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No local database specified")
