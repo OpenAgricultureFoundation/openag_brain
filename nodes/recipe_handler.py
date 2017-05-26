@@ -176,7 +176,7 @@ class RecipeHandler:
             if self.__start_time is None:
                 self.__start_time = rospy.get_time()
             rospy.set_param(params.CURRENT_RECIPE, recipe["_id"])
-            rospy.set_param(params.CURRENT_RECIPE_START, self.__start_time)
+            rospy.set_param(params.CURRENT_RECIPE_START, self.__start_time  )
         return self
 
     def clear_recipe(self):
