@@ -260,6 +260,39 @@ def stream_topic(topic_name):
             yield str(x) + "\n"
     return Response(gen(),  mimetype='text/plain')
 
+@app.route("/api/{v}/topic_data/<path:topic_name>".format(v=API_VER), methods=["GET"])
+def get_topic_data(topic_name):
+    """
+    GET /api/<version>/topic_data/<topic_name>
+
+    Get a single data point from a topic over HTTP.
+    """
+    topic_name = "/" + topic_name
+    try:
+        msg_class, real_topic, _ = rostopic.get_topic_class(topic_name)
+    except rostopic.ROSTopicIOException as e:
+        raise e
+    if not real_topic:
+        return error("Topic does not exist", 404)
+    msg = rospy.wait_for_message(real_topic, msg_class)
+    data = getattr(msg, "data", None)
+    if data is None:
+        json = '{"status": ['
+        for x in msg.status:
+            if x == msg.status[-1]:
+                json += '{"name": \"%s\", "level": %d, "message": \"%s\", "hardware_id": \"%s\", "values": %s}]}' % \
+                        (x.name if x.name else "null", x.level, \
+                         x.message if x.message else "null", x.hardware_id if x.hardware_id else "null", \
+                         x.values)
+            else:
+                json += '{"name": \"%s\", "level": %d, "message": \"%s\", "hardware_id": \"%s\", "values": %s},' % \
+                        (x.name if x.name else "null", x.level, \
+                         x.message if x.message else "null", x.hardware_id if x.hardware_id else "null", \
+                         x.values)
+        return Response(json, mimetype = 'application/json')
+    else:
+	return jsonify({"result": data})
+
 @app.route("/api/{v}/node".format(v=API_VER), methods=["GET"])
 def list_nodes():
     """
