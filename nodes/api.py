@@ -41,10 +41,8 @@ rosnode_master = rosgraph.Master("/rosnode")
 def list_params():
     """
     GET /api/<version>/param
-
     GET a list of all available params from the ROS Parameter Server.
     See http://wiki.ros.org/Parameter%20Server for more on the Parameter Server.
-
     Parameter names are listed in the "results" field of the JSON response body.
     """
     return jsonify({"results": rospy.get_param_names()})
@@ -53,10 +51,8 @@ def list_params():
 def get_param(param_name):
     """
     GET /api/<version>/param/<param_name>
-
     GET the value for a specific parameter at param_name in the ROS
     Parameter Server.
-
     Parameter value is in the "result" field of the JSON response body. If
     parameter does not exist, a JSON document with ERROR field will
     be returned.
@@ -69,7 +65,6 @@ def get_param(param_name):
 def set_param(param_name):
     """
     POST /api/<version>/param/<param_name> {"value": "x"}
-
     POST to the ROS Parameter Server. Value should be in the value field
     of the request body.
     """
@@ -82,9 +77,7 @@ def set_param(param_name):
 def list_services():
     """
     GET /api/<version>/service
-
     GET a list of all available ROS services.
-
     Services are listed in the "results" field of the JSON response body.
     """
     return jsonify({"results": rosservice.get_service_list()})
@@ -93,7 +86,6 @@ def list_services():
 def get_service_info(service_name):
     """
     GET /api/<version>/service/<service_name>
-
     GET information about a ROS service.
     """
     service_name = "/" + service_name
@@ -110,12 +102,9 @@ def get_service_info(service_name):
 def perform_service_call(service_name):
     """
     POST /api/<version>/service/<service_name>
-
     POST to a service to change it somehow. service_name may be a path.
-
     For example, to start an environmental recipe in an environment, use the
     start_recipe service:
-
         POST /api/<version>/service/<environment_id>/start_recipe {"recipe_id": <id>}
     """
     # Add leading slash to service_name. ROS qualifies all services with a
@@ -151,7 +140,6 @@ def perform_service_call(service_name):
 def list_topics():
     """
     GET /api/<version>/topic
-
     GET the list of published ROS topics.
     """
     state = rostopic_master.getSystemState()
@@ -163,11 +151,8 @@ def list_topics():
 def get_topic_info(topic_name):
     """
     GET /api/<version>/topic/<topic_name>
-
     GET info from a ROS topic.
-
     Returns a JSON response with the following fields (or error):
-
     {
         "type": "...",   // topic type, \n
         "subs": [...],   // a list of subscribers \n
@@ -203,9 +188,7 @@ def get_topic_info(topic_name):
 def post_topic_message(topic_name):
     """
     POST /api/<version>/topic/<topic_name>
-
     POST a message to a ROS topic by name.
-
     Requires a JSON payload of shape: ``[x, y, z]``. The values of the JSON
     array must match the argument types of the topic's type constructor.
     """
@@ -248,23 +231,22 @@ def stream_topic(topic_name):
     if not real_topic:
         return error("Topic does not exist", 404)
     queue = Queue(5)
-    def callback(data, queue=queue):
-        data = getattr(data, "data", None)
+    def callback(dataIn, queue=queue):
+        data = getattr(dataIn, "data", None)
         if data is None:
-            data = {k: getattr(res, k) for k in res.__slots__}
+            data = {"header": getattr(dataIn, "header"), "status": getattr(dataIn, "status")}
         queue.put(data)
     sub = rospy.Subscriber(real_topic, msg_class, callback)
     def gen(queue=queue):
         while True:
             x = queue.get()
             yield str(x) + "\n"
-    return Response(gen())
+    return Response(gen(),  mimetype='text/plain')
 
 @app.route("/api/{v}/node".format(v=API_VER), methods=["GET"])
 def list_nodes():
     """
     GET /api/<version>/node
-
     List all active ROS nodes
     """
     state = rosnode_master.getSystemState()
@@ -278,7 +260,6 @@ def list_nodes():
 def get_node_info(node_name):
     """
     GET /api/<version>/node/<node_name>
-
     Get information about a ROS node
     """
     node_name = "/" + node_name
