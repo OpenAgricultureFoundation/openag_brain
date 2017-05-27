@@ -38,10 +38,14 @@ sudo apt-get update -q
 # sudo apt-get -y upgrade
 
 # Install pip and couchdb (couchdb is not available via rosdep -- see below)
-echo "Install pip, couchdb and boostrapping tools"
-sudo apt-get install -y -q python-pip couchdb
+echo "Install pip, couchdb and ROS bootstrapping tools"
+sudo apt-get install -y -q couchdb python-setuptools
 # Install bootstrapping dependencies
-sudo pip install rosdep wstool
+# We install pip with easy_install because the ARM/Debian apt package
+# `python-pip` is way out of date and causes a version conflict with Requests
+# as of 2017-05
+sudo easy_install pip
+sudo pip install rosdep rosinstall_generator wstool rosinstall
 
 # Initialize rosdep if it hasn't been already.
 # Checking for the .list file first makes this script idempotent.
@@ -57,7 +61,8 @@ rosdep update
 # If wstool has already been run, merge the rosinstall. Otherwise, init.
 if [ -f ~/catkin_ws/.catkin_workspace ]; then
   echo "Workspace exists. Merge openag_brain_ros_indigo_deps_wet.rosinstall into existing workspace with wstool."
-  wstool merge -t ~/catkin_ws/src ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall
+  wstool merge -t ~/catkin_ws/src --merge-replace ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall
+  wstool update -t ~/catkin_ws/src --delete-changed-uris
 else
   echo "Init workspace with wstool"
   wstool init ~/catkin_ws/src ~/catkin_ws/src/openag_brain/openag_brain_ros_indigo_deps_wet.rosinstall

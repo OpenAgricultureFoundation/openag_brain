@@ -3,6 +3,7 @@ import rospy
 
 from std_msgs.msg import Float64
 from openag_brain.load_env_var_types import create_variables
+from openag_brain.constants import SENTINELS
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
@@ -41,8 +42,13 @@ def filter_topic(src_topic, dest_topic, topic_type):
     pub = rospy.Publisher(dest_topic, topic_type, queue_size=10)
     f = EWMA(0.3)
     def callback(src_item):
-        f(src_item.data)
-        dest_item = topic_type(f.average)
+        value = src_item.data
+        # If the value is our magic number, leave it alone
+        if value in SENTINELS:
+            dest_item = value
+        else:
+            f(src_item.data)
+            dest_item = topic_type(f.average)
         pub.publish(dest_item)
     sub = rospy.Subscriber(src_topic, topic_type, callback)
     return sub, pub
@@ -92,5 +98,5 @@ def filter_all_variable_topics(variables):
 if __name__ == '__main__':
     rospy.init_node("topic_filter")
     # Make sure that we're under an environment namespace.
-    filter_all_variable_topics(ENVIRONMENT_VARIABLES)
+    filter_all_variable_topics(ENVIRONMENT_VARIABLES.values())
     rospy.spin()

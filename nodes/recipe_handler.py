@@ -15,6 +15,7 @@ instance of this module per environment in the system.
 import time
 import rospy
 from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
+from openag_brain.constants import NULL_SETPOINT_SENTINEL
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
 from couchdb import Server
@@ -26,18 +27,25 @@ from openag_brain.utils import gen_doc_id, read_environment_from_ns
 from openag_brain.memoize import memoize
 from openag_brain.multidispatch import multidispatch
 
-from openag_brain.load_env_var_types import create_variables
-
+from openag_brain.load_env_var_types import VariableInfo
 
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
-VALID_VARIABLES = frozenset(
-                     create_variables(rospy.get_param('/var_types/environment_variables'))
-                )
+ENVIRONMENTAL_VARIABLES = frozenset(
+    VariableInfo.from_dict(d)
+    for d in rospy.get_param("/var_types/environment_variables").itervalues())
 
-# Need to check if the correct order is maintained?
-RECIPE_START, RECIPE_END = create_variables(rospy.get_param('/var_types/recipe_variables'))
+RECIPE_VARIABLES = frozenset(
+    VariableInfo.from_dict(d)
+    for d in rospy.get_param("/var_types/recipe_variables").itervalues())
 
+VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
+
+RECIPE_START = VariableInfo.from_dict(
+    rospy.get_param('/var_types/recipe_variables/recipe_start'))
+
+RECIPE_END = VariableInfo.from_dict(
+    rospy.get_param('/var_types/recipe_variables/recipe_end'))
 
 @memoize
 def publisher_memo(topic, MsgType, queue_size):
@@ -115,6 +123,11 @@ class SimpleRecipe:
         # on the last iteration, then yield a RECIPE_END setpoint.
         for state_variable, state_value in state.iteritems():
             yield (time.time(), variable, value)
+        for variable in ENVIRONMENTAL_VARIABLES:
+            # Yield null setpoint sentinel values for all environmental
+            # variables. This breaks the feedback loop on controllers and
+            # puts the system in an idle state.
+            yield (time.time(), variable.name, NULL_SETPOINT_SENTINEL)
         yield (time.time(), RECIPE_END.name, self.id)
 
 def hrs_to_seconds(hrs):
@@ -158,6 +171,11 @@ class PhasedRecipeInterpreter:
                     for key in VALID_VARIABLES.intersection(phase_keys):
                         yield (rospy.get_time(), key, float(phase[key]))
                     rospy.sleep(self.timeout)
+        for variable in ENVIRONMENTAL_VARIABLES:
+            # Yield null setpoint sentinel values for all environmental
+            # variables. This breaks the feedback loop on controllers and
+            # puts the system in an idle state.
+            yield (rospy.get_time(), variable.name, NULL_SETPOINT_SENTINEL)
         yield (rospy.get_time(), RECIPE_END.name, self.id)
 
 class RecipeRunningError(Exception):
