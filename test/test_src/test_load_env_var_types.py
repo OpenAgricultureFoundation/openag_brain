@@ -5,6 +5,7 @@ NAME = 'test_load_env_var_types'
 from openag_brain.load_env_var_types import create_variables, VariableInfo
 import unittest
 import rospy
+from roslib.message import get_message_class
 
 var_dict = {'air_temp': {'units': 'C', 'name': 'air_temp', 'description': 'Measurement of the surrounding air temperature in Celcius'},
              'air_press': {'units': 'mmhg', 'name': 'air_pres', 'description': 'Measurement of the air pressure in mmhg.'}}
@@ -33,6 +34,19 @@ class TestLoadEnvironmentalVariables(unittest.TestCase):
         VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
         print(VALID_VARIABLES)
         assert len(VALID_VARIABLES) == 18
+
+
+        # This builds a dictionary of publisher instances using a
+        # "dictionary comprehension" (syntactic sugar for building dictionaries).
+        # The constant has to be declared here because get_message_class
+        # needs to be called after the node is initialized.
+        PUBLISHERS = {
+            variable.name: rospy.Publisher(
+                "{}/desired".format(variable.name),
+                get_message_class(variable.type),
+                queue_size=10)
+            for variable in VALID_VARIABLES
+        }
 
 if __name__ == "__main__":
     import rostest

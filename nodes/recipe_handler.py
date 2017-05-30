@@ -44,6 +44,7 @@ RECIPE_START = VariableInfo.from_dict(
 RECIPE_END = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_end'))
 
+
 # This builds a dictionary of publisher instances using a
 # "dictionary comprehension" (syntactic sugar for building dictionaries).
 # The constant has to be declared here because get_message_class
