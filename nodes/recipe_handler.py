@@ -186,7 +186,7 @@ class RecipeHandler:
         with self.lock:
             if self.__recipe is None:
                 raise RecipeIdleError("No recipe is running")
-            # Set recipe and time
+            # Clear recipe and time
             rospy.set_param(params.CURRENT_RECIPE, "")
             rospy.set_param(params.CURRENT_RECIPE_START, 0)
             self.__recipe = None
