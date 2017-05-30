@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 PKG="openag_brain"
 
-import sys
+import sys, os
 import unittest
 
 from time import time
