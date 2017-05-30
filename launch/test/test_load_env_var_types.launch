@@ -1,0 +1,7 @@
+<launch>
+  <rosparam command="load" file="$(find openag_brain)/launch/personal_food_computer_v2.yaml" />
+  <rosparam command="load" file="$(find openag_brain)/launch/personal_food_computer_var_types.yaml" ns="var_types"/>
+  <group ns="environments/test">
+    <test pkg="openag_brain" test-name="test_load_env_var_types" type="test_load_env_var_types.py" />
+  </group>
+</launch>

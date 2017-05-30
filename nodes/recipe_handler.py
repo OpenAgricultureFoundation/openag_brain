@@ -23,7 +23,7 @@ from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import gen_doc_id, read_environment_from_ns
-from std_msgs.msg import String 
+from std_msgs.msg import String, Float64, Bool 
 
 import pdb
 # Create a tuple constant of valid environmental variables
