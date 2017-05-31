@@ -3,15 +3,10 @@ PKG="openag_brain"
 
 import sys, os
 import unittest
-
 from time import time
 
-DIR_NAME = os.path.dirname(__file__)
-print(sys.path.append(os.path.join(DIR_NAME, '../..')))
-print(os.getcwd())
-from nodes.recipe_handler import interpret_simple_recipe
+from openag_brain.recipe_interpreters import interpret_simple_recipe
 
-from time import time
 
 MOCK_RECIPE_A = {
             "format": "simple",
