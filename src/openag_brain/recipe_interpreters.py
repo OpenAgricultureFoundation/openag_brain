@@ -1,4 +1,5 @@
 import rospy
+from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import trace
 
 RECIPE_START = VariableInfo.from_dict(
@@ -6,6 +7,9 @@ RECIPE_START = VariableInfo.from_dict(
 
 RECIPE_END = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_end'))
+
+# A threshold to compare time values in seconds.
+THRESHOLD = 1
 
 def interpret_simple_recipe(recipe, start_time, now_time):
     """

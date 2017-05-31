@@ -23,7 +23,7 @@ from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.recipe_interpreters import interpret_simple_recipe
-from openag_brain.utils import gen_doc_id, read_environment_from_ns, trace
+from openag_brain.utils import gen_doc_id, read_environment_from_ns, trace, TRACE
 from std_msgs.msg import String, Float64, Bool
 
 import pdb
@@ -58,8 +58,6 @@ PUBLISHERS = {
     for variable in VALID_VARIABLES
 }
 
-# A threshold to compare time values in seconds.
-THRESHOLD = 1
 
 
 #------------------------------------------------------------------------------
