@@ -10,6 +10,11 @@ from std_msgs.msg import Float64
 from openag_brain import services
 from openag_brain.srv import StartRecipe
 
+# Hack to allow importing of functions from ros nodes. 
+#  Ideas to come up with a permanent solution: (Need to research the best known methods)
+#     1. Figure out how nodes are loaded into the default path or if they are just run as subprocesses by ros
+#     2. Split out functions as a separate services or move to a standard library to be imported into the nodes. 
+#          This would mean the nodes do nothing but run services, publish and script to topics.
 DIR_NAME = os.path.dirname(__file__)
 sys.path.append(os.path.join(DIR_NAME, '../..'))
 from nodes.recipe_handler import interpret_simple_recipe
@@ -34,17 +39,12 @@ class TestRecipeHandler(unittest.TestCase):
     """
 
     def test_recipe_interpreter(self):
-        print(DIR_NAME)
-        print(sys.path)
         now_time = time()
+        # Test for recipe in process
         start_time = now_time - 10
         setpoints = interpret_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
-        print("\n\n---####---\n\n")
-        print(setpoints)
-        print("\n\n")
-        print("------")
         assert len(setpoints) == 2
-        # Test Recipe finished
+        # Test for completed recipe
         start_time = now_time - 300
         setpoints = interpret_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
         assert setpoints[0][0] == 'recipe_end'
