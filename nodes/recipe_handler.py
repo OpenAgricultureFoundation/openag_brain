@@ -23,8 +23,9 @@ from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import gen_doc_id, read_environment_from_ns
-from std_msgs.msg import String 
+from std_msgs.msg import String, Float64, Bool 
 
+import pdb
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
 ENVIRONMENTAL_VARIABLES = frozenset(
@@ -42,6 +43,7 @@ RECIPE_START = VariableInfo.from_dict(
 
 RECIPE_END = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_end'))
+
 
 # This builds a dictionary of publisher instances using a
 # "dictionary comprehension" (syntactic sugar for building dictionaries).
@@ -76,6 +78,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     """
     _id = recipe["_id"]
     operations = recipe["operations"]
+    rospy.loginfo(operations)
     end_time_relative = operations[-1][0]
     trace("recipe_handler: interpret_simple_recipe end_time_relative=%s", 
         end_time_relative)
@@ -107,6 +110,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
         state[variable] = value
         trace("recipe_handler: interpret_simple_recipe: %s %s %s", 
             timestamp, variable, value)
+    rospy.loginfo(state)
     return tuple(
         (variable, value)
         for variable, value in state.iteritems()
