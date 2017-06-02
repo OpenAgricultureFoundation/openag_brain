@@ -116,6 +116,7 @@ class AM2315:
         failCount = 0
         # Commands to get data temp and humidity data from AM2315
         cmd_data = bytearray((self.cmdReadReg, 0x00, 0x04))
+
         # If we have failed more than twice to read the data, or have finished getting data break the loop.
         while (failCount < 2):
             try:
@@ -123,7 +124,7 @@ class AM2315:
                 self.__i2c_master.transfer(self.i2c_addr, cmd_msgs)
 
                 # Wait for the sensor to supply data to read.
-                time.sleep(0.1)
+                time.sleep(0.01)
 
                 # Now read 8 bytes from the AM2315.
                 read_data = bytearray((0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -136,7 +137,8 @@ class AM2315:
 
                 # Confirm the command worked by checking the response for the command we executed
                 # and the number of bytes we asked for.
-                if (rawTH[0] == self.cmdReadReg) and (rawTH[1] == 0x04):
+                if ((rawTH[0] == self.cmdReadReg) or (rawTH[0] == self.cmdReadReg + 0x80)) and (rawTH[1] == 0x04):
+
                     # And the MSB and LSB for each value together to yield our raw values.
                     humidRaw = (rawTH[2] << 8) | rawTH[3]
 
