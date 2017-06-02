@@ -26,7 +26,6 @@ from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_
 from openag_brain.utils import gen_doc_id, read_environment_from_ns, trace, TRACE
 from std_msgs.msg import String, Float64, Bool
 
-import pdb
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
 ENVIRONMENTAL_VARIABLES = frozenset(

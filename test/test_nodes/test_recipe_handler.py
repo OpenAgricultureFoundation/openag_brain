@@ -5,6 +5,7 @@ NAME = 'test_recipe_handler'
 import sys, os
 import unittest
 from time import time
+from datetime import datetime
 import rospy
 from std_msgs.msg import Float64
 from openag_brain import services
@@ -16,21 +17,13 @@ from openag_brain.srv import StartRecipe
 #     2. Split out functions as a separate services or move to a standard library to be imported into the nodes. 
 #          This would mean the nodes do nothing but run services, publish and script to topics.
 DIR_NAME = os.path.dirname(__file__)
-sys.path.append(os.path.join(DIR_NAME, '../..'))
-from nodes.recipe_handler import interpret_simple_recipe
+sys.path.append(os.path.abspath(os.path.join(DIR_NAME, '../../')))
+print("-----\n\n")
+print(sys.path)
+print(DIR_NAME)
+from nodes.recipe_handler import interpret_simple_recipe, interpret_phased_dense_recipe
+from data.mock_recipes import MOCK_RECIPE_A, phased_dense 
 
-
-MOCK_RECIPE_A = {
-            "_id": "air_water_temp_test",
-            "format": "simple",
-            "version": "0.0.1",
-            "operations": [
-                            [0, "air_temperature", 24],
-                            [0, "water_temperature", 22],
-                            [30, "air_temperature", 24],  # Lesson Learned interpret_simple_recipe calculates the end time by the last time in the list
-                            [30, "water_temperature", 22]
-                          ]
-            }
 
 class TestRecipeHandler(unittest.TestCase):
     """
@@ -38,7 +31,7 @@ class TestRecipeHandler(unittest.TestCase):
     correctly.
     """
 
-    def test_recipe_interpreter(self):
+    def test_recipe_interpreter_simple(self):
         now_time = time()
         # Test for recipe in process
         start_time = now_time - 10
@@ -49,6 +42,14 @@ class TestRecipeHandler(unittest.TestCase):
         setpoints = interpret_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
         assert setpoints[0][0] == 'recipe_end'
 
+    def test_recipe_interpreter_phased_dense(self):
+        now_time = time()
+        # Test for recipe in process
+        start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
+        now_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
+        setpoints = interpret_phased_dense_recipe(phased_dense, start_time, now_time)
+        print("-----")
+        assert len(setpoints) == 4
 #    def test_start_recipe(self):
 #       rospy.wait_for_service(services.START_RECIPE)
 #       s = rospy.ServiceProxy(services.START_RECIPE, StartRecipe)

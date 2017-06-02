@@ -7,10 +7,10 @@ from time import time
 from datetime import datetime
 import json
 
+from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_phased_dense_recipe
 DIR_NAME = os.path.dirname(__file__)
 sys.path.append(os.path.join(DIR_NAME, '../..'))
-from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_phased_dense_recipe
-from test.data.mock_recipes import phased_dense, MOCK_RECIPE_A
+from data.mock_recipes import phased_dense, MOCK_RECIPE_A
 
 
 def load_recipe_from_file(file_name):
