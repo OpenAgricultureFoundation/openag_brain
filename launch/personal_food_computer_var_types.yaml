@@ -2,9 +2,11 @@ recipe_variables:
   recipe_start:
     name: recipe_start
     description: "Represents the start of a recipe"
+    type: "std_msgs/String"
   recipe_end:
     name: recipe_end
     description: "Represents the end of a recipe"
+    type: "std_msgs/String"
 environment_variables:
   air_temperature:
     name: air_temperature
@@ -24,7 +26,7 @@ environment_variables:
   air_flush_on:
     name: air_flush_on
     description: "Turn on air flush (off by default)"
-    type: "std_msgs/Boolean"
+    type: "std_msgs/Float64"
   water_temperature:
     name: water_temperature
     description: "Temperature of the water in degrees Celcius"
@@ -53,7 +55,7 @@ environment_variables:
   water_level_high:
     name: water_level_high
     description: "Is water above threshold?"
-    type: "std_msgs/Boolean"
+    type: "std_msgs/Bool"
   nutrient_flora_duo_a:
     name: nutrient_flora_duo_a
     description: "FloraDuo nutrient A"
