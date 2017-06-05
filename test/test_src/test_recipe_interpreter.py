@@ -46,7 +46,7 @@ class TestRecipeInterpreter(unittest.TestCase):
 
 class TestPhasedDenseRecipe(unittest.TestCase):
 
-    def test_calc_phase_and_time_remaining():
+    def test_calc_phase_and_time_remaining(self):
         duration_of_phases_steps = [(336, 24), (480, 24), (168, 24)]
         start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
         current_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
@@ -62,7 +62,7 @@ class TestPhasedDenseRecipe(unittest.TestCase):
         assert (current_phase_number, duration_in_step) == (0, 13)
 
 
-    def test_calculate_max_duration_from_step():
+    def test_calculate_max_duration_from_step(self):
         step = { "air_temperature": [{"start_time": 0, "end_time": 6, "value": 20},
                                       {"start_time": 6, "end_time": 18, "value": 23},
                                       {"start_time": 18, "end_time": 24, "value": 19}],
@@ -77,7 +77,7 @@ class TestPhasedDenseRecipe(unittest.TestCase):
         assert max_time == 24
 
 
-    def test_calc_duration_of_phases_steps():
+    def test_calc_duration_of_phases_steps(self):
         phases = [    # Previously operations,  Needs to be an ordered dictionary.
               { "name": "early",
                 "cycles": 14,    # Add check for duration of a step to be a total of 24 hours. (Not a necessarity but valuable for consistency/simplicity)
@@ -112,7 +112,7 @@ class TestPhasedDenseRecipe(unittest.TestCase):
         assert duration_of_phases_steps == [(336, 24), (480, 24), (168, 24)]
 
 
-    def test_determine_value_for_step():
+    def test_determine_value_for_step(self):
         variable_step_data = [{"start_time": 0, "end_time": 6, "value": 20},
                               {"start_time": 6, "end_time": 18, "value": 23},
                               {"start_time": 18, "end_time": 24, "value": 19}]
