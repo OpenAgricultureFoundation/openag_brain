@@ -1,4 +1,6 @@
 <launch>
   <node pkg="openag_brain" type="sensor_am2315.py" name="am2315_1" />
   <node pkg="openag_brain" type="sensor_mhz16.py" name="mhz16_1" />
+  <node pkg="openag_brain" type="sensor_atlas_ph.py" name="atlas_ph_1" />
+  <node pkg="openag_brain" type="sensor_atlas_ec.py" name="atlas_ec_1" />
 </launch>

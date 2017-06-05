@@ -18,7 +18,7 @@ if __name__ == '__main__':
     with MHZ16(i2c_addr, i2c_bus) as mhz16:
         while not rospy.is_shutdown():
             mhz16.poll()
-            if mhz16.co2:
+            if mhz16.co2 is not None:
                 co2_pub.publish(mhz16.co2)
 
             # Use rate timer instance to sleep until next turn

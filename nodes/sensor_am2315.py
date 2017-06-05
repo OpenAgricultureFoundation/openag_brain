@@ -19,9 +19,9 @@ if __name__ == '__main__':
     with AM2315(i2c_addr, i2c_bus) as am2315:
         while not rospy.is_shutdown():
             am2315.poll()
-            if am2315.temperature:
+            if am2315.temperature is not None:
                 temp_pub.publish(am2315.temperature)
-            if am2315.humidity:
+            if am2315.humidity is not None:
                 humid_pub.publish(am2315.humidity)
 
             # Use rate timer instance to sleep until next turn
