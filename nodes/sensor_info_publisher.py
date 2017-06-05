@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
+
+#debugrob: both the "openag." below are in _python, move to brain
 from openag.cli.config import config as cli_config
-from openag.utils import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
+
+from openag_lib.firmware.util import synthesize_firmware_module_info
 from couchdb import Server
 from openag_brain.msg import SensorInfo
 

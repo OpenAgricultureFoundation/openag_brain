@@ -15,9 +15,11 @@ import rostopic
 from couchdb import Server
 from std_msgs.msg import Float64
 
+#debugrob: both the "openag." below are in _python, move to brain
 from openag.cli.config import config as cli_config
 from openag.models import EnvironmentalDataPoint
-from openag.db_names import ENVIRONMENTAL_DATA_POINT
+
+from openag_brain.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.utils import read_environment_from_ns
 from openag_brain.load_env_var_types import create_variables
 

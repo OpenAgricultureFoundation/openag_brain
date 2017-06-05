@@ -16,7 +16,7 @@ hardware error messages.
 
 import rospy
 from openag.cli.config import config as cli_config
-from openag.utils import synthesize_firmware_module_info
+from openag_lib.firmware.util import synthesize_firmware_module_info
 from openag.models import FirmwareModule, FirmwareModuleType
 from openag_brain.msg import DiagnosticArray as _DiagnosticArray
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus

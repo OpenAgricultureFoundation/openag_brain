@@ -18,9 +18,11 @@ from StringIO import StringIO
 from sensor_msgs.msg import Image as ImageMsg
 from re import match
 
+#debugrob: both the "openag." below are in _python, move to brain
 from openag.cli.config import config as cli_config
-from openag.models import EnvironmentalDataPoint, SoftwareModule
-from openag.db_names import ENVIRONMENTAL_DATA_POINT, SOFTWARE_MODULE
+from openag.models import EnvironmentalDataPoint
+
+from openag_brain.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.load_env_var_types import create_variables
 from openag_brain import params
 from openag_brain.utils import read_environment_from_ns

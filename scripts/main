@@ -6,10 +6,8 @@ import argparse
 import subprocess
 import multiprocessing as mp
 
+#debugrob: the "openag." below is in _python, move to brain
 from openag.cli.config import config as cli_config
-from openag.db_names import (
-    SOFTWARE_MODULE, FIRMWARE_MODULE, ENVIRONMENTAL_DATA_POINT
-)
 
 from openag_brain.srv import SetCategories
 from openag_brain.utils import resolve_fixtures
