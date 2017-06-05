@@ -152,7 +152,7 @@ class RecipeHandler:
             return False, "\"{}\" does not reference a valid "\
             "recipe".format(recipe_id)
 
-        #trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
+        trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
         trace("recipe_handler: recipe=%s", recipe)
 
         try:
