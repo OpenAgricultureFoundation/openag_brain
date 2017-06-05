@@ -26,6 +26,7 @@ from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_
 from openag_brain.utils import gen_doc_id, read_environment_from_ns, trace, TRACE
 from std_msgs.msg import String, Float64, Bool
 
+
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
 ENVIRONMENTAL_VARIABLES = frozenset(
@@ -57,9 +58,6 @@ PUBLISHERS = {
     for variable in VALID_VARIABLES
 }
 
-
-
-#------------------------------------------------------------------------------
 
 RECIPE_INTERPRETERS = {
     "simple": interpret_simple_recipe,
@@ -200,10 +198,10 @@ class RecipeHandler:
             group_level=3
         )
         if len(start_view) == 0:
-            trace("recipe_handler: No previous recipe to recover.")
+            trace("recover_any_previous_recipe: No previous recipe to recover.")
             return
         start_doc = start_view.rows[0].value
-        trace("recipe_handler: start_doc=%s", start_doc)
+        trace("recover_any_previous_recipe: start_doc=%s", start_doc)
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view(
@@ -214,13 +212,15 @@ class RecipeHandler:
         )
         if len(end_view):
             end_doc = end_view.rows[0].value
-            trace("recipe_handler: end_doc=%s", end_doc)
+            trace("recover_any_previous_recipe: end_doc=%s", end_doc)
             if (end_doc["timestamp"] > start_doc["timestamp"]):
-                trace("recipe_handler: RETURNING: end_time=%s > start_time=%s",
+                trace("recover_any_previous_recipe: RETURNING: '\
+                    'end_time=%s > start_time=%s",
                     end_doc["timestamp"], start_doc["timestamp"])
                 return
         # Run the recipe
-        trace("recipe_handler: restarting recipe=%s at time=%s",
+        trace("recover_any_previous_recipe: restarting recipe=%s at time=%s",
+
             start_doc["value"], start_doc["timestamp"])
         self.start_recipe_service(
             StartRecipe._request_class(start_doc["value"]),

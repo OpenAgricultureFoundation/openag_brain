@@ -11,6 +11,24 @@ MOCK_RECIPE_A = {
                           ]
             }
 
+MOCK_RECIPE_B = {
+  "_id": "test",
+  "version": "6.1.7",
+  "format": "simple",
+  "operations": [
+    # recipe_start
+    [ 0, "one", 1 ],
+    [ 0, "two", 2 ],
+    [ 0, "three", 3 ],
+    [ 60, "four", 4 ],
+    [ 60, "five", 5 ],
+    [ 120, "six", 6 ],
+    [ 120, "seven", 7 ],
+    [ 180, "eight", 8 ],
+    # recipe_end
+  ]
+}
+
 phased_dense = {
     "_id": "general_greens",
     "format": "phased",
@@ -23,7 +41,7 @@ phased_dense = {
     "rating": 20,
     "downloads": 10000,
     "date_created": "2017-02-08",
-    "phases": [ 
+    "phases": [
           { "name": "early",
             "cycles": 14,
             "time_units" : "hours",
@@ -45,7 +63,7 @@ phased_dense = {
           { "name": "middle",
             "cycles": 20,
             "time_units" : "hours",
-            "variable_units": {"air_temperature": "Celcius", 
+            "variable_units": {"air_temperature": "Celcius",
                                "nutrient_flora_duo_a": "ml",
                                "nutrient_flora_duo_b": "ml",
                                "light_illuminance": "percent_relative"},
@@ -63,7 +81,7 @@ phased_dense = {
           { "name": "late",
             "cycles": 7,
             "time_units" : "hours",
-            "variable_units": {"air_temperature": "Celcius", 
+            "variable_units": {"air_temperature": "Celcius",
                                "nutrient_flora_duo_a": "ml",
                                "nutrient_flora_duo_b": "ml",
                                "light_illuminance": "percent_relative"},
