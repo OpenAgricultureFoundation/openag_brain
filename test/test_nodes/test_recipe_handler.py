@@ -41,11 +41,11 @@ class TestRecipeHandler(unittest.TestCase):
         now_time = time()
         # Test for recipe in process
         start_time = now_time - 10
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_A, start_time, now_time)
         assert len(setpoints) == 2, 'len(setpoints)=%d' % len(setpoints)
         # Test for completed recipe
         start_time = now_time - 300
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_A, start_time, now_time)
         assert setpoints[0][0] == 'recipe_end', 'recipe_end=' % setpoints[0][0]
 
     #--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ class TestRecipeHandler(unittest.TestCase):
         # Test we only get the start, time is at the beginning.
         now_time = time()
         start_time = now_time
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_B, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_B, start_time, now_time)
         assert len(setpoints) == 1, 'len(setpoints)=%d' % len(setpoints)
         assert setpoints[0][0] == 'recipe_start', \
             'setpoints[0][0]=%s but should be recipe_start' % setpoints[0][0]
@@ -61,7 +61,7 @@ class TestRecipeHandler(unittest.TestCase):
         # Test for recipe in process at first change (1 secs in)
         now_time = time()
         start_time = now_time - 1
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_B, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_B, start_time, now_time)
         # setpoints contains the state tuples at now_time - NOT in order.
         assert len(setpoints) == 3, \
             'len(setpoints)=%d should be 3' % len(setpoints)
@@ -76,7 +76,7 @@ class TestRecipeHandler(unittest.TestCase):
         # Test for recipe in process at next change (60 secs in)
         now_time = time()
         start_time = now_time - 60
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_B, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_B, start_time, now_time)
         assert len(setpoints) == 5, \
             'len(setpoints)=%d should be 5' % len(setpoints)
         # found the order using this:
@@ -95,7 +95,7 @@ class TestRecipeHandler(unittest.TestCase):
         # Test for recipe in process at next change (120 secs in)
         now_time = time()
         start_time = now_time - 120
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_B, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_B, start_time, now_time)
         assert len(setpoints) == 7, \
             'len(setpoints)=%d should be 7' % len(setpoints)
         #assert False, '%s, %s, %s, %s, %s, %s, %s' % (setpoints[0][0], setpoints[1][0], setpoints[2][0], setpoints[3][0], setpoints[4][0], setpoints[5][0], setpoints[6][0])
@@ -118,7 +118,7 @@ class TestRecipeHandler(unittest.TestCase):
         # Test for recipe in process at last time change (180 secs in)
         now_time = time()
         start_time = now_time - 180
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_B, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_B, start_time, now_time)
         assert len(setpoints) == 8, \
             'len(setpoints)=%d should be 8' % len(setpoints)
         #assert False, '%s, %s, %s, %s, %s, %s, %s, %s' % (setpoints[0][0], setpoints[1][0], setpoints[2][0], setpoints[3][0], setpoints[4][0], setpoints[5][0], setpoints[6][0], setpoints[7][0])
@@ -143,7 +143,7 @@ class TestRecipeHandler(unittest.TestCase):
         # Test for recipe end
         now_time = time()
         start_time = now_time - 181
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_B, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_B, start_time, now_time)
         assert len(setpoints) == 1, 'len(setpoints)=%d' % len(setpoints)
         assert setpoints[0][0] == 'recipe_end', \
             'setpoints[0][0]=%s' % setpoints[0][0]

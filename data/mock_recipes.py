@@ -31,7 +31,7 @@ MOCK_RECIPE_SIMPLE_B = {
 
 MOCK_RECIPE_FLEXFORMAT_A = {
     "_id": "general_greens",
-    "format": "phased",
+    "format": "flexformat",
     "version": "1.0",
     "seeds": ["green_lettuce_seed", "romaine_lettuce_seed"],
     "plant_type": ["lettuce", "green"],
