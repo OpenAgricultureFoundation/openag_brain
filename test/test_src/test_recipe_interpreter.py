@@ -10,7 +10,7 @@ import json
 from openag_brain.recipe_interpreters import *
 DIR_NAME = os.path.dirname(__file__)
 sys.path.append(os.path.join(DIR_NAME, '../..'))
-from data.mock_recipes import phased_dense, MOCK_RECIPE_A
+from data.mock_recipes import MOCK_RECIPE_SIMPLE_A, MOCK_RECIPE_FLEXFORMAT_A
 
 
 def load_recipe_from_file(file_name):
@@ -26,25 +26,24 @@ def _test_load_recipe_from_file():
     assert False
 
 
-class TestRecipeInterpreter(unittest.TestCase):
+class TestRecipeInterpreterSimple(unittest.TestCase):
 
     def test_interpret_simple_recipe(self):
         now_time = time()
         start_time = now_time - 10
-        setpoints = interpret_simple_recipe(MOCK_RECIPE_A, start_time, now_time)
+        setpoints = interpret_simple_recipe(MOCK_RECIPE_SIMPLE_A, start_time, now_time)
         assert len(setpoints) == 2
 
 
-    def test_interpret_phased_dense_recipe(self):
+class TestRecipeInterpreterFlexFormat(unittest.TestCase):
+
+    def test_interpret_flexformat_recipe(self):
         #now_time = time()
         #start_time = now_time - 10
         start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
         now_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
-        setpoints = interpret_phased_dense_recipe(phased_dense, start_time, now_time)
+        setpoints = interpret_flexformat_recipe(MOCK_RECIPE_FLEXFORMAT_A, start_time, now_time)
         assert len(setpoints) == 4
-
-
-class TestPhasedDenseRecipe(unittest.TestCase):
 
     def test_calc_phase_and_time_remaining(self):
         duration_of_phases_steps = [(336, 24), (480, 24), (168, 24)]

@@ -58,7 +58,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     )
 
 
-def interpret_phased_dense_recipe(recipe, current_time, start_time):
+def interpret_flexformat_recipe(recipe, current_time, start_time):
     """
     Recipe Interpreter should read a recipe, current_time, start_time, variable and return a value.
        Determine the time since the beginning of the recipe.

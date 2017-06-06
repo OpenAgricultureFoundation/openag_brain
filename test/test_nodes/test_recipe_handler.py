@@ -26,8 +26,9 @@ from openag_brain.srv import StartRecipe
 #        nothing but run services, publish and script to topics.
 DIR_NAME = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(DIR_NAME, '../../')))
-from nodes.recipe_handler import interpret_simple_recipe, interpret_phased_dense_recipe
-from data.mock_recipes import MOCK_RECIPE_A, MOCK_RECIPE_B, phased_dense
+from nodes.recipe_handler import interpret_simple_recipe, interpret_flexformat_recipe
+from data.mock_recipes import MOCK_RECIPE_SIMPLE_A, MOCK_RECIPE_SIMPLE_B, \
+                              MOCK_RECIPE_FLEXFORMAT_A
 
 
 class TestRecipeHandler(unittest.TestCase):
@@ -147,12 +148,12 @@ class TestRecipeHandler(unittest.TestCase):
         assert setpoints[0][0] == 'recipe_end', \
             'setpoints[0][0]=%s' % setpoints[0][0]
 
-    def test_recipe_interpreter_phased_dense(self):
+    def test_recipe_interpreter_flexformat(self):
         now_time = time()
         # Test for recipe in process
         start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
         now_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
-        setpoints = interpret_phased_dense_recipe(phased_dense, start_time, now_time)
+        setpoints = interpret_flexformat_recipe(MOCK_RECIPE_FLEXFORMAT_A, start_time, now_time)
         print("-----")
         assert len(setpoints) == 4
 

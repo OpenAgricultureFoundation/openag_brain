@@ -1,5 +1,5 @@
 
-MOCK_RECIPE_A = {
+MOCK_RECIPE_SIMPLE_A = {
             "_id": "air_water_test",
             "format": "simple",
             "version": "0.0.1",
@@ -11,7 +11,7 @@ MOCK_RECIPE_A = {
                           ]
             }
 
-MOCK_RECIPE_B = {
+MOCK_RECIPE_SIMPLE_B = {
   "_id": "test",
   "version": "6.1.7",
   "format": "simple",
@@ -29,7 +29,7 @@ MOCK_RECIPE_B = {
   ]
 }
 
-phased_dense = {
+MOCK_RECIPE_FLEXFORMAT_A = {
     "_id": "general_greens",
     "format": "phased",
     "version": "1.0",
