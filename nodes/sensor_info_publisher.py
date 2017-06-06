@@ -2,13 +2,16 @@
 
 import rospy
 
-#debugrob: both the "openag." below are in _python, move to brain
-from openag.cli.config import config as cli_config
-from openag.models import FirmwareModule, FirmwareModuleType
+# You MUST import this msg package BEFORE any internal 'openag_brain' python
+# code.  Or you will get "ImportError: No module named msg".
+from openag_brain.msg import SensorInfo
 
+#debugrob: below is in _python, move to brain
+from openag.cli.config import config as cli_config
+
+from openag_brain.models import FirmwareModule, FirmwareModuleType
 from openag_lib.firmware.util import synthesize_firmware_module_info
 from couchdb import Server
-from openag_brain.msg import SensorInfo
 
 def publish_sensor_info(mod_id, variable, info):
     # Build the topic name

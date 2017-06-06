@@ -15,10 +15,16 @@ hardware error messages.
 """
 
 import rospy
-from openag.cli.config import config as cli_config
-from openag_lib.firmware.util import synthesize_firmware_module_info
-from openag.models import FirmwareModule, FirmwareModuleType
+
+# You MUST import this msg package BEFORE any internal 'openag_brain' python
+# code.  Or you will get "ImportError: No module named msg".
 from openag_brain.msg import DiagnosticArray as _DiagnosticArray
+
+#debugrob: below in _python, move here
+from openag.cli.config import config as cli_config
+
+from openag_lib.firmware.util import synthesize_firmware_module_info
+from openag_brain.models import FirmwareModule, FirmwareModuleType
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from couchdb import Server
 
