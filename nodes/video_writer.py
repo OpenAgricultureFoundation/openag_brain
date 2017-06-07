@@ -12,11 +12,7 @@ import subprocess
 #debugrob: the "openag." below is in _python, move to brain
 from openag.cli.config import config as cli_config
 
-#debugrob: this is the ONLY place our couch code from python is used.
-#from openag.couch import Server
-#debugrob: try replacing with plain couch, I don't think any of our custom code is used
 from couchdb import Server
-
 from openag_brain.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.video_helpers import *
 from openag_brain.load_env_var_types import create_variables, VariableInfo
