@@ -22,10 +22,11 @@ from threading import RLock
 from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.load_env_var_types import VariableInfo
-from openag_brain.utils import gen_doc_id, read_environment_from_ns
-from std_msgs.msg import String, Float64, Bool 
+from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_flexformat_recipe
+from openag_brain.utils import gen_doc_id, read_environment_from_ns, trace, TRACE
+from std_msgs.msg import String, Float64, Bool
 
-import pdb
+
 # Create a tuple constant of valid environmental variables
 # Should these be only environment_variables?
 ENVIRONMENTAL_VARIABLES = frozenset(
@@ -57,68 +58,10 @@ PUBLISHERS = {
     for variable in VALID_VARIABLES
 }
 
-# A threshold to compare time values in seconds.
-THRESHOLD = 1
-
-# Turn on logic tracing by making the variable below True.  
-# Output ONLY is written to this node's log file:
-# tail -f ~/.ros/log/latest/environments-environment_1-recipe_handler_1-6.log
-TRACE = False
-def trace(msg, *args):
-    if TRACE:
-        msg = '\nTRACE> ' + msg
-        rospy.logdebug(msg, *args)
-
-
-#------------------------------------------------------------------------------
-def interpret_simple_recipe(recipe, start_time, now_time):
-    """
-    Produces a tuple of ``(variable, value)`` pairs by building up
-    a recipe state from walking through the recipe keyframes
-    """
-    _id = recipe["_id"]
-    operations = recipe["operations"]
-    rospy.loginfo(operations)
-    end_time_relative = operations[-1][0]
-    trace("recipe_handler: interpret_simple_recipe end_time_relative=%s", 
-        end_time_relative)
-    end_time = start_time + end_time_relative
-    # If start time is at some point in the future beyond the threshold
-    if start_time - now_time > THRESHOLD:
-        raise ValueError("Recipes cannot be scheduled for the future")
-    # If there are no recipe operations, immediately start and stop
-    # The recipe.
-    if not len(operations):
-        return (
-            (RECIPE_START.name, _id),
-            (RECIPE_END.name, _id),
-        )
-    if now_time >= (end_time + THRESHOLD):
-        return ((RECIPE_END.name, _id),)
-    if abs(now_time - start_time) < THRESHOLD:
-        return ((RECIPE_START.name, _id),)
-
-    now_relative = (now_time - start_time)
-
-    # Create a state object to accrue recipe setpoint values.
-    state = {}
-    # Build up state up until now_time (inclusive).
-    trace("recipe_handler: interpret_simple_recipe now=%s", now_relative)
-    for timestamp, variable, value in operations:
-        if timestamp > now_relative:
-            break
-        state[variable] = value
-        trace("recipe_handler: interpret_simple_recipe: %s %s %s", 
-            timestamp, variable, value)
-    rospy.loginfo(state)
-    return tuple(
-        (variable, value)
-        for variable, value in state.iteritems()
-    )
-
 
 RECIPE_INTERPRETERS = {
-    "simple": interpret_simple_recipe
+    "simple": interpret_simple_recipe,
+    "flexformat": interpret_flexformat_recipe
 }
 
 
@@ -209,7 +152,7 @@ class RecipeHandler:
             return False, "\"{}\" does not reference a valid "\
             "recipe".format(recipe_id)
 
-        #trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
+        trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
         trace("recipe_handler: recipe=%s", recipe)
 
         try:
@@ -233,7 +176,7 @@ class RecipeHandler:
 
     def register_services(self):
         """Register services for instance"""
-        rospy.Service(services.START_RECIPE, StartRecipe, 
+        rospy.Service(services.START_RECIPE, StartRecipe,
             self.start_recipe_service)
         rospy.Service(services.STOP_RECIPE, Empty, self.stop_recipe_service)
         rospy.set_param(
@@ -255,10 +198,10 @@ class RecipeHandler:
             group_level=3
         )
         if len(start_view) == 0:
-            trace("recipe_handler: No previous recipe to recover.")
+            trace("recover_any_previous_recipe: No previous recipe to recover.")
             return
         start_doc = start_view.rows[0].value
-        trace("recipe_handler: start_doc=%s", start_doc)
+        trace("recover_any_previous_recipe: start_doc=%s", start_doc)
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view(
@@ -269,19 +212,21 @@ class RecipeHandler:
         )
         if len(end_view):
             end_doc = end_view.rows[0].value
-            trace("recipe_handler: end_doc=%s", end_doc)
+            trace("recover_any_previous_recipe: end_doc=%s", end_doc)
             if (end_doc["timestamp"] > start_doc["timestamp"]):
-                trace("recipe_handler: RETURNING: end_time=%s > start_time=%s", 
+                trace("recover_any_previous_recipe: RETURNING: '\
+                    'end_time=%s > start_time=%s",
                     end_doc["timestamp"], start_doc["timestamp"])
                 return
         # Run the recipe
-        trace("recipe_handler: restarting recipe=%s at time=%s", 
+        trace("recover_any_previous_recipe: restarting recipe=%s at time=%s",
+
             start_doc["value"], start_doc["timestamp"])
         self.start_recipe_service(
             StartRecipe._request_class(start_doc["value"]),
             start_doc["timestamp"]
         )
-        
+
     def save_recipe_dp(self, variable):
         """
         Save the recipe start/end to the env. data pt. DB, so we can restart
@@ -291,12 +236,12 @@ class RecipeHandler:
             "environment": self.environment,
             "variable": variable,
             "is_desired": True,
-            "value": rospy.get_param(params.CURRENT_RECIPE), 
+            "value": rospy.get_param(params.CURRENT_RECIPE),
             "timestamp": rospy.get_time()
         })
         doc_id = gen_doc_id(rospy.get_time())
         self.env_data_db[doc_id] = doc
-    
+
 
 #------------------------------------------------------------------------------
 # Our ROS node main entry point.  Starts up the node and then waits forever.
@@ -368,6 +313,3 @@ if __name__ == '__main__':
 
         rate.sleep()
         # end of while loop in main
-
-
-
