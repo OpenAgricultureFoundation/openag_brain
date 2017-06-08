@@ -26,6 +26,12 @@ def _test_load_recipe_from_file():
     assert False
 
 
+EPOCH = datetime.utcfromtimestamp(0)
+
+def unix_time_millis(dt):
+    return (dt - EPOCH).total_seconds() * 1000.0
+
+
 class TestRecipeInterpreterSimple(unittest.TestCase):
 
     def test_interpret_simple_recipe(self):
@@ -40,25 +46,37 @@ class TestRecipeInterpreterFlexFormat(unittest.TestCase):
     def test_interpret_flexformat_recipe(self):
         #now_time = time()
         #start_time = now_time - 10
-        start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
-        now_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
+        start_time = unix_time_millis(datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S"))
+        now_time = unix_time_millis(datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S"))
         setpoints = interpret_flexformat_recipe(MOCK_RECIPE_FLEXFORMAT_A, start_time, now_time)
         assert len(setpoints) == 4
 
     def test_calc_phase_and_time_remaining(self):
         duration_of_phases_steps = [(336, 24), (480, 24), (168, 24)]
-        start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
-        current_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
+        start_time = unix_time_millis(datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S"))
+        current_time = unix_time_millis(datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S"))
         current_phase_number, duration_in_step = calc_phase_and_time_remaining(duration_of_phases_steps,
-                                               current_time, start_time)
+                                               current_time, start_time, 'hours')
         assert (current_phase_number, duration_in_step) == (0, 6)
 
-        start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
-        current_time = datetime.strptime("2017-04-18 03:00", "%Y-%m-%d %H:%S")
+        start_time = unix_time_millis(datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S"))
+        current_time = unix_time_millis(datetime.strptime("2017-04-18 03:00", "%Y-%m-%d %H:%S"))
         current_phase_number, duration_in_step = calc_phase_and_time_remaining(duration_of_phases_steps,
-                                               current_time, start_time)
+                                               current_time, start_time, 'hours')
         print(current_phase_number, duration_in_step)
         assert (current_phase_number, duration_in_step) == (0, 13)
+
+
+    def test_convert_duration_units(self):
+                             
+        time_conversions = [(3600000, 'hours', 1),   #in milliseconds   == 1 hour
+                            (3600000, 'milliseconds', 3600000), 
+                            (3600000, 'ms', 3600000), 
+                            (3600000, 'days', 0.0416666)
+                           ]
+        for time_since_start, time_units, expected_duration in time_conversions:
+            actual_duration = convert_duration_units(time_since_start, time_units)
+            assert round(expected_duration, 4) == round(actual_duration, 4)
 
 
     def test_calculate_max_duration_from_step(self):
@@ -121,6 +139,10 @@ class TestRecipeInterpreterFlexFormat(unittest.TestCase):
         duration_in_step = 0
         value = determine_value_for_step(variable_step_data, duration_in_step)
         assert value == 20
+
+    def test_verify_time_units_are_consistent(self):
+        time_units = verify_time_units_are_consistent(MOCK_RECIPE_FLEXFORMAT_A['phases'])
+        assert time_units == 'hours'
 
 
 if __name__ == '__main__':

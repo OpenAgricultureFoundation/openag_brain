@@ -1,3 +1,4 @@
+from __future__ import division
 import rospy
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import trace
@@ -66,12 +67,13 @@ def interpret_flexformat_recipe(recipe, current_time, start_time):
        Calculate the remaining time left in this step.
        Look up the value within that step for that variable.
     """
-
+    time_units = verify_time_units_are_consistent(recipe['phases'])
     # Returns a list of the phases and step durations  [(duration_of_phase_1, duration_of_step_1), (duration_of_phase_2, duration_of_step_2), etc]
     duration_of_phases_steps = calc_duration_of_phases_steps(recipe['phases'])
     current_phase_number, duration_in_step = calc_phase_and_time_remaining(duration_of_phases_steps,
                                                                            current_time,
-                                                                           start_time)
+                                                                           start_time,
+                                                                           time_units)
     current_phase = recipe['phases'][current_phase_number]
     state = {}
     for variable, variable_step_data in current_phase['step'].items():
@@ -83,6 +85,20 @@ def interpret_flexformat_recipe(recipe, current_time, start_time):
     )
 
 
+def verify_time_units_are_consistent(recipe_phases):
+    """
+    The time units are stored for each phase in the recipe rather than at the recipe level. Need to verify they all match for now.
+    Later add ability for them to be different.
+    """
+    time_units = None
+    for phase in recipe_phases:
+        if 'time_units' not in phase:
+            raise KeyError("time_units is missing from the phase. Please check recipe format")
+        if not time_units:
+            time_units = phase['time_units']
+        elif time_units != phase['time_units']:
+            raise Exception("time_units are not consistent across each phase in the recipe. {} != {}".format(time_units, phase['time_units']))
+    return time_units
 
 def determine_value_for_step(variable_step_data, duration_in_step):
     """
@@ -126,7 +142,21 @@ def calc_duration_of_phases_steps(phases):
     return duration_of_phases_steps
 
 
-def calc_phase_and_time_remaining(duration_of_phases_steps, current_time, start_time):
+def convert_duration_units(duration, units='hours'):
+    """
+    Converts a number duration from milliseconds into the correct units.
+    """
+    divider = {'hours': 3600000,
+                  'days': 3600000*24,
+                  'milliseconds': 1,
+                  'ms': 1
+                }
+    if units not in divider:
+        raise KeyError("Error time_units in recipe are not available. Valid options are: days, hours, milliseconds, ms")
+    return duration / divider[units]
+
+
+def calc_phase_and_time_remaining(duration_of_phases_steps, current_time, start_time, time_units):
     """
     duration_of_phases_steps == [(336, 24), (480, 24), (168, 24)]
     current_time : datetime : UTC of the current time
@@ -134,9 +164,7 @@ def calc_phase_and_time_remaining(duration_of_phases_steps, current_time, start_
     return: current_phase_number, duration_in_phase
     """
     time_since_start = current_time - start_time
-    time_since_start = time_since_start.total_seconds() / 3600
-
-    time_remaining = time_since_start
+    time_remaining = convert_duration_units(time_since_start, time_units)
     for i, (total_duration, step_duration) in enumerate(duration_of_phases_steps):
         if time_remaining > total_duration:
             time_remaining -= total_duration
@@ -145,3 +173,4 @@ def calc_phase_and_time_remaining(duration_of_phases_steps, current_time, start_
             current_phase_number = i
             break
     return current_phase_number, duration_in_phase
+
