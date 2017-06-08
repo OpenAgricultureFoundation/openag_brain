@@ -151,8 +151,7 @@ class TestRecipeHandler(unittest.TestCase):
     def test_recipe_interpreter_flexformat(self):
         now_time = time()
         # Test for recipe in process
-        start_time = datetime.strptime("2017-04-17 14:00", "%Y-%m-%d %H:%S")
-        now_time = datetime.strptime("2017-04-18 20:00", "%Y-%m-%d %H:%S")
+        start_time = now_time - 18100
         setpoints = interpret_flexformat_recipe(MOCK_RECIPE_FLEXFORMAT_A, start_time, now_time)
         print("-----")
         assert len(setpoints) == 4
