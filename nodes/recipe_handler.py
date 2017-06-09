@@ -246,6 +246,7 @@ class RecipeHandler:
 #------------------------------------------------------------------------------
 # Our ROS node main entry point.  Starts up the node and then waits forever.
 if __name__ == '__main__':
+    pub_debug = rospy.Publisher('debug/recipe_handler', String, queue_size=10)
     if TRACE:
         rospy.init_node("recipe_handler", log_level=rospy.DEBUG)
     else:
@@ -289,6 +290,8 @@ if __name__ == '__main__':
 
             # Get recipe state and publish it
             setpoints = interpret_recipe(recipe_doc, start_time, now_time)
+            rospy.loginfo("Start: {} now_time: {}: ".format(start_time, now_time))
+            print(start_time, now_time)
             for variable, value in setpoints:
                 try:
                     pub = PUBLISHERS[variable]
@@ -296,7 +299,7 @@ if __name__ == '__main__':
                     msg = 'Recipe references invalid variable "{}"'
                     rospy.logwarn(msg.format(variable))
                     continue
-
+                pub_debug.publish("{} : {}".format(variable, value))
                 # Publish any setpoints that we can
                 trace("recipe_handler publish: %s, %s", variable, value)
                 if variable == RECIPE_END.name:
@@ -313,3 +316,4 @@ if __name__ == '__main__':
 
         rate.sleep()
         # end of while loop in main
+

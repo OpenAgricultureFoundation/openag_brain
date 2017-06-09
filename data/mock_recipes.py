@@ -48,19 +48,19 @@ MOCK_RECIPE_FLEXFORMAT_A = {
             "step": {
                 "air_temperature": [
                     {
-                        "end_time": 6,
+                        "end_time": 7,
                         "start_time": 0,
-                        "value": 25
+                        "value": 22
                     },
                     {
                         "end_time": 18,
-                        "start_time": 6,
+                        "start_time": 7,
                         "value": 25
                     },
                     {
                         "end_time": 24,
                         "start_time": 18,
-                        "value": 25
+                        "value": 23
                     }
                 ],
                 "light_intensity_blue": [
@@ -84,7 +84,7 @@ MOCK_RECIPE_FLEXFORMAT_A = {
                     {
                         "end_time": 6,
                         "start_time": 0,
-                        "value": 0
+                        "value": 1
                     },
                     {
                         "end_time": 18,

@@ -4,6 +4,7 @@ from sys import maxsize
 from random import randint
 from re import match
 import json
+import rospy
 
 def resolve_fixtures(fixtures):
     """
@@ -45,7 +46,7 @@ def read_environment_from_ns(namespace):
 # Turn on logic tracing by making the variable below True.
 # Output ONLY is written to this node's log file:
 # tail -f ~/.ros/log/latest/environments-environment_1-recipe_handler_1-6.log
-TRACE = False   # TODO: Move to settings file?
+TRACE = True   # TODO: Move to settings file?
 def trace(msg, *args):
     if TRACE:
         msg = '\nTRACE> ' + msg

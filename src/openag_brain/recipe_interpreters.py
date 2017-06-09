@@ -3,6 +3,7 @@ import rospy
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import trace
 from datetime import datetime
+import pdb
 
 RECIPE_START = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_start'))
@@ -13,6 +14,14 @@ RECIPE_END = VariableInfo.from_dict(
 # A threshold to compare time values in seconds.
 THRESHOLD = 1
 
+EPOCH = datetime.utcfromtimestamp(0)
+def unix_time_seconds(dt):
+     return (dt - EPOCH).total_seconds()
+
+MIN_DATE = unix_time_seconds(datetime.strptime('06-11-2010 07:00:00', '%m-%d-%Y %H:%M:%S')) # For verifying time format
+MAX_DATE = unix_time_seconds(datetime.strptime('06-11-2035 07:00:00', '%m-%d-%Y %H:%M:%S'))
+
+
 def interpret_simple_recipe(recipe, start_time, now_time):
     """
     Produces a tuple of ``(variable, value)`` pairs by building up
@@ -20,7 +29,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     """
     _id = recipe["_id"]
     operations = recipe["operations"]
-    rospy.loginfo(operations)
+    rospy.logdebug(operations)
     end_time_relative = operations[-1][0]
     trace("recipe_handler: interpret_simple_recipe end_time_relative=%s",
         end_time_relative)
@@ -59,21 +68,39 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     )
 
 
-def interpret_flexformat_recipe(recipe, current_time, start_time):
+def interpret_flexformat_recipe(recipe, start_time, now_time):
     """
-    Recipe Interpreter should read a recipe, current_time, start_time, variable and return a value.
+    Recipe Interpreter should read a recipe, now_time, start_time, variable and return a value.
        Determine the time since the beginning of the recipe.
        Determine what is the current step
        Calculate the remaining time left in this step.
        Look up the value within that step for that variable.
     """
+    _id = recipe["_id"]
+    rospy.loginfo(recipe["phases"])
+    [verify_time_units(_) for _ in (now_time, start_time)]
+    # If start time is at some point in the future beyond the threshold
+    if start_time - now_time > THRESHOLD:
+        raise ValueError("Recipes cannot be scheduled for the future")
+    # If there are no recipe operations, immediately start and stop
+    # The recipe.
+    if not len(recipe['phases']):
+        return (
+            (RECIPE_START.name, _id),
+            (RECIPE_END.name, _id),
+        )
+    if abs(now_time - start_time) < THRESHOLD:
+        return ((RECIPE_START.name, _id),)
     time_units = verify_time_units_are_consistent(recipe['phases'])
     # Returns a list of the phases and step durations  [(duration_of_phase_1, duration_of_step_1), (duration_of_phase_2, duration_of_step_2), etc]
     duration_of_phases_steps = calc_duration_of_phases_steps(recipe['phases'])
     current_phase_number, duration_in_step = calc_phase_and_time_remaining(duration_of_phases_steps,
-                                                                           current_time,
                                                                            start_time,
+                                                                           now_time,
                                                                            time_units)
+    # Need to create a function to calculate the end time of the recipe
+    #if now_time >= (end_time + THRESHOLD):
+    #    return ((RECIPE_END.name, _id),)
     current_phase = recipe['phases'][current_phase_number]
     state = {}
     for variable, variable_step_data in current_phase['step'].items():
@@ -83,6 +110,14 @@ def interpret_flexformat_recipe(recipe, current_time, start_time):
         (variable, value)
         for variable, value in state.iteritems()
     )
+
+
+def verify_time_units(time_var):
+    """
+    Verifies the units for incoming time variables are valid.
+    """
+    if not MIN_DATE < time_var < MAX_DATE: 
+        raise TypeError("Variable time format is not correct. The value should be between {} and {}, but received: ".format(MIN_DATE, MAX_DATE, time_var))
 
 
 def verify_time_units_are_consistent(recipe_phases):
@@ -144,32 +179,48 @@ def calc_duration_of_phases_steps(phases):
 
 def convert_duration_units(duration, units='hours'):
     """
-    Converts a number duration from milliseconds into the correct units.
+    Converts a number duration from Seconds into the units specified in the options(units variable).
     """
-    divider = {'hours': 3600000,
-                  'days': 3600000*24,
-                  'milliseconds': 1,
-                  'ms': 1
+    divider = {'hours': 3600,
+                  'days': 3600*24,
+                  'milliseconds': 0.001,
+                  'ms': 0.001,
+                  'seconds': 1
                 }
     if units not in divider:
         raise KeyError("Error time_units in recipe are not available. Valid options are: days, hours, milliseconds, ms")
     return duration / divider[units]
 
 
-def calc_phase_and_time_remaining(duration_of_phases_steps, current_time, start_time, time_units):
+def offset_duration_by_time_from_start(start_time):
     """
-    duration_of_phases_steps == [(336, 24), (480, 24), (168, 24)]
-    current_time : datetime : UTC of the current time
-    start_time : datetime : UTC time the recipe started
+    Calculates how many hours are used in the current day, so the times set in the recipe are relative to midnight, not start_time
+
+    """
+    #raise NotImplementedError("Function not implemented yet.")
+    start_time_dt_format = datetime.utcfromtimestamp(start_time) 
+    return start_time_dt_format.hour * 3600
+
+def calc_phase_and_time_remaining(duration_of_phases_steps, start_time, now_time, time_units):
+    """
+    Calculates how far along the recipe is in progress given the start_time and the time it is now (aka now_time).
+    TODO: Add function to determine the starting point: Subtract the hours out of the current day from the elapsed time.
+
+    duration_of_phases_steps == [(336, 24), (480, 24), (168, 24)]  #total Hours in phase, hours per step in phase (usually days)
+    now_time : datetime : Local current time in seconds from EPOCH
+    start_time : datetime : Local time the recipe started in seconds from EPOCH
     return: current_phase_number, duration_in_phase
+
     """
-    time_since_start = current_time - start_time
-    time_remaining = convert_duration_units(time_since_start, time_units)
+    time_elapsed = now_time - start_time
+    #time_elapsed = time_elapsed - offset_duration_by_time_from_start(start_time)  # Offset elapsed time by hours on first day. this method doesn't work.
+    time_elapsed = convert_duration_units(time_elapsed, time_units)
+    #pdb.set_trace()
     for i, (total_duration, step_duration) in enumerate(duration_of_phases_steps):
-        if time_remaining > total_duration:
-            time_remaining -= total_duration
+        if time_elapsed > total_duration:
+            time_elapsed -= total_duration
         else:
-            duration_in_phase = time_remaining % step_duration
+            duration_in_phase = time_elapsed % step_duration
             current_phase_number = i
             break
     return current_phase_number, duration_in_phase
