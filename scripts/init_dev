@@ -47,9 +47,8 @@ sudo apt-get install -y -q couchdb python-setuptools
 sudo easy_install pip
 sudo pip install rosdep rosinstall_generator wstool rosinstall
 
-# Install some python dependencies that used to be in openag_python
-# (note: there aren't ros packages for these)
-sudo pip install voluptuous click
+# Install some python dependencies that there aren't ros packages for.
+sudo pip install voluptuous 
 
 # Initialize rosdep if it hasn't been already.
 # Checking for the .list file first makes this script idempotent.

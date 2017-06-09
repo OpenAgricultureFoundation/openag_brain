@@ -9,11 +9,9 @@ import tempfile
 import threading
 import subprocess
 
-#debugrob: the "openag." below is in _python, move to brain
-from openag.cli.config import config as cli_config
-
 from couchdb import Server
-from openag_brain.db_names import ENVIRONMENTAL_DATA_POINT
+from openag_lib.config import config as cli_config
+from openag_lib.db_bootstrap.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_brain.video_helpers import *
 from openag_brain.load_env_var_types import create_variables, VariableInfo
 

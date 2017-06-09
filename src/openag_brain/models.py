@@ -7,9 +7,6 @@ __all__ = [
 from openag_lib.firmware.categories import SENSORS, ACTUATORS, CALIBRATION, all_categories
 from voluptuous import Schema, Required, Any, Extra, Optional, REMOVE_EXTRA
 
-#debugrob: below used for firmware module parsing, remove after Rikuo is done with new code
-from openag_lib.firmware.util import safe_cpp_var
-
 Environment = Schema({
     "name": Any(str, unicode),
 }, extra=REMOVE_EXTRA)
@@ -250,7 +247,7 @@ GitRepo = Schema({
 })
 
 FirmwareModuleType = Schema({
-    Required("_id"): safe_cpp_var,
+    Required("_id"): Any(str, unicode),
     "repository": Any(PioRepo, GitRepo),
     "header_file": Any(str, unicode),
     "class_name": Any(str, unicode),
@@ -330,7 +327,7 @@ for information on how to write firmware modules.
 """
 
 FirmwareModule = Schema({
-    Required("_id"): safe_cpp_var,
+    Required("_id"): Any(str, unicode),
     Required("type"): Any(str, unicode),
     "environment": Any(str, unicode),
     "categories": [SENSORS, ACTUATORS, CALIBRATION],
