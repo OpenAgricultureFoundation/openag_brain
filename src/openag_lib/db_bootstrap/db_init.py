@@ -11,7 +11,7 @@ from ..config import config
 from .bootstrap_couch import BootstrapServer, ResourceNotFound
 from .db_config import generate_config
 from .db_names import all_dbs
-from ._design import _design
+from openag_lib.db_bootstrap import _design
 
 
 def db_init(db_url, api_url):

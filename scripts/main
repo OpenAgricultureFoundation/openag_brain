@@ -6,9 +6,7 @@ import argparse
 import subprocess
 
 from openag_lib.config import config 
-from openag_lib.db_bootstrap import db_init 
-from openag_brain.srv import SetCategories
-from openag_brain.utils import resolve_fixtures
+from openag_lib.db_bootstrap.db_init import db_init 
 
 modules = None
 
