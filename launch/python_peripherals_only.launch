@@ -4,4 +4,5 @@
   <node pkg="openag_brain" type="sensor_atlas_ph.py" name="atlas_ph_1" />
   <node pkg="openag_brain" type="sensor_atlas_ec.py" name="atlas_ec_1" />
   <node pkg="openag_brain" type="sensor_ds18b20.py" name="ds18b20_1" />
+  <node pkg="openag_brain" type="actuator_hid_relay_16.py" name="hid_relay_16_1" />
 </launch>
