@@ -169,19 +169,30 @@ class TestRecipeHandler(unittest.TestCase):
         print(setpoints)
         assert len(setpoints) == 5
 
+    def start_recipe(self, recipe_name):
+        self.stop_recipe()
+        service_name = '/environments/test/start_recipe'
+        self.call_service(service_name, "success", True, recipe_name)
+
+    def stop_recipe(self):
+        service_name = '/environments/test/stop_recipe'
+        self.call_service(service_name, "success", True)
+
     @staticmethod
-    def start_recipe(recipe_name):
+    def call_service(service_name, result_msg, result_value, *args):
         # Add leading slash to service_name. ROS qualifies all services with a
         # leading slash.
-        service_name = '/environments/test/start_recipe'
         # Find the class that ROS autogenerates from srv files that is associated
         # with this service.
         ServiceClass = rosservice.get_service_class_by_name(service_name)
         rospy.wait_for_service(service_name, 1)
         service_proxy = rospy.ServiceProxy(service_name, ServiceClass)
-        res = service_proxy(recipe_name)
-        rospy.loginfo(res)
+        res = service_proxy(*args)
+        print(service_name)
+        print("-----------######-------------")
+        print(res)
         assert getattr(res, "success", True)
+        #assert res
 
     def callback(self, data):
         rospy.loginfo(data.data)
