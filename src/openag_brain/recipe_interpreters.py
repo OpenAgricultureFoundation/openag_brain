@@ -3,7 +3,6 @@ import rospy
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.utils import trace
 from datetime import datetime
-import pdb
 
 RECIPE_START = VariableInfo.from_dict(
     rospy.get_param('/var_types/recipe_variables/recipe_start'))
@@ -61,7 +60,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
         state[variable] = value
         trace("recipe_handler: interpret_simple_recipe: %s %s %s",
             timestamp, variable, value)
-    rospy.loginfo(state)
+    rospy.logdebug(state)
     return tuple(
         (variable, value)
         for variable, value in state.iteritems()
@@ -77,7 +76,7 @@ def interpret_flexformat_recipe(recipe, start_time, now_time):
        Look up the value within that step for that variable.
     """
     _id = recipe["_id"]
-    rospy.loginfo(recipe["phases"])
+    rospy.logdebug(recipe["phases"])
     [verify_time_units(_) for _ in (now_time, start_time)]
     # If start time is at some point in the future beyond the threshold
     if start_time - now_time > THRESHOLD:
@@ -116,7 +115,7 @@ def verify_time_units(time_var):
     """
     Verifies the units for incoming time variables are valid.
     """
-    if not MIN_DATE < time_var < MAX_DATE: 
+    if not MIN_DATE < time_var < MAX_DATE:
         raise TypeError("Variable time format is not correct. The value should be between {} and {}, but received: ".format(MIN_DATE, MAX_DATE, time_var))
 
 
@@ -198,7 +197,7 @@ def offset_duration_by_time_from_start(start_time):
 
     """
     #raise NotImplementedError("Function not implemented yet.")
-    start_time_dt_format = datetime.utcfromtimestamp(start_time) 
+    start_time_dt_format = datetime.utcfromtimestamp(start_time)
     return start_time_dt_format.hour * 3600
 
 def calc_phase_and_time_remaining(duration_of_phases_steps, start_time, now_time, time_units):
@@ -215,7 +214,6 @@ def calc_phase_and_time_remaining(duration_of_phases_steps, start_time, now_time
     time_elapsed = now_time - start_time
     #time_elapsed = time_elapsed - offset_duration_by_time_from_start(start_time)  # Offset elapsed time by hours on first day. this method doesn't work.
     time_elapsed = convert_duration_units(time_elapsed, time_units)
-    #pdb.set_trace()
     for i, (total_duration, step_duration) in enumerate(duration_of_phases_steps):
         if time_elapsed > total_duration:
             time_elapsed -= total_duration
@@ -224,4 +222,3 @@ def calc_phase_and_time_remaining(duration_of_phases_steps, start_time, now_time
             current_phase_number = i
             break
     return current_phase_number, duration_in_phase
-
