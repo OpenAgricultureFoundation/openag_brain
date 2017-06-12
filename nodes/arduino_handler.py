@@ -227,6 +227,10 @@ def expand_unknown_status(status_code):
         "message": "Unknown status code {}".format(status_code)
     }
 
+# Closures are passed by reference such that any new substitutions are interpreted
+# as declarations, causing prev_time to be "Referenced before declaration".
+# This can be bypassed using an object reference
+# https://stackoverflow.com/questions/3190706/nonlocal-keyword-in-python-2-x
 def ros_next(rate_hz):
     ros_next.prev_time = rospy.get_time()
     timeout = 1 / rate_hz
