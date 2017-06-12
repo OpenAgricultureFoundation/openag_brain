@@ -1,7 +1,7 @@
 from __future__ import division
 import rospy
 from openag_brain.load_env_var_types import VariableInfo
-from openag_brain.utils import trace
+from openag_brain.settings import trace
 from datetime import datetime
 
 RECIPE_START = VariableInfo.from_dict(
