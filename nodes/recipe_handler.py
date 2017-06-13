@@ -13,14 +13,16 @@ instance of this module per environment in the system.
 """
 import rospy
 from roslib.message import get_message_class
-from openag.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
-from openag_brain.constants import NULL_SETPOINT_SENTINEL
-from openag.cli.config import config as cli_config
-from openag.models import EnvironmentalDataPoint
 from couchdb import Server
 from threading import RLock
-from openag_brain import params, services
+
+# srv causing import issues, if it is not first :(
 from openag_brain.srv import StartRecipe, Empty
+from openag_lib.db_bootstrap.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
+from openag_lib.config import config 
+from openag_brain import params, services
+from openag_brain.constants import NULL_SETPOINT_SENTINEL
+from openag_brain.models import EnvironmentalDataPoint
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_flexformat_recipe
 from openag_brain.utils import gen_doc_id, read_environment_from_ns
@@ -252,7 +254,8 @@ if __name__ == '__main__':
         pub_debug = rospy.Publisher('debug/recipe_handler', String, queue_size=10)
     else:
         rospy.init_node("recipe_handler")
-    db_server = cli_config["local_server"]["url"]
+    db_server = config["local_server"]["url"]
+
     if not db_server:
         raise RuntimeError("No local database specified")
     server = Server(db_server)
