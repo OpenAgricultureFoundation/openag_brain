@@ -251,7 +251,8 @@ class RecipeHandler:
 if __name__ == '__main__':
     if TRACE:
         rospy.init_node("recipe_handler", log_level=rospy.DEBUG)
-        pub_debug = rospy.Publisher('debug/recipe_handler', String, queue_size=10)
+        pub_debug = rospy.Publisher('debug/recipe_handler', \
+            String, queue_size=10)
     else:
         rospy.init_node("recipe_handler")
     db_server = config["local_server"]["url"]
@@ -294,7 +295,8 @@ if __name__ == '__main__':
 
             # Get recipe state and publish it
             setpoints = interpret_recipe(recipe_doc, start_time, now_time)
-            rospy.loginfo("Start: {} now_time: {}: ".format(start_time, now_time))
+            trace("Start_time: %s  Now_time: %s", start_time, now_time)
+                            
             for variable, value in setpoints:
                 try:
                     pub = PUBLISHERS[variable]
@@ -304,7 +306,7 @@ if __name__ == '__main__':
                     continue
                 if TRACE:
                     pub_debug.publish("{} : {}".format(variable, value))
-                    rospy.logdebug("Start_time: {}  Now_time: ".format(start_time, now_time))
+            
                 # Publish any setpoints that we can
                 trace("recipe_handler publish: %s, %s", variable, value)
                 if variable == RECIPE_END.name:
