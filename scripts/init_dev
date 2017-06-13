@@ -48,7 +48,7 @@ sudo easy_install pip
 sudo pip install rosdep rosinstall_generator wstool rosinstall
 
 # Install some python dependencies that there aren't ros packages for.
-sudo pip install voluptuous 
+sudo pip install voluptuous HTTPretty pytest
 
 # Initialize rosdep if it hasn't been already.
 # Checking for the .list file first makes this script idempotent.

@@ -14,7 +14,7 @@ import os
 import json
 import errno
 
-CONFIG_FOLDER = "~/.openag"
+CONFIG_FOLDER = os.path.expanduser('~/.openag')
 CONFIG_FILE = os.path.join(CONFIG_FOLDER, "config.json")
 
 class PersistentObj(object):
@@ -61,6 +61,7 @@ class PersistentObj(object):
         self._parent._save()
 
 class Config(PersistentObj):
+    # Called when an instance of the class is made.
     def __init__(self, filename=CONFIG_FILE):
         self.filename = filename
         folder = os.path.dirname(filename)
@@ -83,7 +84,10 @@ class Config(PersistentObj):
             json.dump(self._data, f)
 
 
-# global config!
+"""
+This is a global config instance, which is created when this module is 
+imported.
+"""
 config = Config()
 
 
