@@ -23,7 +23,8 @@ from openag_brain import params, services
 from openag_brain.srv import StartRecipe, Empty
 from openag_brain.load_env_var_types import VariableInfo
 from openag_brain.recipe_interpreters import interpret_simple_recipe, interpret_flexformat_recipe
-from openag_brain.utils import gen_doc_id, read_environment_from_ns, trace, TRACE
+from openag_brain.utils import gen_doc_id, read_environment_from_ns
+from openag_brain.settings import trace, TRACE
 from std_msgs.msg import String, Float64, Bool
 
 
@@ -248,6 +249,7 @@ class RecipeHandler:
 if __name__ == '__main__':
     if TRACE:
         rospy.init_node("recipe_handler", log_level=rospy.DEBUG)
+        pub_debug = rospy.Publisher('debug/recipe_handler', String, queue_size=10)
     else:
         rospy.init_node("recipe_handler")
     db_server = cli_config["local_server"]["url"]
@@ -289,6 +291,7 @@ if __name__ == '__main__':
 
             # Get recipe state and publish it
             setpoints = interpret_recipe(recipe_doc, start_time, now_time)
+            rospy.loginfo("Start: {} now_time: {}: ".format(start_time, now_time))
             for variable, value in setpoints:
                 try:
                     pub = PUBLISHERS[variable]
@@ -296,7 +299,9 @@ if __name__ == '__main__':
                     msg = 'Recipe references invalid variable "{}"'
                     rospy.logwarn(msg.format(variable))
                     continue
-
+                if TRACE:
+                    pub_debug.publish("{} : {}".format(variable, value))
+                    rospy.logdebug("Start_time: {}  Now_time: ".format(start_time, now_time))
                 # Publish any setpoints that we can
                 trace("recipe_handler publish: %s, %s", variable, value)
                 if variable == RECIPE_END.name:
