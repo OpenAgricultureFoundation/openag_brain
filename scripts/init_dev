@@ -81,4 +81,7 @@ echo "Installing binary dependencies with rosdep"
 # Install dependency binary deps
 rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 
+# Let pi user access hid relay device without having to be root
+echo SUBSYSTEM=="usb", ATTR{idVendor}=="0416", ATTR{idProduct}=="5020", MODE="0666", GROUP="plugdev" > /etc/udev/rules.d/99-hidrelay.rules
+
 echo "Finished setting up development environment. Ready to build with catkin_make."

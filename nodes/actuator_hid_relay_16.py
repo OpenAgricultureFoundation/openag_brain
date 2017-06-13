@@ -23,7 +23,7 @@ if __name__ == '__main__':
     hid_relay_16 = HidRelay16()
 
     def on_set(msg, relay_id):
-        hid_relay_16.set(msg.data, relay_id)
+        hid_relay_16.set(int(relay_id), msg.data)
 
     for topic in relay_map:
         subscriber = rospy.Subscriber(topic, Bool, callback=on_set, callback_args=relay_map[topic])
