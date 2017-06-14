@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     air_temp_sub = rospy.Subscriber("air_temperature/raw", Float64, callback=set_air_temp)
     humidity_sub = rospy.Subscriber("air_humidity/raw", Float64, callback=set_humidity)
-    co2_sub = rospy.Subscriber("/air_carbon_dioxide/raw", Float64, callback=set_co2)
+    co2_sub = rospy.Subscriber("air_carbon_dioxide/raw", Float64, callback=set_co2)
     o2_sub = rospy.Subscriber("air_oxygen/raw", Float64, callback=set_o2)
     water_temp_sub = rospy.Subscriber("water_temperature/raw", Float64, callback=set_water_temp)
     ph_sub = rospy.Subscriber("water_potential_hydrogen/raw", Float64, callback=set_ph)
