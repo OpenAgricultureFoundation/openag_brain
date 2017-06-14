@@ -55,10 +55,15 @@
   <run_depend>python-couchdb</run_depend>
   <run_depend>python-periphery</run_depend>
   <run_depend>python-lxml</run_depend>
+  <run_depend>python-periphery-pip</run_depend>
+  <run_depend>python-pylibftdi-pip</run_depend>
+  <run_depend>python-w1thermsensor-pip</run_depend>
+  <run_depend>python-pyusb-pip</run_depend>
+  <run_depend>python-numpy</run_depend>
+  <run_depend>python-pygame</run_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>rostest</test_depend>
-  <run_depend>python-pylibftdi-pip</run_depend>
-
+  
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
