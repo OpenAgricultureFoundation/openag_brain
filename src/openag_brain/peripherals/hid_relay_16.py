@@ -42,10 +42,6 @@ class HidRelay16:
     def __init__(self, version=16):
         rospy.loginfo("Initializing HidRelay16")
 
-        # if (version is 8) or (version is "8"):
-        #     self.relayBitmap = self.relayBitmap8
-        #     self.max_relay_id = self.max_relay_id8
-        # else:
         self.relayBitmap = self.relayBitmap16
         self.max_relay_id = self.max_relay_id16
 
@@ -236,58 +232,3 @@ class HidRelay16:
 
         except:
             return None
-
-
-# def testRelay():
-#     relay = HIDRelay(8)
-#
-#     relay.write(0)
-#     relay.reset()
-#     time.sleep(1)
-#
-#     relay.read()
-#     time.sleep(0.25)
-#     relay.write(0xFFFF)
-#     time.sleep(0.25)
-#     relay.write(0)
-#     time.sleep(0.25)
-#     relay.write(0xFFFF)
-#     time.sleep(0.25)
-#     relay.write(0)
-#     p = relay.read()
-#     time.sleep(0.5)
-#
-#     for x in range(0, relay.max_relay_id):
-#         p = relay.set(x, True)
-#         time.sleep(0.7)
-#
-#     for x in range(relay.max_relay_id, 0, -1):
-#         p = relay.set(x, False)
-#         time.sleep(0.7)
-#
-#     time.sleep(0.5)
-#     relay.write(0xFFFF)
-#     time.sleep(0.25)
-#     relay.write(0)
-
-# def mapRelay():
-#     relay = HIDRelay(8)
-#
-#     relayBitmap = []
-#
-#     # Turn off all relays
-#     relay.write(0)
-#     relay.read()
-#     time.sleep(2)
-#
-#     for x in range(0, relay.max_relay_id):
-#         relay.write(int(math.pow(2, x)))
-#         readmask = relay.read()
-#         print "Readmask", readmask
-#         relayBitmap.insert(x, readmask)
-#         time.sleep(2)
-#
-#     # Clear all relays
-#     relay.write(0)
-#
-#     print "Relay BitMap:", str(relayBitmap)

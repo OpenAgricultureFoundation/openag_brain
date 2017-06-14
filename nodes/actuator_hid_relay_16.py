@@ -17,8 +17,6 @@ if __name__ == '__main__':
                          "blue_light_intensity/commanded": "4"}
 
     relay_map = rospy.get_param("~relay_map", default_relay_map)
-    rate = rospy.get_param("~rate_hz", 1)
-    r = rospy.Rate(rate)
 
     hid_relay_16 = HidRelay16()
 
