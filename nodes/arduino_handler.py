@@ -65,6 +65,13 @@ actuator_listen_variables = (
     "water_level_high"
 )
 
+# Store latest actuator and sensor states we are aware of.
+actuator_state = {
+    header: type_constructor()
+    for header, type_constructor in actuator_csv_headers
+}
+sensor_state = {}
+
 ENVIRONMENTAL_VARIABLES = frozenset(
     VariableInfo.from_dict(d)
     for d in rospy.get_param("/var_types/environment_variables").itervalues())
@@ -291,7 +298,7 @@ def process_message(line):
         return message
 
 if __name__ == '__main__':
-    rospy.init_node('handle_arduino')
+    rospy.init_node('arduino_handler')
 
     serial_port_id = rospy.get_param("~serial_port_id", "/dev/ttyACM0")
     publisher_rate_hz = rospy.get_param("~publisher_rate_hz", 1)
@@ -302,17 +309,9 @@ if __name__ == '__main__':
     # Initialize the serial connection
     serial_connection = serial.Serial(serial_port_id, baud_rate, timeout=timeout_s)
 
-    # Latest actuator and sensor states we are aware of.
-    actuator_state = {
-        header: type_constructor()
-        for header, type_constructor in actuator_csv_headers
-    }
-    sensor_state = {}
-
     # These 2 are permanently on.
     actuator_state["water_aeration_pump_1"] = True
     actuator_state["water_circulation_pump_1"] = True
-
 
     publish_time = ros_next(publisher_rate_hz)
     while not rospy.is_shutdown():
@@ -343,7 +342,6 @@ if __name__ == '__main__':
             actuator_state["heater_core_1_1"],
             actuator_state["chiller_compressor_1"]
         ).encode('utf-8')
-        rospy.logwarn(message)
         serial_connection.write(message)
         serial_connection.flush()
 
