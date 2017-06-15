@@ -300,14 +300,23 @@ def process_message(line):
 if __name__ == '__main__':
     rospy.init_node('arduino_handler')
 
-    serial_port_id = rospy.get_param("~serial_port_id", "/dev/ttyACM0")
     publisher_rate_hz = rospy.get_param("~publisher_rate_hz", 1)
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
     timeout_s = 1 / publisher_rate_hz
     # below: mutables (gasp!)
     # Initialize the serial connection
-    serial_connection = serial.Serial(serial_port_id, baud_rate, timeout=timeout_s)
+    path = "/dev/serial/by-id"
+    port = None
+    if not os.path.exists(path):
+      raise IOError("No serial device found on system in {}".format(path))
+
+    ports = [port for port in os.listdir(path) if "arduino" in port.lower()]
+    if len(ports) == 0:
+      raise IOError("No arduino device found on system in {}".format(path))
+    port = ports[0]
+
+    serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
 
     # These 2 are permanently on.
     actuator_state["water_aeration_pump_1"] = True
