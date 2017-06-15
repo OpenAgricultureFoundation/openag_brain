@@ -29,7 +29,6 @@
       <param name="Kp" value="1" type="double"/>
     </node>
     <node pkg="openag_brain" type="recipe_handler.py" name="recipe_handler_1"/>
-    <node pkg="openag_brain" type="recipe_persistence.py" name="recipe_persistence_1"/>
     <node pkg="openag_brain" type="video_writer.py" name="video_writer_1">
       <param name="timelapse_scaling_factor" value="86400" type="int"/>
     </node>
