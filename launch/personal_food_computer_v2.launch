@@ -68,7 +68,6 @@
       <rosparam file="$(find openag_brain)/launch/usb_cam.yaml" />
     </node>
     <node pkg="openag_brain" type="arduino_handler.py" name="arduino_handler">
-      <param name="serial_port_id" value="/dev/ttyACM0" type="str"/>
       <param name="publisher_rate_hz" value="1" type="int"/>
       <param name="baud_rate" value="115200" type="int"/>
     </node>
