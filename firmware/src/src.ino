@@ -64,10 +64,10 @@ void setup() {
   beginModule(am2315_1, "AM2315 #1");
   beginModule(mhz16_1, "MHZ16 #1");
   beginModule(ds18b20_1, "DS18B20 #1");
-  beginModule(atlas_ec_1, "Atlas EC #1");
-  beginModule(atlas_ph_1, "Atlas pH #1");
   beginModule(water_level_sensor_low_1, "Water Level Low sensor");
   beginModule(water_level_sensor_high_1, "Water Level High sensor");
+  beginModule(atlas_ph_1, "Atlas pH #1");
+  beginModule(atlas_ec_1, "Atlas EC #1");
 
   // Begin Actuators
   beginModule(pump_1_nutrient_a_1, "Pump 1, Nutrient A");
@@ -136,7 +136,6 @@ void actuatorLoop(){
     // We've already used this message
     message = "";
     stringComplete = false;
-    // status, blue, white, red
     if(splitMessages[0] != "0"){
       return;
     }
@@ -193,10 +192,10 @@ void sensorLoop(){
   allSensorSuccess = updateModule(am2315_1, "AM2315 #1") && allSensorSuccess;
   allSensorSuccess = updateModule(mhz16_1, "MHZ16 #1") && allSensorSuccess;
   allSensorSuccess = updateModule(ds18b20_1, "DS18B20 #1") && allSensorSuccess;
-  allSensorSuccess = updateModule(atlas_ec_1, "Atlas EC #1") && allSensorSuccess;
-  allSensorSuccess = updateModule(atlas_ph_1, "Atlas pH #1") && allSensorSuccess;
   allSensorSuccess = updateModule(water_level_sensor_low_1, "Water Level Low sensor") && allSensorSuccess;
   allSensorSuccess = updateModule(water_level_sensor_high_1, "Water Level High sensor") && allSensorSuccess;
+  allSensorSuccess = updateModule(atlas_ph_1, "Atlas pH #1") && allSensorSuccess;
+  allSensorSuccess = updateModule(atlas_ec_1, "Atlas EC #1") && allSensorSuccess;
 
   if(!allSensorSuccess){
     return;

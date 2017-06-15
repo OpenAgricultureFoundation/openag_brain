@@ -8,7 +8,6 @@ AtlasEc::AtlasEc(int i2c_address) {
   status_level = OK;
   status_code = CODE_OK;
   status_msg = "";
-  _send_water_electrical_conductivity = false;
   _time_of_last_query = 0;
   _waiting_for_response = false;
   _i2c_address = i2c_address;
@@ -16,6 +15,7 @@ AtlasEc::AtlasEc(int i2c_address) {
 
 uint8_t AtlasEc::begin() {
   Wire.begin();
+  Wire.setTimeout(40);
   // Enable only the EC reading
   Wire.print("O,EC,1");
   Wire.print("O,TDS,0");
@@ -80,8 +80,11 @@ void AtlasEc::send_query() {
 
 void AtlasEc::read_response() {
   Wire.requestFrom(_i2c_address, 20, 1);
-  byte response = Wire.read();
-  String string = Wire.readStringUntil(0);
+  byte response;
+  String string = "1000";
+  if(Wire.available()){
+    response = Wire.read();
+  }
 
   // Check for failure
   if (response == 255) {
@@ -101,11 +104,11 @@ void AtlasEc::read_response() {
     _waiting_for_response = false;
   }
   else if (response == 1) {
+    string = Wire.readStringUntil(0);
     status_level = OK;
     status_code = CODE_OK;
     status_msg = "";
     _water_electrical_conductivity = string.toFloat() / 1000;
-    _send_water_electrical_conductivity = true;
     _waiting_for_response = false;
   }
   else {

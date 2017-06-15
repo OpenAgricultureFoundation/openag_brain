@@ -15,6 +15,7 @@ AtlasPh::AtlasPh(int i2c_address) {
 
 uint8_t AtlasPh::begin() {
   Wire.begin();
+  Wire.setTimeout(40);
   return status_level;
 }
 
@@ -71,8 +72,10 @@ void AtlasPh::send_query() {
 
 void AtlasPh::read_response() {
   Wire.requestFrom(_i2c_address, 20, 1);
-  byte response = Wire.read(); // increment buffer by a byte
-  String string = Wire.readStringUntil(0);
+  byte response;
+  if(Wire.available()){
+    response = Wire.read(); // increment buffer by a byte
+  }
 
   // Check for failure
   if (response == 255) {
@@ -91,6 +94,7 @@ void AtlasPh::read_response() {
     _waiting_for_response = false;
   }
   else if (response == 1) {
+    String string = Wire.readStringUntil(0);
     status_level = OK;
     status_code = CODE_OK;
     status_msg = "";
