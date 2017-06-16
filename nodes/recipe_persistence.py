@@ -5,10 +5,9 @@ import rospy
 from roslib.message import get_message_class
 from couchdb import Server
 
-from openag.db_names import ENVIRONMENTAL_DATA_POINT
-from openag.cli.config import config as cli_config
-from openag.models import EnvironmentalDataPoint
-
+from openag_lib.db_bootstrap.db_names import ENVIRONMENTAL_DATA_POINT
+from openag_lib.config import config as cli_config
+from openag_brain.models import EnvironmentalDataPoint
 from openag_brain.utils import gen_doc_id, read_environment_from_ns
 from openag_brain.load_env_var_types import VariableInfo
 
