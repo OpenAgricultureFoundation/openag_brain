@@ -48,7 +48,7 @@ const int COMMAND_LENGTH = 18; // status + num_actuators
 uint32_t delayMs = 50; //ms
 uint32_t prev_time = millis();
 
-void split(String messages, String* splitMessages,  char delimiter=',');
+int split(String messages, String* splitMessages,  char delimiter=',');
 void actuatorLoop();
 void sensorLoop();
 
@@ -131,7 +131,11 @@ void actuatorLoop(){
     for(int i = 0; i < COMMAND_LENGTH; i++){
       splitMessages[0] = "";
     }
-    split(message, splitMessages);
+    int comma_count = split(message, splitMessages);
+    if(comma_count != COMMAND_LENGTH){
+      Serial.print("2,Arduino,1,Short Read: "); Serial.print(message.c_str()); Serial.print('\n');
+      splitMessages[0] = "2";
+    }
 
     // We've already used this message
     message = "";
@@ -219,8 +223,9 @@ void sensorLoop(){
 
 // #region helpers
 // C is disgusting and I hate it deeply...
-void split(String messages, String* splitMessages,  char delimiter){
+int split(String messages, String* splitMessages,  char delimiter){
   int indexOfComma = 0;
+  int delim_count = 0;
   for(int i = 0; messages.indexOf(delimiter, indexOfComma) > 0; i++){
     int nextIndex = messages.indexOf(delimiter, indexOfComma+1);
     String nextMessage;
@@ -236,7 +241,9 @@ void split(String messages, String* splitMessages,  char delimiter){
     }
     splitMessages[i] = nextMessage;
     indexOfComma = nextIndex;
+    delim_count++;
   }
+  return delim_count;
 }
 
 bool beginModule(Module &module, String name){

@@ -40,7 +40,8 @@ uint8_t PwmActuator::set_cmd(float cmd) {
   if (val < 0 || val > 1) {
     status_level = WARN;
     status_code = CODE_INVALID_COMMAND;
-    status_msg = "Invalid command received";
+    status_msg = "Invalid command received: ";
+    status_msg += val;
     return status_level;
   }
   else {

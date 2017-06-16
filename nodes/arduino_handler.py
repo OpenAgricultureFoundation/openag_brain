@@ -13,6 +13,7 @@ Usage (in ROS launchfile):
 """
 import serial
 import rospy
+import os
 from std_msgs.msg import String
 from roslib.message import get_message_class
 from openag_brain.load_env_var_types import VariableInfo

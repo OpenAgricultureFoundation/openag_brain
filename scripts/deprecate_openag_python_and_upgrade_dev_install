@@ -12,5 +12,7 @@ set -e
 sudo mv /usr/local/bin/openag /usr/local/bin/openag.deprecated
 
 # Install some python dependencies that there aren't ros packages for.
-sudo pip install voluptuous HTTPretty pytest
+sudo pip install voluptuous HTTPretty pytest 
 
+# The rosdep for couchdb was added to package.xml, this will install it.
+cd ~/catkin_ws/src/openag_brain && rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie

@@ -47,7 +47,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y -q \
     python-pip python-rosdep
 
 # Install some python dependencies that there aren't ros packages for.
-RUN sudo pip install -q voluptuous 
+RUN sudo pip install -q voluptuous HTTPretty
 
 # Install dependencies with rosdep
 RUN sudo rosdep init && rosdep update && rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
