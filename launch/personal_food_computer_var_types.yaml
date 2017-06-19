@@ -55,11 +55,11 @@ environment_variables:
   water_level_low:
       name: water_level_low
       description: "Is water below threshold?"
-      type: "std_msgs/Bool"
+      type: "std_msgs/Float64"
   water_level_high:
     name: water_level_high
     description: "Is water above threshold?"
-    type: "std_msgs/Bool"
+    type: "std_msgs/Float64"
   nutrient_flora_duo_a:
     units: "ml/h"
     name: nutrient_flora_duo_a
