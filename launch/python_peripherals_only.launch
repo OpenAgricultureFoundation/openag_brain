@@ -16,7 +16,7 @@
     <param name="deadband_width" value="0.5" type="double"/>
     <param name="windup_limit" value="1000" type="double"/>
     <param name="upper_limit" value="1" type="double"/>
-    <param name="lower_limit" value="-1" type="double"/>
+    <param name="lower_limit" value="0" type="double"/>
     <param name="variable" value="air_temperature" type="str"/>
   </node>
   <node pkg="openag_brain" type="pid.py" name="air_humidity_controller_1">
@@ -26,7 +26,7 @@
     <param name="deadband_width" value="0.5" type="double"/>
     <param name="windup_limit" value="1000" type="double"/>
     <param name="upper_limit" value="1" type="double"/>
-    <param name="lower_limit" value="-1" type="double"/>
+    <param name="lower_limit" value="0" type="double"/>
     <param name="variable" value="air_humidity" type="str"/>
   </node>
   <node pkg="openag_brain" type="sensor_am2315.py" name="am2315_1" />
@@ -34,6 +34,7 @@
   <node pkg="openag_brain" type="sensor_atlas_ph.py" name="atlas_ph_1" />
   <node pkg="openag_brain" type="sensor_atlas_ec.py" name="atlas_ec_1" />
   <node pkg="openag_brain" type="sensor_ds18b20.py" name="ds18b20_1" />
+  <node pkg="openag_brain" type="sensor_grove_o2.py" name="grove_o2_1" />
   <node pkg="openag_brain" type="actuator_relay.py" name="relay_1" />
   <node pkg="openag_brain" type="ui_touchscreen.py" name="touchscreen_1" />
 </group>
