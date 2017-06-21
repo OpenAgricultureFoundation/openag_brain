@@ -43,6 +43,7 @@ ToneActuator chiller_compressor_1(9, false, 140, -1);
 String message = "";
 bool stringComplete = false;
 const int COMMAND_LENGTH = 18; // status + num_actuators
+const unsigned int MESSAGE_LENGTH = 500;
 
 // Timing constants
 uint32_t delayMs = 50; //ms
@@ -53,12 +54,13 @@ void actuatorLoop();
 void sensorLoop();
 
 // #region Arduino Events
+//-----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   while(!Serial){
     // wait for serial port to connect, needed for USB
   }
-  message.reserve(200);
+  message.reserve(MESSAGE_LENGTH);
 
   // Begin sensors
   beginModule(am2315_1, "AM2315 #1");
@@ -89,6 +91,7 @@ void setup() {
   beginModule(chiller_compressor_1, "Chiller Compressor #1");
 }
 
+//-----------------------------------------------------------------------------
 void loop() {
 
   // Throttle the Arduino since the python node can't keep up
@@ -102,13 +105,22 @@ void loop() {
   sensorLoop();
 }
 
+//-----------------------------------------------------------------------------
 // Runs inbetween loop()s, just takes any input serial to a string buffer.
 // Runs as realtime as possible since loop has no delay() calls. (It shouldn't!)
+// Note: the internal buffer in the Serial class is only 64 bytes!
 void serialEvent() {
+/*debugrob, don't need to do here?
   if(stringComplete){
-    message = "";
-    stringComplete = false;
+//debugrob, comment out
+    send_warning("debug Arduino serialEvent start before", message);
+//debugrob, is this a bug?
+//    message = "";
+//    stringComplete = false;
+    resetMessage();
+    send_warning("debug Arduino serialEvent start after", message);
   }
+*/
   while (Serial.available()) {
     // get the new byte:
     char inChar = (char)Serial.read();
@@ -118,28 +130,46 @@ void serialEvent() {
     // so the main loop can do something about it:
     if (inChar == '\n') {
       stringComplete = true;
+//debugrob, comment out
+//      send_warning("debug Arduino serialEvent complete", message);
       return;
     }
   }
 }
 // #endregion
 
+
+//-----------------------------------------------------------------------------
 void actuatorLoop(){
   // If serial message, actuate based on it.
   if(stringComplete){
+//debugrob, comment out
+//    send_warning("debug Arduino received", message);
+
     String splitMessages[COMMAND_LENGTH];
     for(int i = 0; i < COMMAND_LENGTH; i++){
-      splitMessages[0] = "";
+//debugrob: fun bug here:
+//      splitMessages[0] = "";
+      splitMessages[i] = "";
     }
     int comma_count = split(message, splitMessages);
-    if(comma_count != COMMAND_LENGTH){
-      Serial.print("2,Arduino,1,Short Read: "); Serial.print(message.c_str()); Serial.print('\n');
+    if( comma_count != COMMAND_LENGTH ){
+      String warn = message;
+      warn += " comma counts: ";
+      warn += comma_count;
+      warn += " != ";
+      warn += COMMAND_LENGTH;
+      send_warning("Invalid Read", warn);
       splitMessages[0] = "2";
     }
 
     // We've already used this message
+/*debugrob: 
     message = "";
     stringComplete = false;
+#debugrob: don't do a reset here????
+    resetMessage();
+*/
     if(splitMessages[0] != "0"){
       return;
     }
@@ -165,7 +195,6 @@ void actuatorLoop(){
   // Run the update loop
   bool allActuatorSuccess = true;
 
-
   allActuatorSuccess = updateModule(pump_1_nutrient_a_1, "Pump 1 Nutrient A") && allActuatorSuccess;
   allActuatorSuccess = updateModule(pump_2_nutrient_b_1, "Pump 2 Nutrient B") && allActuatorSuccess;
   allActuatorSuccess = updateModule(pump_3_ph_up_1, "Pump 3 pH Up") && allActuatorSuccess;
@@ -183,12 +212,9 @@ void actuatorLoop(){
   allActuatorSuccess = updateModule(led_red_1, "LED Red") && allActuatorSuccess;
   allActuatorSuccess = updateModule(heater_core_1_1, "Heater Core #1") && allActuatorSuccess;
   allActuatorSuccess = updateModule(chiller_compressor_1, "Chiller Compressor #1") && allActuatorSuccess;
-
-  if(!allActuatorSuccess){
-    return;
-  }
 }
 
+//-----------------------------------------------------------------------------
 void sensorLoop(){
   bool allSensorSuccess = true;
 
@@ -222,11 +248,39 @@ void sensorLoop(){
 }
 
 // #region helpers
-// C is disgusting and I hate it deeply...
+//-----------------------------------------------------------------------------
+void send_warning(String topic, String msg) {
+  String clean_msg = msg;
+  clean_msg.replace(',', '_');
+  clean_msg.replace("\n", "");
+  String warn = "2,Arduino,1,"; 
+  warn += topic;
+  warn += " ";
+  warn += msg.length();
+  warn += " bytes: |"; 
+  warn += clean_msg;
+  warn += "|\n";
+  Serial.print(warn);
+  Serial.flush();
+}
+
+//-----------------------------------------------------------------------------
+// Resets our global string and flag.
+void resetMessage() {
+  for(unsigned i=0; i < MESSAGE_LENGTH; i++){
+    message.setCharAt(i, '\0');
+  }
+  message = "";
+  stringComplete = false;
+}
+
+//-----------------------------------------------------------------------------
 int split(String messages, String* splitMessages,  char delimiter){
   int indexOfComma = 0;
   int delim_count = 0;
-  for(int i = 0; messages.indexOf(delimiter, indexOfComma) > 0; i++){
+//debugrob: bug: don't go past the end of the splitMessages array!
+//  for(int i = 0; messages.indexOf(delimiter, indexOfComma) > 0; i++){
+  for(int i = 0; i < COMMAND_LENGTH; i++){
     int nextIndex = messages.indexOf(delimiter, indexOfComma+1);
     String nextMessage;
 
@@ -246,32 +300,35 @@ int split(String messages, String* splitMessages,  char delimiter){
   return delim_count;
 }
 
+//-----------------------------------------------------------------------------
+void sendModuleStatus(Module &module, String name){
+  Serial.print(module.status_level); Serial.print(',');
+  Serial.print(name);  Serial.print(',');
+  Serial.print(module.status_code);  Serial.print(',');
+  Serial.print(module.status_msg);   Serial.print('\n');
+  Serial.flush();
+}
+
+//-----------------------------------------------------------------------------
 bool beginModule(Module &module, String name){
   bool status = module.begin() == OK;
   if(!status){
-    Serial.print(module.status_level); Serial.print(',');
-    Serial.print(name);  Serial.print(',');
-    Serial.print(module.status_code);  Serial.print(',');
-    Serial.print(module.status_msg);   Serial.print('\n');
-    Serial.flush();
+    sendModuleStatus(module, name);
   }
   return status;
 }
 
+//-----------------------------------------------------------------------------
 bool updateModule(Module &module, String name){
   bool status = module.update() == OK;
   if(!status){
-    Serial.print(module.status_level); Serial.print(',');
-    Serial.print(name);  Serial.print(',');
-    Serial.print(module.status_code);
-    Serial.print(',');
-    Serial.print(module.status_msg);
-    Serial.print('\n');
-    Serial.flush();
+    sendModuleStatus(module, name);
   }
   return status;
 }
 
+//-----------------------------------------------------------------------------
+/*
 bool any(bool *all){
   int length = sizeof(all)/sizeof(all[0]);
   for(int i=0; i < length; i++){
@@ -281,9 +338,12 @@ bool any(bool *all){
   }
   return false;
 }
+*/
 
+//-----------------------------------------------------------------------------
 bool str2bool(String str){
   str.toLowerCase();
   return str.startsWith("true");
 }
+
 // #endregion
