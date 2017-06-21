@@ -8,7 +8,7 @@ setup_args = generate_distutils_setup(
         'openag_lib',
         'openag_lib.firmware',
         'openag_lib.firmware.plugins',
-        'openag_lib.db_bootstrap'
+        'openag_lib.db_bootstrap',
         'openag_brain.commands',
         'openag_brain.peripherals'
     ],
