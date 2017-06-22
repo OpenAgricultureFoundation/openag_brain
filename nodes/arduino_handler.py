@@ -253,8 +253,7 @@ def ros_next(rate_hz):
 
 # Read the serial message string, and publish to the correct topics
 def process_message(line):
-#debugrob: comment out
-    rospy.logwarn("arduino_handler debug received: >{}<".format(line.replace('\n','')))
+    #rospy.logwarn("arduino_handler debug received: >{}<".format(line.replace('\n','')))
     try:
         values = line[:-1].decode().split(',')
         status_code = values[0]
@@ -287,7 +286,7 @@ def process_message(line):
         rospy.logwarn(message)
         return message
     except IndexError:
-        message = "arduino_handler: Partial message: >{}<".format(line.decode())
+        message = "arduino_handler: Partial message: >{}<".format(line)
         rospy.logwarn(message)
         serial_connection.close()
         serial_connection.open()
@@ -327,17 +326,8 @@ if __name__ == '__main__':
     actuator_state["water_aeration_pump_1"] = True
     actuator_state["water_circulation_pump_1"] = True
 
-    rate_hz = rospy.get_param('~rate_hz', 1)
-    rate = rospy.Rate(rate_hz)
-
     publish_time = ros_next(publisher_rate_hz)
     while not rospy.is_shutdown():
-        # Read before writing
-        buf = serial_connection.readline()
-#debugrob: continue if first char is not alpha num
-        if not buf[0].isalnum():
-            rospy.logwarn("arduino_handler read bad bytes")
-            continue
 
         # Generate the message for the current state (csv headers below):
         # status, pump1, pump2, pump3, pump4, pump5, chiller_fan,
@@ -365,8 +355,16 @@ if __name__ == '__main__':
         ).encode('utf-8')
         serial_connection.write(message)
         serial_connection.flush()
-#debugrob: comment out
-        rospy.logwarn("arduino_handler debug writing {} bytes: >{}<".format(len(message),message.replace('\n','')))
+        #rospy.logwarn("arduino_handler debug writing {} bytes: >{}<".format(len(message),message.replace('\n','')))
+
+        # Read from arduino
+        buf = serial_connection.readline()
+        # Handle some invalid received data cases.
+        if 0 == len(buf):
+            continue
+        if len(buf) and not buf[0].isalnum():
+            #rospy.logwarn("arduino_handler read bad bytes")
+            continue
 
         pairs_or_error = process_message(buf)
         if type(pairs_or_error) is str:
@@ -384,11 +382,6 @@ if __name__ == '__main__':
                 if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
                     continue
                 PUBLISHERS[variable].publish(sensor_state[variable])
-
-#debugrob: new
-        # Need to make sure we don't write too frequently to the serial port
-        # or we can overwhelm the 64 byte arduino UART.
-        rate.sleep()
 
     serial_connection.close()
     # end of main
