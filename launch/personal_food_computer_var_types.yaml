@@ -23,6 +23,11 @@ environment_variables:
     description: "The amount of Carbon Dioxide in the air"
     units: "ppm"
     type: "std_msgs/Float64"
+  air_oxygen:
+    name: air_oxygen
+    description: "Oxygen density in the air"
+    units: "percent"
+    type: "std_msgs/Float64"
   air_flush_on:
     name: air_flush_on
     description: "Turn on air flush (off by default)"
