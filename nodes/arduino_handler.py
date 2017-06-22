@@ -8,6 +8,7 @@ Usage (in ROS launchfile):
 <node pkg="openag_brain" type="arduino_handler.py" name="arduino_handler">
   <param name="serial_port_id" value="/dev/ttyACM0" type="str"/>
   <param name="publisher_rate_hz" value="1" type="int"/>
+  <param name="serial_rate_hz" value="1" type="int"/>
   <param name="baud_rate" value="115200" type="int"/>
 </node>
 """
@@ -253,7 +254,7 @@ def ros_next(rate_hz):
 
 # Read the serial message string, and publish to the correct topics
 def process_message(line):
-    #rospy.logwarn("arduino_handler debug received: >{}<".format(line.replace('\n','')))
+    #rospy.logwarn("arduino_handler serial read: >{}<".format(line.replace('\n','')))
     try:
         values = line[:-1].decode().split(',')
         status_code = values[0]
@@ -305,9 +306,12 @@ if __name__ == '__main__':
     rospy.init_node('arduino_handler')
 
     publisher_rate_hz = rospy.get_param("~publisher_rate_hz", 1)
+    serial_rate_hz = rospy.get_param("~serial_rate_hz", 1)
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
-    timeout_s = 1 / publisher_rate_hz
+    serial_rate = rospy.Rate(serial_rate_hz)
+    timeout_s = 1 / serial_rate_hz
+
     # below: mutables (gasp!)
     # Initialize the serial connection
     path = "/dev/serial/by-id"
@@ -320,7 +324,8 @@ if __name__ == '__main__':
       raise IOError("No arduino device found on system in {}".format(path))
     port = ports[0]
 
-    serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
+    serial_connection = serial.Serial(os.path.join(path, port), 
+        baud_rate, timeout=timeout_s)
 
     # These 2 are permanently on.
     actuator_state["water_aeration_pump_1"] = True
@@ -355,7 +360,7 @@ if __name__ == '__main__':
         ).encode('utf-8')
         serial_connection.write(message)
         serial_connection.flush()
-        #rospy.logwarn("arduino_handler debug writing {} bytes: >{}<".format(len(message),message.replace('\n','')))
+        #rospy.logwarn("arduino_handler serial write {} bytes: >{}<".format(len(message),message.replace('\n','')))
 
         # Read from arduino
         buf = serial_connection.readline()
@@ -363,7 +368,7 @@ if __name__ == '__main__':
         if 0 == len(buf):
             continue
         if len(buf) and not buf[0].isalnum():
-            #rospy.logwarn("arduino_handler read bad bytes")
+            rospy.logwarn("arduino_handler read bad bytes")
             continue
 
         pairs_or_error = process_message(buf)
@@ -376,12 +381,16 @@ if __name__ == '__main__':
                 sensor_state[header] = value
 
         if publish_time():
+            #rospy.logwarn("arduino_handler publish_time")
             if type(pairs_or_error) is not str:
                 ARDUINO_STATUS_PUBLISHER.publish("OK")
             for variable in sensor_state:
                 if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
                     continue
                 PUBLISHERS[variable].publish(sensor_state[variable])
+
+        serial_rate.sleep()
+        # end of while loop
 
     serial_connection.close()
     # end of main

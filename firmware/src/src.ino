@@ -42,6 +42,7 @@ ToneActuator chiller_compressor_1(9, false, 140, -1);
 // Message string
 String message = "";
 bool stringComplete = false;
+bool receivedFirstMessage = false;
 const int COMMAND_LENGTH = 18; // status + num_actuators
 const unsigned int MESSAGE_LENGTH = 500;
 
@@ -131,6 +132,7 @@ void serialEvent() {
     // so the main loop can do something about it:
     if (inChar == '\n') {
       stringComplete = true;
+      receivedFirstMessage = true; // first contact! (handshaking)
       //send_warning("debug Arduino serialEvent complete", message);
       return;
     }
@@ -190,6 +192,9 @@ void actuatorLoop(){
 //-----------------------------------------------------------------------------
 // Run the update loop
 void updateLoop(){
+  if(! receivedFirstMessage){ // don't send any serial data until first contact
+    return;
+  }
   bool allActuatorSuccess = true;
 
   allActuatorSuccess = updateModule(pump_1_nutrient_a_1, "Pump 1 Nutrient A") && allActuatorSuccess;
