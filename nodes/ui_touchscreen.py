@@ -69,8 +69,8 @@ if __name__ == '__main__':
             else:
                 return False
         return closure
-    is_pub = ros_next(rate)
     rate = rospy.get_param("~rate_hz", 1)
+    is_pub = ros_next(rate)
     r = rospy.Rate(60) # Frame rate
 
     while not rospy.is_shutdown():
