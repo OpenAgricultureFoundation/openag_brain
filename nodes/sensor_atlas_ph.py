@@ -14,10 +14,16 @@ if __name__ == '__main__':
     rate = rospy.get_param("~rate_hz", 1)
     r = rospy.Rate(rate)
 
+    while not rospy.get_param("atlas/ready", False):
+        pass
+
+    rospy.set_param("atlas/ready", False)
     with AtlasPh() as atlas_ph:
+
         while not rospy.is_shutdown():
             atlas_ph.poll()
             if atlas_ph.ph is not None:
+                rospy.set_param("atlas/ready", True)
                 ph_pub.publish(atlas_ph.ph)
 
             r.sleep()

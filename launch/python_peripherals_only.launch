@@ -3,6 +3,7 @@
 
 <rosparam command="load" file="$(find openag_brain)/launch/personal_food_computer_var_types.yaml" ns="var_types"/>
 <group ns="$(arg environment_1)">
+  <param name="atlas/ready" value="True" type="bool"/>
   <node pkg="openag_brain" type="topic_filter.py" name="topic_filter_1"/>
   <node pkg="openag_brain" type="recipe_handler.py" name="recipe_handler_1"/>
   <node pkg="openag_brain" type="sensor_persistence.py" name="sensor_persistence_1">
