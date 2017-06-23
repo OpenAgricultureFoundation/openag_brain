@@ -1,0 +1,8 @@
+<launch>
+  <rosparam command="load" file="$(find openag_brain)/launch/personal_food_computer_v2.yaml" />
+  <rosparam command="load" file="$(find openag_brain)/launch/personal_food_computer_var_types.yaml" ns="var_types"/>
+  <group ns="environments/test">
+    <node pkg="openag_brain" type="arduino_handler.py" name="test_arduino_handler" />
+    <test pkg="openag_brain" test-name="test_arduino_handler" type="test_arduino_handler.py" time-limit="60" />
+  </group>
+</launch>

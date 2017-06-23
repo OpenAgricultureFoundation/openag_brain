@@ -1,3 +1,4 @@
+#debugrob, change this into a rostest of the topic_filter.py ros node.  
 from openag_brain.software_modules.topic_filter import EWMA
 import numpy as np
 

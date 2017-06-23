@@ -1,3 +1,4 @@
+#debugrob, change this into a rostest of the pid.py ros node.  
 from nose.tools import assert_equal
 from openag_brain.software_modules.pid import PID
 

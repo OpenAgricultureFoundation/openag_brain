@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-PKG="openag_brain"
+PKG='openag_brain'
+NAME='test_recipe_interpreter'
 
 import sys, os
 import unittest, pytest
@@ -187,4 +188,4 @@ class TestRecipeInterpreterFlexFormat(unittest.TestCase):
 
 if __name__ == '__main__':
    import rosunit
-   rosunit.unitrun(PKG, 'test_recipe_interpreter', TestRecipeInterpreter)
+   rosunit.unitrun(PKG, NAME, TestRecipeInterpreterSimple)

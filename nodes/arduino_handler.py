@@ -74,6 +74,9 @@ actuator_state = {
 }
 sensor_state = {}
 
+# Declare this global so our code can be tested!
+serial_connection = None
+
 ENVIRONMENTAL_VARIABLES = frozenset(
     VariableInfo.from_dict(d)
     for d in rospy.get_param("/var_types/environment_variables").itervalues())
@@ -289,19 +292,20 @@ def process_message(line):
     except IndexError:
         message = "arduino_handler: Partial message: >{}<".format(line)
         rospy.logwarn(message)
-        serial_connection.close()
-        serial_connection.open()
+        if serial_connection is not None:
+            serial_connection.close()
+            serial_connection.open()
         return message
     # Occasionally, we get rotten bytes which couldn't decode
     except UnicodeDecodeError:
         message = "arduino_handler: Ignoring weird bits: >{}<".format(line)
         rospy.logwarn(message)
-        serial_connection.close()
-        serial_connection.open()
+        if serial_connection is not None:
+            serial_connection.close()
+            serial_connection.open()
         return message
 
 
-#------------------------------------------------------------------------------
 if __name__ == '__main__':
     rospy.init_node('arduino_handler')
 
