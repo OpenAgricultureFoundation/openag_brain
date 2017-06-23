@@ -35,7 +35,14 @@
   <node pkg="openag_brain" type="sensor_atlas_ec.py" name="atlas_ec_1" />
   <node pkg="openag_brain" type="sensor_ds18b20.py" name="ds18b20_1" />
   <node pkg="openag_brain" type="sensor_grove_o2.py" name="grove_o2_1" />
-  <node pkg="openag_brain" type="actuator_relay.py" name="relay_1" />
+  <node pkg="openag_brain" type="actuator_relay.py" name="relay_heater">
+    <param name="topic" value="air_temperature/commanded" type="str"/>
+    <param name="pin" value="23" type="int"/>
+  </node>
+  <node pkg="openag_brain" type="actuator_relay.py" name="relay_humidifier">
+    <param name="topic" value="air_humidity/commanded" type="str"/>
+    <param name="pin" value="24" type="int"/>
+  </node>
   <node pkg="openag_brain" type="ui_touchscreen.py" name="touchscreen_1" />
 </group>
 
