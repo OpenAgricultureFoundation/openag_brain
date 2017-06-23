@@ -48,7 +48,7 @@ sudo easy_install pip
 sudo pip install rosdep rosinstall_generator wstool rosinstall
 
 # Install some python dependencies that there aren't ros packages for.
-sudo pip install voluptuous HTTPretty pytest 
+sudo pip install voluptuous HTTPretty pytest
 
 # Initialize rosdep if it hasn't been already.
 # Checking for the .list file first makes this script idempotent.
@@ -82,10 +82,10 @@ echo "Installing binary dependencies with rosdep"
 rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 
 # Let pi user access hid relay device without having to be root
-echo SUBSYSTEM=="usb", ATTR{idVendor}=="0416", ATTR{idProduct}=="5020", MODE="0666", GROUP="plugdev" > /etc/udev/rules.d/99-hidrelay.rules
+sudo sh -c 'echo SUBSYSTEM=="usb", ATTR{idVendor}=="0416", ATTR{idProduct}=="5020", MODE="0666", GROUP="plugdev" > /etc/udev/rules.d/99-hidrelay.rules'
 
 # Let pi user access gpio without having to be root
-sudo echo SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio'" >> /etc/udev/rules.d/99-com.rules
+echo SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio'"  | sudo tee -a /etc/udev/rules.d/99-com.rules > /dev/null
 sudo usermod -a -G gpio pi
 
 echo "Finished setting up development environment. Ready to build with catkin_make."

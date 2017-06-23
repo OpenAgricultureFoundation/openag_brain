@@ -18,15 +18,15 @@ echo "Location: /opt/ros/indigo"
 echo "~~~"
 
 # Install packages in system directory
-cd ~/catkin_ws && sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/indigo -j2
+cd ~/catkin_ws && ./src/catkin/bin/catkin_make -j2
 
 # Install openag_brain startup service
 ~/catkin_ws/src/openag_brain/scripts/install_openag_brain_service
 
 # Activate the ROS environment
-source /opt/ros/indigo/setup.bash
-echo "Adding /opt/ros/indigo/setup.bash to ~/.bashrc"
-echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
+source ~/catkin_ws/devel/setup.bash
+echo "Adding ~/catkin_ws/devel/setup.bash to ~/.bashrc"
+echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 # Install platformio
 rosrun openag_brain install_pio
