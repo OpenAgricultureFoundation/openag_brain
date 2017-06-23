@@ -69,12 +69,13 @@ class MHZ16:
             self.__i2c_master = I2C(self.i2c_bus)
             rospy.loginfo("Connected to MHZ16")
             self.configure()
-        except I2CError:
-            rospy.logwarn("Failed to connect to MHZ16")
+        except I2CError as e:
+            rospy.logwarn("Failed to connect to MHZ16{}".format(e))
+            self.__i2c_master = None
             pass
 
     def poll(self):
-        if self.__i2c_master:
+        if self.__i2c_master is not None:
             try:
                 self.co2 = self.get_co2()
             except:

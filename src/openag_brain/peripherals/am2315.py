@@ -75,12 +75,13 @@ class AM2315:
         try:
             self.__i2c_master = I2C(self.i2c_bus)
             rospy.loginfo("Connected to AM2315")
-        except I2CError:
-            rospy.logwarn("Failed to connect to AM2315")
+        except I2CError as e:
+            rospy.logwarn("Failed to connect to AM2315: {}".format(e))
+            self.__i2c_master = None
             pass
 
     def poll(self):
-        if self.__i2c_master:
+        if self.__i2c_master is not None:
             try:
                 self.temperature, self.humidity = self.get_temp_humid()
             except:
