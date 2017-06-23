@@ -49,6 +49,8 @@ class AtlasEc:
                         atlas_device.send_cmd("i") # get device information
                         time.sleep(1)
                         lines = atlas_device.read_lines()
+                        if len(lines) == 0:
+                            continue
                         if "EC" in lines[0]:
                             self.device_id = device_id
                             rospy.loginfo("Automatically found device id: {}".format(device_id))

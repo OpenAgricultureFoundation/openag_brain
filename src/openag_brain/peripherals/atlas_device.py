@@ -34,8 +34,8 @@ class AtlasDevice(Device):
 			while True:
 				line = self.read_line()
 				if not line:
-					break
 					self.flush_input()
+					break
 				lines.append(line)
 			return lines
 
