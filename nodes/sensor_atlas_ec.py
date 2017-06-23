@@ -10,12 +10,11 @@ from openag_brain.peripherals.atlas_ec import AtlasEc
 
 if __name__ == '__main__':
     rospy.init_node("sensor_atlas_ec")
-    device_id = rospy.get_param("~device_id", "DO009N86")
     ec_pub = rospy.Publisher("water_electrical_conductivity/raw", Float64, queue_size=10)
     rate = rospy.get_param("~rate_hz", 1)
     r = rospy.Rate(rate)
 
-    with AtlasEc(device_id) as atlas_ec:
+    with AtlasEc() as atlas_ec:
         while not rospy.is_shutdown():
             atlas_ec.poll()
             if atlas_ec.ec is not None:
