@@ -38,8 +38,8 @@ class AtlasEc:
 
                 # Check if any atlas devices are connected to device
                 if len(devices) == 0:
-                  raise IOError("No atlas device found on system in {}".format(path))
-
+                  raise IOError("No atlas device found on system")
+                
                 for device in devices:
                     # Extract id
                     device_id = (device.split("FTDI:FT230X Basic UART:"))[1]

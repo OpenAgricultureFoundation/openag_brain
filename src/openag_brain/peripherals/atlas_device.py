@@ -2,6 +2,7 @@
 Code for interfacing with atlas scientific devices
 """
 from pylibftdi.device import Device
+from pylibftdi._base import FtdiError
 
 class AtlasDevice(Device):
 	def __init__(self, sn):
