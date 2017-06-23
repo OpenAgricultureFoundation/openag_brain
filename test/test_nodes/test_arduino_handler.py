@@ -1,12 +1,5 @@
-status", int),
-("air_humidity", float),
-("air_temperature", float),
-("air_carbon_dioxide", float),
-("water_temperature", float),
-("water_level_low", bool),
-("water_level_high", bool),
-("water_potential_hydrogen", float),
-("water_electrical_conductivity", float)
+#!/usr/bin/env python
+
 import sys, os
 import unittest
 import rospy
@@ -27,12 +20,11 @@ sys.path.append(os.path.abspath(os.path.join(DIR_NAME, '../../')))
 from nodes.arduino_handler import process_message
 
 class TestArduinoHandler(unittest.TestCase):
-    def setUp():
+    def setUp(self):
         self.namespace = "mock_controller"
-
         self._received = ""
 
-    def test_process_message():
+    def test_process_message(self):
         # test normal message
         message = "{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(
         0, # status: OK
@@ -54,19 +46,25 @@ class TestArduinoHandler(unittest.TestCase):
             ("water_level_high", True),
             ("water_potential_hydrogen", 7),
             ("water_electrical_conductivity", 0)
-
         ))
 
-        # test short read
+        # test bad input
         message = ""
-        self.assertTrue(("short read") in process_message(message).lower())
+        output = process_message(message).lower()
+        self.assertTrue(("partial message") in output, output)
+
         message = "0,1,2,3"
-        self.assertTrue(("short read") in process_message(message).lower())
+        output = process_message(message).lower()
+        self.assertTrue(("type conversion error") in output, output)
+
         message = "1,MHZ16 #1,"
-        self.assertTrue(("short read") in process_message(message).lower())
+        output = process_message(message).lower()
+        self.assertTrue(("partial message") in output, output)
 
         # test weird bit
-
+        message = 'F\xc3\xb8\xc3\xb6\xbbB\xc3\xa5r'
+        output = process_message(message).lower()
+        self.assertTrue(("type conversion error") in output, output)
 
         # test fake OK status
         message = "0,{0},{1},{2},{3},{4},{5},{6}\n".format(
@@ -78,7 +76,9 @@ class TestArduinoHandler(unittest.TestCase):
         7, # water_potential_hydrogen
         0 # water_electrical_conductivity
         )
-        self.assertTrue(("type conversion") in process_message(message).lower())
+        output = process_message(message)
+        if not isinstance(output, tuple):
+            self.assertTrue(False, "failed to process valid message")
 
 
 if __name__ == "__main__":

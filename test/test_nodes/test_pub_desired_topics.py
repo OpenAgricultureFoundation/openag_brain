@@ -9,7 +9,7 @@ import rospy
 from std_msgs.msg import Float64
 
 
-NUM_TIMES_TO_PUBLISH = 7
+NUM_TIMES_TO_PUBLISH = 3
 
 class TestPublishToDesiredTopics(unittest.TestCase):
 
@@ -35,7 +35,8 @@ class TestPublishToDesiredTopics(unittest.TestCase):
 
     def test_publish_to_topics(self):
         topic_ending = "desired"
-        rospy.sleep(20)
+        rospy.logdebug("Sleeping for 5 seconds to let ROS spin up...")
+        rospy.sleep(5)
         for variable, value in self.variables:
             # Publish to each variable/desired topic to see if all of the
             # actuators come on as expected.
@@ -44,12 +45,12 @@ class TestPublishToDesiredTopics(unittest.TestCase):
             pub_desired = rospy.Publisher(topic_string,
                                                Float64, queue_size=10)
             sub_desired = rospy.Subscriber(topic_string, Float64, self.callback)
-            rospy.sleep(5)
+            rospy.sleep(2)
             print(self.namespace + "/" + topic_string)
             for _ in range(NUM_TIMES_TO_PUBLISH):
                 pub_desired.publish(value)
                 rospy.sleep(1)
-            rospy.sleep(5.)
+            rospy.sleep(2)
             pub_desired.publish(0)
          
 

@@ -8,6 +8,7 @@ Usage (in ROS launchfile):
 <node pkg="openag_brain" type="arduino_handler.py" name="arduino_handler">
   <param name="serial_port_id" value="/dev/ttyACM0" type="str"/>
   <param name="publisher_rate_hz" value="1" type="int"/>
+  <param name="serial_rate_hz" value="1" type="int"/>
   <param name="baud_rate" value="115200" type="int"/>
 </node>
 """
@@ -73,6 +74,9 @@ actuator_state = {
 }
 sensor_state = {}
 
+# Declare this global so our code can be tested!
+serial_connection = None
+
 ENVIRONMENTAL_VARIABLES = frozenset(
     VariableInfo.from_dict(d)
     for d in rospy.get_param("/var_types/environment_variables").itervalues())
@@ -115,8 +119,8 @@ STATUS_CODE_INDEX = {
 # This is a job that was traditionally done by topic_connector.py, but
 # these are hardcoded configurations even though the configuration is in the
 # personal_food_computer_v2.yaml file because we removed the codegen from
-# `firmware`, and you would need to rewrite both this node and the config file if
-# you changed the topic mapping.
+# `firmware`, and you would need to rewrite both this node and the config file 
+# if you changed the topic mapping.
 # This direct mapping will also let the future `actuator_node`
 # for single actuators to listen in on */commanded topics and decide to actuate
 # based on the information individually instead of having to write a config.
@@ -253,6 +257,7 @@ def ros_next(rate_hz):
 
 # Read the serial message string, and publish to the correct topics
 def process_message(line):
+    #rospy.logwarn("arduino_handler serial read: >{}<".format(line.replace('\n','')))
     try:
         values = line[:-1].decode().split(',')
         status_code = values[0]
@@ -273,7 +278,7 @@ def process_message(line):
                 error_message)
             rospy.logwarn(message)
             return message
-        # status: OK
+        # else status: OK
 
         # Zip values with the corresponding environmental variable
         variable_values = values[1:]
@@ -281,30 +286,36 @@ def process_message(line):
             for headers, value in zip(sensor_csv_headers[1:], variable_values))
         return pairs
     except ValueError:
-        message = "Type conversion error, skipping."
+        message = "arduino_handler: Type conversion error, skipping."
         rospy.logwarn(message)
         return message
     except IndexError:
-        message = "Short read, received part of a message: {}".format(buf.decode())
+        message = "arduino_handler: Partial message: >{}<".format(line)
         rospy.logwarn(message)
-        serial_connection.close()
-        serial_connection.open()
+        if serial_connection is not None:
+            serial_connection.close()
+            serial_connection.open()
         return message
     # Occasionally, we get rotten bytes which couldn't decode
     except UnicodeDecodeError:
-        message = "Received weird bits, ignoring: {}".format(buf)
+        message = "arduino_handler: Ignoring weird bits: >{}<".format(line)
         rospy.logwarn(message)
-        serial_connection.close()
-        serial_connection.open()
+        if serial_connection is not None:
+            serial_connection.close()
+            serial_connection.open()
         return message
+
 
 if __name__ == '__main__':
     rospy.init_node('arduino_handler')
 
     publisher_rate_hz = rospy.get_param("~publisher_rate_hz", 1)
+    serial_rate_hz = rospy.get_param("~serial_rate_hz", 1)
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
-    timeout_s = 1 / publisher_rate_hz
+    serial_rate = rospy.Rate(serial_rate_hz)
+    timeout_s = 1 / serial_rate_hz
+
     # below: mutables (gasp!)
     # Initialize the serial connection
     path = "/dev/serial/by-id"
@@ -317,7 +328,8 @@ if __name__ == '__main__':
       raise IOError("No arduino device found on system in {}".format(path))
     port = ports[0]
 
-    serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
+    serial_connection = serial.Serial(os.path.join(path, port), 
+        baud_rate, timeout=timeout_s)
 
     # These 2 are permanently on.
     actuator_state["water_aeration_pump_1"] = True
@@ -325,8 +337,6 @@ if __name__ == '__main__':
 
     publish_time = ros_next(publisher_rate_hz)
     while not rospy.is_shutdown():
-        # Read before writing
-        buf = serial_connection.readline()
 
         # Generate the message for the current state (csv headers below):
         # status, pump1, pump2, pump3, pump4, pump5, chiller_fan,
@@ -354,6 +364,16 @@ if __name__ == '__main__':
         ).encode('utf-8')
         serial_connection.write(message)
         serial_connection.flush()
+        #rospy.logwarn("arduino_handler serial write {} bytes: >{}<".format(len(message),message.replace('\n','')))
+
+        # Read from arduino
+        buf = serial_connection.readline()
+        # Handle some invalid received data cases.
+        if 0 == len(buf):
+            continue
+        if len(buf) and not buf[0].isalnum():
+            rospy.logwarn("arduino_handler read bad bytes")
+            continue
 
         pairs_or_error = process_message(buf)
         if type(pairs_or_error) is str:
@@ -365,6 +385,7 @@ if __name__ == '__main__':
                 sensor_state[header] = value
 
         if publish_time():
+            #rospy.logwarn("arduino_handler publish_time")
             if type(pairs_or_error) is not str:
                 ARDUINO_STATUS_PUBLISHER.publish("OK")
             for variable in sensor_state:
@@ -372,4 +393,10 @@ if __name__ == '__main__':
                     continue
                 PUBLISHERS[variable].publish(sensor_state[variable])
 
+        serial_rate.sleep()
+        # end of while loop
+
     serial_connection.close()
+    # end of main
+
+

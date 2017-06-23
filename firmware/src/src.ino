@@ -42,23 +42,34 @@ ToneActuator chiller_compressor_1(9, false, 140, -1);
 // Message string
 String message = "";
 bool stringComplete = false;
+bool receivedFirstMessage = false;
 const int COMMAND_LENGTH = 18; // status + num_actuators
+const unsigned int MESSAGE_LENGTH = 500;
 
-// Timing constants
-uint32_t delayMs = 50; //ms
-uint32_t prev_time = millis();
-
-int split(String messages, String* splitMessages,  char delimiter=',');
+// Main logic 
 void actuatorLoop();
 void sensorLoop();
+void updateLoop();
+
+// Utility functions
+void send_warning(String topic, String msg);
+void resetMessage();
+int split(String messages, String* splitMessages,  char delimiter=',');
+void sendModuleStatus(Module &module, String name);
+bool beginModule(Module &module, String name);
+bool updateModule(Module &module, String name);
+bool str2bool(String str);
+
 
 // #region Arduino Events
+// These functions are defined in the Arduino.h and are the framework.
+//-----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   while(!Serial){
     // wait for serial port to connect, needed for USB
   }
-  message.reserve(200);
+  message.reserve(MESSAGE_LENGTH);
 
   // Begin sensors
   beginModule(am2315_1, "AM2315 #1");
@@ -89,25 +100,28 @@ void setup() {
   beginModule(chiller_compressor_1, "Chiller Compressor #1");
 }
 
+//-----------------------------------------------------------------------------
 void loop() {
 
-  // Throttle the Arduino since the python node can't keep up
-  // and the serial buffer overflows. We do this without blocking.
-  if(millis() - prev_time < delayMs){
+  updateLoop();
+
+  // If we have not received a message, then do nothing.  This lets our ROS
+  // node control the message traffic.  For every message sent to this arduino
+  // code, one is sent back.
+  if(! stringComplete){
     return;
   }
-  prev_time = millis();
-
   actuatorLoop();
   sensorLoop();
 }
 
+//-----------------------------------------------------------------------------
 // Runs inbetween loop()s, just takes any input serial to a string buffer.
 // Runs as realtime as possible since loop has no delay() calls. (It shouldn't!)
+// Note: the internal buffer in the Serial class is only 64 bytes!
 void serialEvent() {
   if(stringComplete){
-    message = "";
-    stringComplete = false;
+    resetMessage();
   }
   while (Serial.available()) {
     // get the new byte:
@@ -118,53 +132,70 @@ void serialEvent() {
     // so the main loop can do something about it:
     if (inChar == '\n') {
       stringComplete = true;
+      receivedFirstMessage = true; // first contact! (handshaking)
+      //send_warning("debug Arduino serialEvent complete", message);
       return;
     }
   }
 }
 // #endregion
 
+
+//-----------------------------------------------------------------------------
 void actuatorLoop(){
   // If serial message, actuate based on it.
-  if(stringComplete){
-    String splitMessages[COMMAND_LENGTH];
-    for(int i = 0; i < COMMAND_LENGTH; i++){
-      splitMessages[0] = "";
-    }
-    int comma_count = split(message, splitMessages);
-    if(comma_count != COMMAND_LENGTH){
-      Serial.print("2,Arduino,1,Short Read: "); Serial.print(message.c_str()); Serial.print('\n');
-      splitMessages[0] = "2";
-    }
-
-    // We've already used this message
-    message = "";
-    stringComplete = false;
-    if(splitMessages[0] != "0"){
-      return;
-    }
-    pump_1_nutrient_a_1.set_cmd(splitMessages[1].toFloat());        // DoserPump float flow_rate
-    pump_2_nutrient_b_1.set_cmd(splitMessages[2].toFloat());        // DoserPump float flow_rate
-    pump_3_ph_up_1.set_cmd(str2bool(splitMessages[3]));             // PulseActuator bool
-    pump_4_ph_down_1.set_cmd(str2bool(splitMessages[4]));           // PulseActuator bool
-    pump_5_water_1.set_cmd(str2bool(splitMessages[5]));             // BinaryActuator bool
-    chiller_fan_1.set_cmd(str2bool(splitMessages[6]));              // BinaryActuator bool
-    chiller_pump_1.set_cmd(str2bool(splitMessages[7]));             // BinaryActuator bool
-    heater_core_2_1.set_cmd(str2bool(splitMessages[8]));            // BinaryActuator bool
-    air_flush_1.set_cmd(str2bool(splitMessages[9]));                // BinaryActuator bool
-    water_aeration_pump_1.set_cmd(str2bool(splitMessages[10]));     // BinaryActuator bool
-    water_circulation_pump_1.set_cmd(str2bool(splitMessages[11]));  // BinaryActuator bool
-    chamber_fan_1.set_cmd(str2bool(splitMessages[12]));             // BinaryActuator bool
-    led_blue_1.set_cmd(splitMessages[13].toFloat());                // PwmActuator float 0-1
-    led_white_1.set_cmd(splitMessages[14].toFloat());               // PwmActuator float 0-1
-    led_red_1.set_cmd(splitMessages[15].toFloat());                 // PwmActuator float 0-1
-    heater_core_1_1.set_cmd(str2bool(splitMessages[16]));           // BinaryActuator bool
-    chiller_compressor_1.set_cmd(str2bool(splitMessages[17]));      // ToneActuator bool on/off
+  if(! stringComplete){
+    return;
   }
 
-  // Run the update loop
-  bool allActuatorSuccess = true;
+  String splitMessages[COMMAND_LENGTH];
+  for(int i = 0; i < COMMAND_LENGTH; i++){
+    splitMessages[i] = "";
+  }
+  int comma_count = split(message, splitMessages);
+  if( comma_count != COMMAND_LENGTH ){
+    String warn = message;
+    warn += " comma counts: ";
+    warn += comma_count;
+    warn += " != ";
+    warn += COMMAND_LENGTH;
+    send_warning("Invalid Read", warn);
+    splitMessages[0] = "2";
+  }
 
+  // We've already used this message
+  resetMessage();
+  if(splitMessages[0] != "0"){
+    return;
+  }
+  pump_1_nutrient_a_1.set_cmd(splitMessages[1].toFloat());        // DoserPump float flow_rate
+  pump_2_nutrient_b_1.set_cmd(splitMessages[2].toFloat());        // DoserPump float flow_rate
+  pump_3_ph_up_1.set_cmd(str2bool(splitMessages[3]));             // PulseActuator bool
+  pump_4_ph_down_1.set_cmd(str2bool(splitMessages[4]));           // PulseActuator bool
+  pump_5_water_1.set_cmd(str2bool(splitMessages[5]));             // BinaryActuator bool
+  chiller_fan_1.set_cmd(str2bool(splitMessages[6]));              // BinaryActuator bool
+  chiller_pump_1.set_cmd(str2bool(splitMessages[7]));             // BinaryActuator bool
+  heater_core_2_1.set_cmd(str2bool(splitMessages[8]));            // BinaryActuator bool
+  air_flush_1.set_cmd(str2bool(splitMessages[9]));                // BinaryActuator bool
+  water_aeration_pump_1.set_cmd(str2bool(splitMessages[10]));     // BinaryActuator bool
+  water_circulation_pump_1.set_cmd(str2bool(splitMessages[11]));  // BinaryActuator bool
+  chamber_fan_1.set_cmd(str2bool(splitMessages[12]));             // BinaryActuator bool
+  led_blue_1.set_cmd(splitMessages[13].toFloat());                // PwmActuator float 0-1
+  led_white_1.set_cmd(splitMessages[14].toFloat());               // PwmActuator float 0-1
+  led_red_1.set_cmd(splitMessages[15].toFloat());                 // PwmActuator float 0-1
+  heater_core_1_1.set_cmd(str2bool(splitMessages[16]));           // BinaryActuator bool
+  chiller_compressor_1.set_cmd(str2bool(splitMessages[17]));      // ToneActuator bool on/off
+
+  updateLoop();
+}
+
+//-----------------------------------------------------------------------------
+// Run the update loop
+void updateLoop(){
+  if(! receivedFirstMessage){ // don't send any serial data until first contact
+    return;
+  }
+  bool allActuatorSuccess = true;
 
   allActuatorSuccess = updateModule(pump_1_nutrient_a_1, "Pump 1 Nutrient A") && allActuatorSuccess;
   allActuatorSuccess = updateModule(pump_2_nutrient_b_1, "Pump 2 Nutrient B") && allActuatorSuccess;
@@ -183,12 +214,9 @@ void actuatorLoop(){
   allActuatorSuccess = updateModule(led_red_1, "LED Red") && allActuatorSuccess;
   allActuatorSuccess = updateModule(heater_core_1_1, "Heater Core #1") && allActuatorSuccess;
   allActuatorSuccess = updateModule(chiller_compressor_1, "Chiller Compressor #1") && allActuatorSuccess;
-
-  if(!allActuatorSuccess){
-    return;
-  }
 }
 
+//-----------------------------------------------------------------------------
 void sensorLoop(){
   bool allSensorSuccess = true;
 
@@ -222,11 +250,37 @@ void sensorLoop(){
 }
 
 // #region helpers
-// C is disgusting and I hate it deeply...
+//-----------------------------------------------------------------------------
+void send_warning(String topic, String msg) {
+  String clean_msg = msg;
+  clean_msg.replace(',', '_');
+  clean_msg.replace("\n", "");
+  String warn = "2,Arduino,1,"; 
+  warn += topic;
+  warn += " ";
+  warn += msg.length();
+  warn += " bytes: |"; 
+  warn += clean_msg;
+  warn += "|\n";
+  Serial.print(warn);
+  Serial.flush();
+}
+
+//-----------------------------------------------------------------------------
+// Resets our global string and flag.
+void resetMessage() {
+  for(unsigned i=0; i < MESSAGE_LENGTH; i++){
+    message.setCharAt(i, '\0');
+  }
+  message = "";
+  stringComplete = false;
+}
+
+//-----------------------------------------------------------------------------
 int split(String messages, String* splitMessages,  char delimiter){
   int indexOfComma = 0;
   int delim_count = 0;
-  for(int i = 0; messages.indexOf(delimiter, indexOfComma) > 0; i++){
+  for(int i = 0; i < COMMAND_LENGTH; i++){
     int nextIndex = messages.indexOf(delimiter, indexOfComma+1);
     String nextMessage;
 
@@ -246,32 +300,35 @@ int split(String messages, String* splitMessages,  char delimiter){
   return delim_count;
 }
 
+//-----------------------------------------------------------------------------
+void sendModuleStatus(Module &module, String name){
+  Serial.print(module.status_level); Serial.print(',');
+  Serial.print(name);  Serial.print(',');
+  Serial.print(module.status_code);  Serial.print(',');
+  Serial.print(module.status_msg);   Serial.print('\n');
+  Serial.flush();
+}
+
+//-----------------------------------------------------------------------------
 bool beginModule(Module &module, String name){
   bool status = module.begin() == OK;
   if(!status){
-    Serial.print(module.status_level); Serial.print(',');
-    Serial.print(name);  Serial.print(',');
-    Serial.print(module.status_code);  Serial.print(',');
-    Serial.print(module.status_msg);   Serial.print('\n');
-    Serial.flush();
+    sendModuleStatus(module, name);
   }
   return status;
 }
 
+//-----------------------------------------------------------------------------
 bool updateModule(Module &module, String name){
   bool status = module.update() == OK;
   if(!status){
-    Serial.print(module.status_level); Serial.print(',');
-    Serial.print(name);  Serial.print(',');
-    Serial.print(module.status_code);
-    Serial.print(',');
-    Serial.print(module.status_msg);
-    Serial.print('\n');
-    Serial.flush();
+    sendModuleStatus(module, name);
   }
   return status;
 }
 
+//-----------------------------------------------------------------------------
+/*
 bool any(bool *all){
   int length = sizeof(all)/sizeof(all[0]);
   for(int i=0; i < length; i++){
@@ -281,9 +338,12 @@ bool any(bool *all){
   }
   return false;
 }
+*/
 
+//-----------------------------------------------------------------------------
 bool str2bool(String str){
   str.toLowerCase();
   return str.startsWith("true");
 }
+
 // #endregion
