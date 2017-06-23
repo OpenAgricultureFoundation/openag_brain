@@ -4,7 +4,7 @@
 driven by GPIO pins
 """
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Float64
 from openag_brain.peripherals.relay import Relay
 
 if __name__ == '__main__':
@@ -14,8 +14,9 @@ if __name__ == '__main__':
     relay = Relay(pin)
 
     def on_set(msg):
-        relay.set(msg.data)
+        cmd = msg.data > 0.0
+        relay.set(cmd)
 
-    subscriber = rospy.Subscriber(topic, Bool, callback=on_set)
+    subscriber = rospy.Subscriber(topic, Float64, callback=on_set)
 
     rospy.spin()
