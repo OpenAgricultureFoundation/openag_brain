@@ -15,8 +15,8 @@
 Am2315 am2315_1;
 MHZ16 mhz16_1(77);
 Ds18b20 ds18b20_1(5);
-BinarySensor water_level_sensor_low_1(3, true);
-BinarySensor water_level_sensor_high_1(4, true);
+BinarySensor water_level_sensor_high_1(3, false);
+BinarySensor water_level_sensor_low_1(4, false);
 AtlasPh atlas_ph_1(99);
 AtlasEc atlas_ec_1(100);
 
@@ -235,15 +235,24 @@ void sensorLoop(){
 
   // Prints the data in CSV format via serial.
   // Columns: status,hum,temp,co2
-  Serial.print(OK);                                             Serial.print(',');
-  Serial.print(am2315_1.get_air_humidity());                    Serial.print(',');
-  Serial.print(am2315_1.get_air_temperature());                 Serial.print(',');
-  Serial.print(mhz16_1.get_air_carbon_dioxide());               Serial.print(',');
-  Serial.print(ds18b20_1.get_temperature());                    Serial.print(',');
-  Serial.print(water_level_sensor_low_1.get_is_on());           Serial.print(',');
-  Serial.print(water_level_sensor_high_1.get_is_on());          Serial.print(',');
-  Serial.print(atlas_ph_1.get_water_potential_hydrogen());      Serial.print(',');
-  Serial.print(atlas_ec_1.get_water_electrical_conductivity()); Serial.print('\n');
+  Serial.print(OK);                                             
+  Serial.print(',');
+  Serial.print(am2315_1.get_air_humidity());                    
+  Serial.print(',');
+  Serial.print(am2315_1.get_air_temperature());                 
+  Serial.print(',');
+  Serial.print(mhz16_1.get_air_carbon_dioxide());               
+  Serial.print(',');
+  Serial.print(ds18b20_1.get_temperature());                    
+  Serial.print(',');
+  Serial.print(water_level_sensor_low_1.get_is_on());           
+  Serial.print(',');
+  Serial.print(water_level_sensor_high_1.get_is_on());          
+  Serial.print(',');
+  Serial.print(atlas_ph_1.get_water_potential_hydrogen());      
+  Serial.print(',');
+  Serial.print(atlas_ec_1.get_water_electrical_conductivity()); 
+  Serial.print('\n');
   // https://www.arduino.cc/en/serial/flush
   // Wait until done writing.
   Serial.flush();

@@ -29,8 +29,8 @@ sensor_csv_headers = (
     ("air_temperature", float),
     ("air_carbon_dioxide", float),
     ("water_temperature", float),
-    ("water_level_low", bool),
-    ("water_level_high", bool),
+    ("water_level_low", float),
+    ("water_level_high", float),
     ("water_potential_hydrogen", float),
     ("water_electrical_conductivity", float)
 )
@@ -203,15 +203,14 @@ def light_intensity_red_callback(msg): # float 0~1
     actuator_state["light_intensity_red"] = command
 
 
-# The water level sensor is HIGH when dry, which gets passed through the
-# linear_controller node, which takes the sensor value */measured
-# and passes it as */commanded. We should set the pump_5_water_1 to HIGH when
-# we receive a True here. I want to deprecate this with something more
-# feedback loop oriented: https://github.com/OpenAgInitiative/openag_brain/issues/270
-def water_level_high_callback(msg): # Bool
-    command = msg.data
-    if command:
+def water_level_high_callback(msg): # float 1 / 0
+    command = float(msg.data)
+    trace('arduino_handler debugrob water_level_high_callback=>%s< ', command)
+    # if the high water level is 1, turn the pump on (until it reaches 0)
+    if command >= 1.0:
         actuator_state["pump_5_water_1"] = True
+        trace('arduino_handler debugrob X SETTING pump_5_water_1=%d', actuator_state["pump_5_water_1"])
+
 
 CALLBACKS = {
     "air_temperature":          air_temperature_callback,
@@ -285,6 +284,7 @@ def process_message(line):
         variable_values = values[1:]
         pairs = tuple((headers[0], headers[1](value))
             for headers, value in zip(sensor_csv_headers[1:], variable_values))
+        trace('arduino_handler debugrob pairs: >%s<', pairs)
         return pairs
     except ValueError:
         message = "arduino_handler: Type conversion error, skipping."
@@ -375,6 +375,7 @@ if __name__ == '__main__':
             serial_connection.write(message)
             serial_connection.flush()
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
+            trace('arduino_handler debugrob writing pump_5_water_1=%d', actuator_state["pump_5_water_1"])
         except Exception as e:
             serial_connection = connect_serial()
 
