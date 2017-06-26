@@ -28,7 +28,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
     """
     _id = recipe["_id"]
     operations = recipe["operations"]
-    rospy.logdebug(operations)
+    #rospy.logdebug(operations)
     end_time_relative = operations[-1][0]
     trace("recipe_handler: interpret_simple_recipe end_time_relative=%s",
         end_time_relative)
@@ -60,7 +60,7 @@ def interpret_simple_recipe(recipe, start_time, now_time):
         state[variable] = value
         trace("recipe_handler: interpret_simple_recipe: %s %s %s",
             timestamp, variable, value)
-    rospy.logdebug(state)
+    #rospy.logdebug(state)
     return tuple(
         (variable, value)
         for variable, value in state.iteritems()
@@ -76,7 +76,7 @@ def interpret_flexformat_recipe(recipe, start_time, now_time):
        Look up the value within that step for that variable.
     """
     _id = recipe["_id"]
-    rospy.logdebug(recipe["phases"])
+    #rospy.logdebug(recipe["phases"])
     [verify_time_units(_) for _ in (now_time, start_time)]
     # If start time is at some point in the future beyond the threshold
     if start_time - now_time > THRESHOLD:
