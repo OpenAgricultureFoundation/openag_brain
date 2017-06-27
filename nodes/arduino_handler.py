@@ -206,11 +206,11 @@ def light_intensity_red_callback(msg): # float 0~1
 #PID controller sends us float values ranging from very small to almost 1.0.
 def water_level_high_callback(msg): # float 1 / 0
     command = float(msg.data)
-    trace('arduino_handler debugrob water_level_high_callback=>%s< ', command)
     # if the high water level is > .5, turn the pump on 
     if command > 0.5:
         actuator_state["pump_5_water_1"] = True
-        trace('arduino_handler debugrob SETTING pump_5_water_1=%d', actuator_state["pump_5_water_1"])
+    else:
+        actuator_state["pump_5_water_1"] = False
 
 
 CALLBACKS = {
@@ -285,7 +285,6 @@ def process_message(line):
         variable_values = values[1:]
         pairs = tuple((headers[0], headers[1](value))
             for headers, value in zip(sensor_csv_headers[1:], variable_values))
-        trace('arduino_handler debugrob pairs: >%s<', pairs)
         return pairs
     except ValueError:
         message = "arduino_handler: Type conversion error, skipping."
@@ -376,7 +375,6 @@ if __name__ == '__main__':
             serial_connection.write(message)
             serial_connection.flush()
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
-            trace('arduino_handler debugrob writing pump_5_water_1=%d', actuator_state["pump_5_water_1"])
         except Exception as e:
             serial_connection = connect_serial()
 
