@@ -155,8 +155,8 @@ class RecipeHandler:
             return False, "\"{}\" does not reference a valid "\
             "recipe".format(recipe_id)
 
-        trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
-        trace("recipe_handler: recipe=%s", recipe)
+        #trace("recipe_handler: PUBLISHERS=%s", PUBLISHERS)
+        #trace("recipe_handler: recipe=%s", recipe)
 
         try:
             # Set the recipe document
@@ -204,7 +204,7 @@ class RecipeHandler:
             trace("recover_any_previous_recipe: No previous recipe to recover.")
             return
         start_doc = start_view.rows[0].value
-        trace("recover_any_previous_recipe: start_doc=%s", start_doc)
+        #trace("recover_any_previous_recipe: start_doc=%s", start_doc)
         # If a recipe has been ended more recently than the most recent time a
         # recipe was started, don't run the recipe
         end_view = self.env_data_db.view(
@@ -215,7 +215,7 @@ class RecipeHandler:
         )
         if len(end_view):
             end_doc = end_view.rows[0].value
-            trace("recover_any_previous_recipe: end_doc=%s", end_doc)
+            #trace("recover_any_previous_recipe: end_doc=%s", end_doc)
             if (end_doc["timestamp"] > start_doc["timestamp"]):
                 trace("recover_any_previous_recipe: RETURNING: '\
                     'end_time=%s > start_time=%s",
@@ -223,7 +223,6 @@ class RecipeHandler:
                 return
         # Run the recipe
         trace("recover_any_previous_recipe: restarting recipe=%s at time=%s",
-
             start_doc["value"], start_doc["timestamp"])
         self.start_recipe_service(
             StartRecipe._request_class(start_doc["value"]),
