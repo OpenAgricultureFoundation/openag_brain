@@ -203,13 +203,14 @@ def light_intensity_red_callback(msg): # float 0~1
     actuator_state["light_intensity_red"] = command
 
 
+#PID controller sends us float values ranging from very small to almost 1.0.
 def water_level_high_callback(msg): # float 1 / 0
     command = float(msg.data)
     trace('arduino_handler debugrob water_level_high_callback=>%s< ', command)
-    # if the high water level is 1, turn the pump on (until it reaches 0)
-    if command >= 1.0:
+    # if the high water level is > .5, turn the pump on 
+    if command > 0.5:
         actuator_state["pump_5_water_1"] = True
-        trace('arduino_handler debugrob X SETTING pump_5_water_1=%d', actuator_state["pump_5_water_1"])
+        trace('arduino_handler debugrob SETTING pump_5_water_1=%d', actuator_state["pump_5_water_1"])
 
 
 CALLBACKS = {
