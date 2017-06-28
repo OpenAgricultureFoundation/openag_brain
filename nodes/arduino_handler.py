@@ -318,17 +318,22 @@ def connect_serial(serial_connection=None):
     timeout_s = 1 / serial_rate_hz
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
-    # below: mutables (gasp!)
     # Initialize the serial connection
     path = "/dev/serial/by-id"
     port = None
-    if not os.path.exists(path):
-      raise IOError("No serial device found on system in {}".format(path))
+    while port is None:
+        try:
 
-    ports = [port for port in os.listdir(path) if "arduino" in port.lower()]
-    if len(ports) == 0:
-      raise IOError("No arduino device found on system in {}".format(path))
-    port = ports[0]
+            if not os.path.exists(path):
+              raise Exception("No serial device found on system in {}".format(path))
+
+            ports = [port for port in os.listdir(path) if "arduino" in port.lower()]
+            if len(ports) == 0:
+              raise Exception("No arduino device found on system in {}".format(path))
+            port = ports[0]
+        except Exception as e:
+            rospy.logwarn(e)
+            rospy.sleep(0.2) #seconds
 
     serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
     return serial_connection
@@ -388,7 +393,7 @@ if __name__ == '__main__':
         except serial.serialutil.SerialException as e:
             # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()
-        
+
         pairs_or_error = process_message(buf)
         if type(pairs_or_error) is str:
             error_message = pairs_or_error
