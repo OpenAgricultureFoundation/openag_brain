@@ -46,7 +46,7 @@ bool receivedFirstMessage = false;
 const int COMMAND_LENGTH = 18; // status + num_actuators
 const unsigned int MESSAGE_LENGTH = 500;
 
-// Main logic 
+// Main logic
 void actuatorLoop();
 void sensorLoop();
 void updateLoop();
@@ -143,11 +143,11 @@ void actuatorLoop(){
   for(int i = 0; i < COMMAND_LENGTH; i++){
     splitMessages[i] = "";
   }
-  int comma_count = split(message, splitMessages);
-  if( comma_count != COMMAND_LENGTH ){
+  int command_count = split(message, splitMessages);
+  if( command_count != COMMAND_LENGTH ){
     String warn = message;
     warn += " comma counts: ";
-    warn += comma_count;
+    warn += command_count;
     warn += " != ";
     warn += COMMAND_LENGTH;
     send_invalid_message_length_error(warn);
@@ -177,8 +177,6 @@ void actuatorLoop(){
   led_red_1.set_cmd(splitMessages[15].toFloat());                 // PwmActuator float 0-1
   heater_core_1_1.set_cmd(str2bool(splitMessages[16]));           // BinaryActuator bool
   chiller_compressor_1.set_cmd(str2bool(splitMessages[17]));      // ToneActuator bool on/off
-
-  updateLoop();
 }
 
 // Run the update loop
@@ -265,7 +263,7 @@ void resetMessage() {
 
 int split(String messages, String* splitMessages,  char delimiter){
   int indexOfComma = 0;
-  int delim_count = 0;
+  int chunk_count = 0;
   for(int i = 0; i < COMMAND_LENGTH; i++){
     int nextIndex = messages.indexOf(delimiter, indexOfComma+1);
     String nextMessage;
@@ -281,9 +279,13 @@ int split(String messages, String* splitMessages,  char delimiter){
     }
     splitMessages[i] = nextMessage;
     indexOfComma = nextIndex;
-    delim_count++;
+    chunk_count++;
+    if(nextIndex == -1) break; // make sure to exit the loop if we've reached the last message.
   }
-  return delim_count;
+  if(indexOfComma != -1){
+    return -1; //if there are more commas than (COMMAND_LENGTH - 1) it's a long read
+  }
+  return chunk_count;
 }
 
 void sendModuleStatus(Module &module, String name){
