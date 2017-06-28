@@ -120,7 +120,7 @@ STATUS_CODE_INDEX = {
 # This is a job that was traditionally done by topic_connector.py, but
 # these are hardcoded configurations even though the configuration is in the
 # personal_food_computer_v2.yaml file because we removed the codegen from
-# `firmware`, and you would need to rewrite both this node and the config file 
+# `firmware`, and you would need to rewrite both this node and the config file
 # if you changed the topic mapping.
 # This direct mapping will also let the future `actuator_node`
 # for single actuators to listen in on */commanded topics and decide to actuate
@@ -377,36 +377,35 @@ if __name__ == '__main__':
             actuator_state["heater_core_1_1"],
             actuator_state["chiller_compressor_1"]
         ).encode('utf-8')
+        buf = ""
         try:
+            # Write
             serial_connection.write(message)
             serial_connection.flush()
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
-        except Exception as e:
-            serial_connection = connect_serial()
-
-        try:
-            # Read from arduino
+            # Read
             buf = serial_connection.readline()
-
-            pairs_or_error = process_message(buf)
-            if type(pairs_or_error) is str:
-                error_message = pairs_or_error
-                ARDUINO_STATUS_PUBLISHER.publish(error_message)
-            else:
-                pairs = pairs_or_error
-                for header, value in pairs:
-                    sensor_state[header] = value
-
-            if publish_time():
-                trace("arduino_handler publish_time")
-                if type(pairs_or_error) is not str:
-                    ARDUINO_STATUS_PUBLISHER.publish("OK")
-                for variable in sensor_state:
-                    if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
-                        continue
-                    PUBLISHERS[variable].publish(sensor_state[variable])
         except serial.serialutil.SerialException as e:
+            # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()
+        
+        pairs_or_error = process_message(buf)
+        if type(pairs_or_error) is str:
+            error_message = pairs_or_error
+            ARDUINO_STATUS_PUBLISHER.publish(error_message)
+        else:
+            pairs = pairs_or_error
+            for header, value in pairs:
+                sensor_state[header] = value
+
+        if publish_time():
+            trace("arduino_handler publish_time")
+            if type(pairs_or_error) is not str:
+                ARDUINO_STATUS_PUBLISHER.publish("OK")
+            for variable in sensor_state:
+                if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
+                    continue
+                PUBLISHERS[variable].publish(sensor_state[variable])
         serial_rate.sleep()
         # end of while loop
 
