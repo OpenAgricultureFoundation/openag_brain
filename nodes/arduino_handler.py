@@ -18,6 +18,7 @@ import os
 from std_msgs.msg import String
 from roslib.message import get_message_class
 from openag_brain.load_env_var_types import VariableInfo
+from openag_brain.settings import trace, TRACE
 
 # below: immutables/consts
 # csv_headers will be hard coded since it will be tightly coupled with Arduino sketch anyways.
@@ -28,8 +29,8 @@ sensor_csv_headers = (
     ("air_temperature", float),
     ("air_carbon_dioxide", float),
     ("water_temperature", float),
-    ("water_level_low", bool),
-    ("water_level_high", bool),
+    ("water_level_low", float),
+    ("water_level_high", float),
     ("water_potential_hydrogen", float),
     ("water_electrical_conductivity", float)
 )
@@ -202,15 +203,15 @@ def light_intensity_red_callback(msg): # float 0~1
     actuator_state["light_intensity_red"] = command
 
 
-# The water level sensor is HIGH when dry, which gets passed through the
-# linear_controller node, which takes the sensor value */measured
-# and passes it as */commanded. We should set the pump_5_water_1 to HIGH when
-# we receive a True here. I want to deprecate this with something more
-# feedback loop oriented: https://github.com/OpenAgInitiative/openag_brain/issues/270
-def water_level_high_callback(msg): # Bool
-    command = msg.data
-    if command:
+#PID controller sends us float values ranging from very small to almost 1.0.
+def water_level_high_callback(msg): # float 1 / 0
+    command = float(msg.data)
+    # if the high water level is > .5, turn the pump on 
+    if command > 0.5:
         actuator_state["pump_5_water_1"] = True
+    else:
+        actuator_state["pump_5_water_1"] = False
+
 
 CALLBACKS = {
     "air_temperature":          air_temperature_callback,
@@ -257,7 +258,7 @@ def ros_next(rate_hz):
 
 # Read the serial message string, and publish to the correct topics
 def process_message(line):
-    #rospy.logwarn("arduino_handler serial read: >{}<".format(line.replace('\n','')))
+    trace('arduino_handler serial read: >%s<', line.replace('\n',''))
     try:
         values = line[:-1].decode().split(',')
         status_code = values[0]
@@ -306,15 +307,10 @@ def process_message(line):
         return message
 
 
-if __name__ == '__main__':
-    rospy.init_node('arduino_handler')
-
-    publisher_rate_hz = rospy.get_param("~publisher_rate_hz", 1)
-    serial_rate_hz = rospy.get_param("~serial_rate_hz", 1)
-    baud_rate = rospy.get_param("~baud_rate", 115200)
-
+def connect_serial(scon=None):
     serial_rate = rospy.Rate(serial_rate_hz)
-    timeout_s = 1 / serial_rate_hz
+    to = 1 / serial_rate_hz
+    baud_rate = rospy.get_param("~baud_rate", 115200)
 
     # below: mutables (gasp!)
     # Initialize the serial connection
@@ -328,8 +324,21 @@ if __name__ == '__main__':
       raise IOError("No arduino device found on system in {}".format(path))
     port = ports[0]
 
-    serial_connection = serial.Serial(os.path.join(path, port), 
-        baud_rate, timeout=timeout_s)
+    scon = serial.Serial(os.path.join(path, port), baud_rate, timeout=to)
+    return scon
+
+
+if __name__ == '__main__':
+    if TRACE:
+        rospy.init_node('arduino_handler', log_level=rospy.DEBUG)
+    else:
+        rospy.init_node('arduino_handler')
+
+    publisher_rate_hz = rospy.get_param("~publisher_rate_hz", 1)
+    serial_rate_hz = rospy.get_param("~serial_rate_hz", 1)
+    serial_rate = rospy.Rate(serial_rate_hz)
+
+    serial_connection = connect_serial()
 
     # These 2 are permanently on.
     actuator_state["water_aeration_pump_1"] = True
@@ -362,9 +371,12 @@ if __name__ == '__main__':
             actuator_state["heater_core_1_1"],
             actuator_state["chiller_compressor_1"]
         ).encode('utf-8')
-        serial_connection.write(message)
-        serial_connection.flush()
-        #rospy.logwarn("arduino_handler serial write {} bytes: >{}<".format(len(message),message.replace('\n','')))
+        try:
+            serial_connection.write(message)
+            serial_connection.flush()
+            trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
+        except Exception as e:
+            serial_connection = connect_serial()
 
         # Read from arduino
         buf = serial_connection.readline()
@@ -385,7 +397,7 @@ if __name__ == '__main__':
                 sensor_state[header] = value
 
         if publish_time():
-            #rospy.logwarn("arduino_handler publish_time")
+            trace("arduino_handler publish_time")
             if type(pairs_or_error) is not str:
                 ARDUINO_STATUS_PUBLISHER.publish("OK")
             for variable in sensor_state:
