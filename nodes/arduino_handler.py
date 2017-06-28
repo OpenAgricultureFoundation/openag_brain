@@ -203,10 +203,15 @@ def light_intensity_red_callback(msg): # float 0~1
     actuator_state["light_intensity_red"] = command
 
 
-#PID controller sends us float values ranging from very small to almost 1.0.
+# The water level sensor is HIGH when dry, which gets passed through the
+# linear_controller node, which takes the sensor value */measured (EWMA)
+# and passes it as */commanded. We should set the pump_5_water_1 to HIGH when
+# we receive a value larger than 0.5 here. The values are usually close to 0 or 1.
+# TODO: I want to deprecate this with something more feedback loop oriented:
+# See https://github.com/OpenAgInitiative/openag_brain/issues/270 for details
 def water_level_high_callback(msg): # float 1 / 0
     command = float(msg.data)
-    # if the high water level is > .5, turn the pump on 
+    # if the high water level is > .5, turn the pump on
     if command > 0.5:
         actuator_state["pump_5_water_1"] = True
     else:
@@ -256,9 +261,11 @@ def ros_next(rate_hz):
             return False
     return closure
 
-# Read the serial message string, and publish to the correct topics
+# Read and verify the serial message string.
 def process_message(line):
     trace('arduino_handler serial read: >%s<', line.replace('\n',''))
+    if len(line) == 0:
+        return "No message"
     try:
         values = line[:-1].decode().split(',')
         status_code = values[0]
@@ -307,9 +314,8 @@ def process_message(line):
         return message
 
 
-def connect_serial(scon=None):
-    serial_rate = rospy.Rate(serial_rate_hz)
-    to = 1 / serial_rate_hz
+def connect_serial(serial_connection=None):
+    timeout_s = 1 / serial_rate_hz
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
     # below: mutables (gasp!)
@@ -324,8 +330,8 @@ def connect_serial(scon=None):
       raise IOError("No arduino device found on system in {}".format(path))
     port = ports[0]
 
-    scon = serial.Serial(os.path.join(path, port), baud_rate, timeout=to)
-    return scon
+    serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
+    return serial_connection
 
 
 if __name__ == '__main__':
@@ -378,37 +384,31 @@ if __name__ == '__main__':
         except Exception as e:
             serial_connection = connect_serial()
 
-        # Read from arduino
-        buf = serial_connection.readline()
-        # Handle some invalid received data cases.
-        if 0 == len(buf):
-            continue
-        if len(buf) and not buf[0].isalnum():
-            rospy.logwarn("arduino_handler read bad bytes")
-            continue
+        try:
+            # Read from arduino
+            buf = serial_connection.readline()
 
-        pairs_or_error = process_message(buf)
-        if type(pairs_or_error) is str:
-            error_message = pairs_or_error
-            ARDUINO_STATUS_PUBLISHER.publish(error_message)
-        else:
-            pairs = pairs_or_error
-            for header, value in pairs:
-                sensor_state[header] = value
+            pairs_or_error = process_message(buf)
+            if type(pairs_or_error) is str:
+                error_message = pairs_or_error
+                ARDUINO_STATUS_PUBLISHER.publish(error_message)
+            else:
+                pairs = pairs_or_error
+                for header, value in pairs:
+                    sensor_state[header] = value
 
-        if publish_time():
-            trace("arduino_handler publish_time")
-            if type(pairs_or_error) is not str:
-                ARDUINO_STATUS_PUBLISHER.publish("OK")
-            for variable in sensor_state:
-                if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
-                    continue
-                PUBLISHERS[variable].publish(sensor_state[variable])
-
+            if publish_time():
+                trace("arduino_handler publish_time")
+                if type(pairs_or_error) is not str:
+                    ARDUINO_STATUS_PUBLISHER.publish("OK")
+                for variable in sensor_state:
+                    if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
+                        continue
+                    PUBLISHERS[variable].publish(sensor_state[variable])
+        except serial.serialutil.SerialException as e:
+            serial_connection = connect_serial()
         serial_rate.sleep()
         # end of while loop
 
     serial_connection.close()
     # end of main
-
-

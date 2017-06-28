@@ -52,7 +52,7 @@ void sensorLoop();
 void updateLoop();
 
 // Utility functions
-void send_warning(String topic, String msg);
+void send_invalid_message_length_error(String msg);
 void resetMessage();
 int split(String messages, String* splitMessages,  char delimiter=',');
 void sendModuleStatus(Module &module, String name);
@@ -60,10 +60,7 @@ bool beginModule(Module &module, String name);
 bool updateModule(Module &module, String name);
 bool str2bool(String str);
 
-
-// #region Arduino Events
 // These functions are defined in the Arduino.h and are the framework.
-//-----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   while(!Serial){
@@ -100,7 +97,6 @@ void setup() {
   beginModule(chiller_compressor_1, "Chiller Compressor #1");
 }
 
-//-----------------------------------------------------------------------------
 void loop() {
 
   updateLoop();
@@ -115,7 +111,6 @@ void loop() {
   sensorLoop();
 }
 
-//-----------------------------------------------------------------------------
 // Runs inbetween loop()s, just takes any input serial to a string buffer.
 // Runs as realtime as possible since loop has no delay() calls. (It shouldn't!)
 // Note: the internal buffer in the Serial class is only 64 bytes!
@@ -133,15 +128,11 @@ void serialEvent() {
     if (inChar == '\n') {
       stringComplete = true;
       receivedFirstMessage = true; // first contact! (handshaking)
-      //send_warning("debug Arduino serialEvent complete", message);
       return;
     }
   }
 }
-// #endregion
 
-
-//-----------------------------------------------------------------------------
 void actuatorLoop(){
   // If serial message, actuate based on it.
   if(! stringComplete){
@@ -159,12 +150,13 @@ void actuatorLoop(){
     warn += comma_count;
     warn += " != ";
     warn += COMMAND_LENGTH;
-    send_warning("Invalid Read", warn);
+    send_invalid_message_length_error(warn);
     splitMessages[0] = "2";
   }
 
   // We've already used this message
   resetMessage();
+
   if(splitMessages[0] != "0"){
     return;
   }
@@ -189,7 +181,6 @@ void actuatorLoop(){
   updateLoop();
 }
 
-//-----------------------------------------------------------------------------
 // Run the update loop
 void updateLoop(){
   if(! receivedFirstMessage){ // don't send any serial data until first contact
@@ -216,7 +207,6 @@ void updateLoop(){
   allActuatorSuccess = updateModule(chiller_compressor_1, "Chiller Compressor #1") && allActuatorSuccess;
 }
 
-//-----------------------------------------------------------------------------
 void sensorLoop(){
   bool allSensorSuccess = true;
 
@@ -234,48 +224,36 @@ void sensorLoop(){
   }
 
   // Prints the data in CSV format via serial.
-  // Columns: status,hum,temp,co2
-  Serial.print(OK);                                             
-  Serial.print(',');
-  Serial.print(am2315_1.get_air_humidity());                    
-  Serial.print(',');
-  Serial.print(am2315_1.get_air_temperature());                 
-  Serial.print(',');
-  Serial.print(mhz16_1.get_air_carbon_dioxide());               
-  Serial.print(',');
-  Serial.print(ds18b20_1.get_temperature());                    
-  Serial.print(',');
-  Serial.print(water_level_sensor_low_1.get_is_on());           
-  Serial.print(',');
-  Serial.print(water_level_sensor_high_1.get_is_on());          
-  Serial.print(',');
-  Serial.print(atlas_ph_1.get_water_potential_hydrogen());      
-  Serial.print(',');
-  Serial.print(atlas_ec_1.get_water_electrical_conductivity()); 
-  Serial.print('\n');
+  // Columns: status,hum,temp,co2,water_temperature,water_low,water_high,ph,ec
+  Serial.print(OK);                                             Serial.print(',');
+  Serial.print(am2315_1.get_air_humidity());                    Serial.print(',');
+  Serial.print(am2315_1.get_air_temperature());                 Serial.print(',');
+  Serial.print(mhz16_1.get_air_carbon_dioxide());               Serial.print(',');
+  Serial.print(ds18b20_1.get_temperature());                    Serial.print(',');
+  Serial.print(water_level_sensor_low_1.get_is_on());           Serial.print(',');
+  Serial.print(water_level_sensor_high_1.get_is_on());          Serial.print(',');
+  Serial.print(atlas_ph_1.get_water_potential_hydrogen());      Serial.print(',');
+  Serial.print(atlas_ec_1.get_water_electrical_conductivity()); Serial.print('\n');
   // https://www.arduino.cc/en/serial/flush
   // Wait until done writing.
   Serial.flush();
 }
 
-// #region helpers
-//-----------------------------------------------------------------------------
-void send_warning(String topic, String msg) {
+void send_invalid_message_length_error(String msg) {
   String clean_msg = msg;
   clean_msg.replace(',', '_');
   clean_msg.replace("\n", "");
-  String warn = "2,Arduino,1,"; 
-  warn += topic;
+  String warn = "2,Arduino,1,";
+  warn += "Invalid message";
   warn += " ";
   warn += msg.length();
-  warn += " bytes: |"; 
+  warn += " bytes: |";
   warn += clean_msg;
   warn += "|\n";
   Serial.print(warn);
   Serial.flush();
 }
 
-//-----------------------------------------------------------------------------
 // Resets our global string and flag.
 void resetMessage() {
   for(unsigned i=0; i < MESSAGE_LENGTH; i++){
@@ -285,7 +263,6 @@ void resetMessage() {
   stringComplete = false;
 }
 
-//-----------------------------------------------------------------------------
 int split(String messages, String* splitMessages,  char delimiter){
   int indexOfComma = 0;
   int delim_count = 0;
@@ -309,7 +286,6 @@ int split(String messages, String* splitMessages,  char delimiter){
   return delim_count;
 }
 
-//-----------------------------------------------------------------------------
 void sendModuleStatus(Module &module, String name){
   Serial.print(module.status_level); Serial.print(',');
   Serial.print(name);  Serial.print(',');
@@ -318,7 +294,6 @@ void sendModuleStatus(Module &module, String name){
   Serial.flush();
 }
 
-//-----------------------------------------------------------------------------
 bool beginModule(Module &module, String name){
   bool status = module.begin() == OK;
   if(!status){
@@ -327,7 +302,6 @@ bool beginModule(Module &module, String name){
   return status;
 }
 
-//-----------------------------------------------------------------------------
 bool updateModule(Module &module, String name){
   bool status = module.update() == OK;
   if(!status){
@@ -336,7 +310,6 @@ bool updateModule(Module &module, String name){
   return status;
 }
 
-//-----------------------------------------------------------------------------
 /*
 bool any(bool *all){
   int length = sizeof(all)/sizeof(all[0]);
@@ -349,10 +322,7 @@ bool any(bool *all){
 }
 */
 
-//-----------------------------------------------------------------------------
 bool str2bool(String str){
   str.toLowerCase();
   return str.startsWith("true");
 }
-
-// #endregion
