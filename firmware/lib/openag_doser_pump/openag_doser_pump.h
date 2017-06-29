@@ -7,7 +7,8 @@
 class DoserPump : public Module {
   public:
     // Constructor
-    DoserPump(int pin, bool is_active_low);
+    // TODO: Test the pumps and find their lower and upper bounds
+    DoserPump(int pin, bool is_active_low, float lowerBound=100, float upperBound=1000);
 
     // Public functions
     uint8_t begin();
@@ -24,7 +25,9 @@ class DoserPump : public Module {
     uint32_t _last_pulse = 0;
     bool _is_active_low;
     bool _isOn;
-    float _dosingFreq = 360000; // dose once every 6 minutes
+    float _dosingFreq = 60000; // dose once every minute
+    float _lowerBound = 100;
+    float _upperBound = 1000;
 
     uint8_t bool2command(bool isOn);
 
