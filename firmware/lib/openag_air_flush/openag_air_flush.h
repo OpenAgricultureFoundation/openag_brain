@@ -7,7 +7,7 @@
 class AirFlush : public Module {
   public:
     // Constructor
-    AirFlush(int pin, bool is_active_low);
+    AirFlush(int pin, bool is_active_low, float cfm=11.7);
 
     // Public functions
     uint8_t begin();
@@ -20,7 +20,14 @@ class AirFlush : public Module {
     uint32_t _cmd_start_time;
     bool _is_active_low;
     bool _is_on;
-    uint32_t _previous_command_time;
+    float _maxCFM;
+    uint32_t _on_duration;
+    uint32_t _off_duration;
+    uint32_t _last_pulse;
+    uint32_t _cycle_ms = 60000; // 1 on/off cycle is 1 minute
+    uint32_t _shutoff_ms = 10000;
+
+    uint8_t bool2command(bool isOn);
 };
 
 #endif
