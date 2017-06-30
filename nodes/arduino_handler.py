@@ -120,7 +120,7 @@ STATUS_CODE_INDEX = {
 # This is a job that was traditionally done by topic_connector.py, but
 # these are hardcoded configurations even though the configuration is in the
 # personal_food_computer_v2.yaml file because we removed the codegen from
-# `firmware`, and you would need to rewrite both this node and the config file 
+# `firmware`, and you would need to rewrite both this node and the config file
 # if you changed the topic mapping.
 # This direct mapping will also let the future `actuator_node`
 # for single actuators to listen in on */commanded topics and decide to actuate
@@ -203,10 +203,15 @@ def light_intensity_red_callback(msg): # float 0~1
     actuator_state["light_intensity_red"] = command
 
 
-#PID controller sends us float values ranging from very small to almost 1.0.
+# The water level sensor is HIGH when dry, which gets passed through the
+# linear_controller node, which takes the sensor value */measured (EWMA)
+# and passes it as */commanded. We should set the pump_5_water_1 to HIGH when
+# we receive a value larger than 0.5 here. The values are usually close to 0 or 1.
+# TODO: I want to deprecate this with something more feedback loop oriented:
+# See https://github.com/OpenAgInitiative/openag_brain/issues/270 for details
 def water_level_high_callback(msg): # float 1 / 0
     command = float(msg.data)
-    # if the high water level is > .5, turn the pump on 
+    # if the high water level is > .5, turn the pump on
     if command > 0.5:
         actuator_state["pump_5_water_1"] = True
     else:
@@ -256,9 +261,11 @@ def ros_next(rate_hz):
             return False
     return closure
 
-# Read the serial message string, and publish to the correct topics
+# Read and verify the serial message string.
 def process_message(line):
     trace('arduino_handler serial read: >%s<', line.replace('\n',''))
+    if len(line) == 0:
+        return "No message"
     try:
         values = line[:-1].decode().split(',')
         status_code = values[0]
@@ -293,39 +300,37 @@ def process_message(line):
     except IndexError:
         message = "arduino_handler: Partial message: >{}<".format(line)
         rospy.logwarn(message)
-        if serial_connection is not None:
-            serial_connection.close()
-            serial_connection.open()
         return message
     # Occasionally, we get rotten bytes which couldn't decode
     except UnicodeDecodeError:
         message = "arduino_handler: Ignoring weird bits: >{}<".format(line)
         rospy.logwarn(message)
-        if serial_connection is not None:
-            serial_connection.close()
-            serial_connection.open()
         return message
 
 
-def connect_serial(scon=None):
-    serial_rate = rospy.Rate(serial_rate_hz)
-    to = 1 / serial_rate_hz
+def connect_serial(serial_connection=None):
+    timeout_s = 1 / serial_rate_hz
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
-    # below: mutables (gasp!)
     # Initialize the serial connection
     path = "/dev/serial/by-id"
     port = None
-    if not os.path.exists(path):
-      raise IOError("No serial device found on system in {}".format(path))
+    while port is None:
+        try:
 
-    ports = [port for port in os.listdir(path) if "arduino" in port.lower()]
-    if len(ports) == 0:
-      raise IOError("No arduino device found on system in {}".format(path))
-    port = ports[0]
+            if not os.path.exists(path):
+              raise Exception("No serial device found on system in {}".format(path))
 
-    scon = serial.Serial(os.path.join(path, port), baud_rate, timeout=to)
-    return scon
+            ports = [port for port in os.listdir(path) if "arduino" in port.lower()]
+            if len(ports) == 0:
+              raise Exception("No arduino device found on system in {}".format(path))
+            port = ports[0]
+        except Exception as e:
+            rospy.logwarn(e)
+            rospy.sleep(0.2) #seconds
+
+    serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
+    return serial_connection
 
 
 if __name__ == '__main__':
@@ -371,21 +376,17 @@ if __name__ == '__main__':
             actuator_state["heater_core_1_1"],
             actuator_state["chiller_compressor_1"]
         ).encode('utf-8')
+        buf = ""
         try:
+            # Write
             serial_connection.write(message)
             serial_connection.flush()
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
-        except Exception as e:
+            # Read
+            buf = serial_connection.readline()
+        except serial.serialutil.SerialException as e:
+            # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()
-
-        # Read from arduino
-        buf = serial_connection.readline()
-        # Handle some invalid received data cases.
-        if 0 == len(buf):
-            continue
-        if len(buf) and not buf[0].isalnum():
-            rospy.logwarn("arduino_handler read bad bytes")
-            continue
 
         pairs_or_error = process_message(buf)
         if type(pairs_or_error) is str:
@@ -404,11 +405,8 @@ if __name__ == '__main__':
                 if variable not in [v.name for v in VALID_SENSOR_VARIABLES]:
                     continue
                 PUBLISHERS[variable].publish(sensor_state[variable])
-
         serial_rate.sleep()
         # end of while loop
 
     serial_connection.close()
     # end of main
-
-
