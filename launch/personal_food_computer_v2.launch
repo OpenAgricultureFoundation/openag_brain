@@ -14,7 +14,7 @@
       <param name="lower_limit" value="-1" type="double"/>
       <param name="variable" value="water_potential_hydrogen" type="str"/>
       <param name="Kp" value="1" type="double"/>
-      <param name="Ki" value="0" type="double"/>
+      <param name="Ki" value="1" type="double"/>
       <param name="Kd" value="0" type="double"/>
     </node>
     <node pkg="openag_brain" type="topic_filter.py" name="topic_filter_1"/>
