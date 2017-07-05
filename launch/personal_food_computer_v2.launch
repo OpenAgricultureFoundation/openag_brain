@@ -51,10 +51,8 @@
     <node pkg="openag_brain" type="direct_controller.py" name="nutrient_flora_duo_b_controller_1">
       <param name="variable" value="nutrient_flora_duo_b" type="str"/>
     </node>
-    <node pkg="openag_brain" type="ebb_flow_controller.py" name="air_flush_on_controller_1">
-      <param name="variable" value="air_flush_on" type="str"/>
-      <param name="on_time" value="10" type="int"/>
-      <param name="off_time" value="600" type="int"/>
+    <node pkg="openag_brain" type="direct_controller.py" name="air_flush_controller_1">
+      <param name="variable" value="air_flush" type="str"/>
     </node>
     <node pkg="openag_brain" type="sensor_persistence.py" name="sensor_persistence_1">
       <param name="max_update_interval" value="600" type="int"/>

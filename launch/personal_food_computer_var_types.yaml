@@ -29,7 +29,7 @@ environment_variables:
     units: "percent"
     type: "std_msgs/Float64"
   air_flush:
-    name: air_flush_on
+    name: air_flush
     description: "Air flush a specific volume"
     units: "CFM"
     type: "std_msgs/Float64"
