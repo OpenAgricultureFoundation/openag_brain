@@ -106,12 +106,12 @@ if __name__ == '__main__':
     def set_point_callback(item):
         pid.set_point = item.data
 
-    # When we receive the recipe end message, reset this PID controller to its default values.  
+    # When we receive the recipe end message, reset this PID controller to its default values.
     # This disables the set point so the controller will just idle until it is set by a new recipe.
     def recipe_end_callback(item):
         pid = PID(**param_values)
 
-    recipe_end_topic = "{ns}/recipe_end/desired".format(ns=rospy.get_namespace())
+    recipe_end_topic = "{ns}recipe_end/desired".format(ns=rospy.get_namespace())
     rospy.logwarn(recipe_end_topic)
     recipe_end_sub = rospy.Subscriber(recipe_end_topic, String, recipe_end_callback)
     state_sub = rospy.Subscriber(state_sub_name, Float64, state_callback)
