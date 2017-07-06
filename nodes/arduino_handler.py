@@ -61,7 +61,7 @@ actuator_listen_variables = (
     "water_potential_hydrogen",
     "nutrient_flora_duo_a",
     "nutrient_flora_duo_b",
-    "air_flush_on",
+    "air_flush",
     "light_intensity_red",
     "light_intensity_blue",
     "light_intensity_white",
@@ -183,9 +183,9 @@ def nutrient_flora_duo_b_callback(msg): # float
     actuator_state["pump_2_nutrient_b_1"] = command
 
 
-def air_flush_on_callback(msg): # float 0/1
+def air_flush_callback(msg): # float 0/1
     command = msg.data
-    actuator_state["air_flush_1"] = bool(command)
+    actuator_state["air_flush_1"] = float(command)
 
 
 def light_intensity_blue_callback(msg): # float 0~1
@@ -223,7 +223,7 @@ CALLBACKS = {
     "water_potential_hydrogen": water_potential_hydrogen_callback,
     "nutrient_flora_duo_a":     nutrient_flora_duo_a_callback,
     "nutrient_flora_duo_b":     nutrient_flora_duo_b_callback,
-    "air_flush_on":             air_flush_on_callback,
+    "air_flush":                air_flush_callback,
     "light_intensity_red":      light_intensity_red_callback,
     "light_intensity_blue":     light_intensity_blue_callback,
     "light_intensity_white":    light_intensity_white_callback,

@@ -168,7 +168,7 @@ void actuatorLoop(){
   chiller_fan_1.set_cmd(str2bool(splitMessages[6]));              // BinaryActuator bool
   chiller_pump_1.set_cmd(str2bool(splitMessages[7]));             // BinaryActuator bool
   heater_core_2_1.set_cmd(str2bool(splitMessages[8]));            // BinaryActuator bool
-  air_flush_1.set_cmd(str2bool(splitMessages[9]));                // BinaryActuator bool
+  air_flush_1.set_cmd(splitMessages[9].toFloat());                // BinaryActuator float CFM 0 - 12ish
   water_aeration_pump_1.set_cmd(str2bool(splitMessages[10]));     // BinaryActuator bool
   water_circulation_pump_1.set_cmd(str2bool(splitMessages[11]));  // BinaryActuator bool
   chamber_fan_1.set_cmd(str2bool(splitMessages[12]));             // BinaryActuator bool
