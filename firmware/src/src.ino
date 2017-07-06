@@ -108,9 +108,8 @@ void loop() {
     return;
   }
   bool allActuatorSuccess = checkActuatorLoop();
-  if(allActuatorSuccess){
-    actuatorLoop();
-  }
+  actuatorLoop();
+
   bool allSensorSuccess = checkSensorLoop();
   if(allSensorSuccess){
     sensorLoop();
