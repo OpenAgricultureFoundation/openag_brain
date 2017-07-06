@@ -325,12 +325,11 @@ def connect_serial(serial_connection=None):
             if len(ports) == 0:
               raise Exception("No arduino device found on system in {}".format(path))
             port = ports[0]
+            serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
+            return serial_connection
         except Exception as e:
             rospy.logwarn(e)
             rospy.sleep(0.2) #seconds
-
-    serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
-    return serial_connection
 
 
 if __name__ == '__main__':
