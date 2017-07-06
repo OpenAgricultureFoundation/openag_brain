@@ -1,8 +1,10 @@
 #include "openag_doser_pump.h"
 
-DoserPump::DoserPump(int pin, bool is_active_low) {
+DoserPump::DoserPump(int pin, bool is_active_low, float lowerBound, float upperBound) {
   _pin = pin;
   _is_active_low = is_active_low;
+  _lowerBound = lowerBound;
+  _upperBound = upperBound;
   status_level = OK;
   status_code = CODE_OK;
   status_msg = "";
@@ -47,28 +49,23 @@ uint8_t DoserPump::update() {
 uint8_t DoserPump::set_cmd(float rate) {
   uint32_t curr_time = millis();
 
-  // TODO: Test the pumps and find their lower and upper bounds
-  const float lowerBound = 100;
-  const float upperBound = 1000;
-
-  if(rate > 0 && rate < lowerBound){
+  if(rate > 0 && rate < _lowerBound){
     status_level = ERROR;
     status_code = CODE_LOWER_BOUND;
     status_msg = "A command to dose lower than the maximum precision was sent.";
     return status_level;
   }
-  if(rate > upperBound){
+  if(rate > _upperBound){
     status_level = ERROR;
     status_code = CODE_UPPER_BOUND;
     status_msg = "A command to dose higher than the maximum flow rate was sent.";
     return status_level;
   }
 
-  // TODO: test the pumps and tune the upperBound constant
-  // onRatio cannot be greater than 1 if we check for upperBound above
+  // onRatio cannot be greater than 1 if we check for UPPER_BOUND above
   // Therefore we can assume that _on_duration is less than dosingFreq
   // and _off_duration is positive.
-  float onRatio = rate / upperBound;
+  float onRatio = rate / _upperBound;
 
   _on_duration = (uint32_t) onRatio * _dosingFreq;
   _off_duration = (uint32_t)_dosingFreq - _on_duration;
