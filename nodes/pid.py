@@ -106,6 +106,8 @@ if __name__ == '__main__':
     def set_point_callback(item):
         pid.set_point = item.data
 
+    # When we receive the recipe end message, reset this PID controller to its default values.  
+    # This disables the set point so the controller will just idle until it is set by a new recipe.
     def recipe_end_callback(item):
         pid = PID(**param_values)
 
