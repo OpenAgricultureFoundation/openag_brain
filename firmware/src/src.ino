@@ -42,7 +42,6 @@ ToneActuator chiller_compressor_1(9, false, 140, -1);
 // Message string
 String message = "";
 bool stringComplete = false;
-bool receivedFirstMessage = false;
 const int COMMAND_LENGTH = 18; // status + num_actuators
 const unsigned int MESSAGE_LENGTH = 500;
 
@@ -132,7 +131,6 @@ void serialEvent() {
     // so the main loop can do something about it:
     if (inChar == '\n') {
       stringComplete = true;
-      receivedFirstMessage = true; // first contact! (handshaking)
       return;
     }
   }
