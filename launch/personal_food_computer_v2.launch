@@ -8,25 +8,25 @@
       <param name="variable" value="water_level_high" type="str"/>
     </node>
     <node pkg="openag_brain" type="pid.py" name="water_potential_hydrogen_controller_1">
-      <param name="Kd" value="0" type="double"/>
-      <param name="Ki" value="0" type="double"/>
       <param name="deadband_width" value="0.5" type="double"/>
       <param name="windup_limit" value="1000" type="double"/>
       <param name="upper_limit" value="1" type="double"/>
       <param name="lower_limit" value="-1" type="double"/>
       <param name="variable" value="water_potential_hydrogen" type="str"/>
       <param name="Kp" value="1" type="double"/>
+      <param name="Ki" value="1" type="double"/>
+      <param name="Kd" value="0" type="double"/>
     </node>
     <node pkg="openag_brain" type="topic_filter.py" name="topic_filter_1"/>
     <node pkg="openag_brain" type="pid.py" name="air_temperature_controller_1">
-      <param name="Kd" value="0" type="double"/>
-      <param name="Ki" value="0" type="double"/>
       <param name="deadband_width" value="0.5" type="double"/>
       <param name="windup_limit" value="1000" type="double"/>
       <param name="upper_limit" value="1" type="double"/>
       <param name="lower_limit" value="-1" type="double"/>
       <param name="variable" value="air_temperature" type="str"/>
       <param name="Kp" value="1" type="double"/>
+      <param name="Ki" value="0" type="double"/>
+      <param name="Kd" value="0" type="double"/>
     </node>
     <node pkg="openag_brain" type="recipe_handler.py" name="recipe_handler_1"/>
     <node pkg="openag_brain" type="recipe_persistence.py" name="recipe_persistence_1"/>
@@ -51,10 +51,8 @@
     <node pkg="openag_brain" type="direct_controller.py" name="nutrient_flora_duo_b_controller_1">
       <param name="variable" value="nutrient_flora_duo_b" type="str"/>
     </node>
-    <node pkg="openag_brain" type="ebb_flow_controller.py" name="air_flush_on_controller_1">
-      <param name="variable" value="air_flush_on" type="str"/>
-      <param name="on_time" value="10" type="int"/>
-      <param name="off_time" value="600" type="int"/>
+    <node pkg="openag_brain" type="direct_controller.py" name="air_flush_controller_1">
+      <param name="variable" value="air_flush" type="str"/>
     </node>
     <node pkg="openag_brain" type="sensor_persistence.py" name="sensor_persistence_1">
       <param name="max_update_interval" value="600" type="int"/>

@@ -22,8 +22,7 @@ Specifically, commands with absolute value less than `deadband_width` will be
 changed to 0.
 """
 import rospy
-from std_msgs.msg import Float64
-from openag_brain.constants import NULL_SETPOINT_SENTINEL
+from std_msgs.msg import Float64, String
 
 class PID:
     """ Discrete PID control """
@@ -42,9 +41,6 @@ class PID:
         self.integrator = 0
 
     def update(self, state):
-        # Set a null setpoint if we see the magic number.
-        if state is NULL_SETPOINT_SENTINEL:
-            self.set_point = None
         # If setpoint was made null, or was already null, do nothing.
         if self.set_point is None:
             return
@@ -110,6 +106,14 @@ if __name__ == '__main__':
     def set_point_callback(item):
         pid.set_point = item.data
 
+    # When we receive the recipe end message, reset this PID controller to its default values.
+    # This disables the set point so the controller will just idle until it is set by a new recipe.
+    def recipe_end_callback(item):
+        pid = PID(**param_values)
+
+    recipe_end_topic = "{ns}recipe_end/desired".format(ns=rospy.get_namespace())
+    rospy.logwarn(recipe_end_topic)
+    recipe_end_sub = rospy.Subscriber(recipe_end_topic, String, recipe_end_callback)
     state_sub = rospy.Subscriber(state_sub_name, Float64, state_callback)
     set_point_sub = rospy.Subscriber(
         desired_sub_name, Float64, set_point_callback

@@ -23,8 +23,8 @@ AtlasEc atlas_ec_1(100);
 // Actuator Instances. Sorted by pin number.
 DoserPump pump_1_nutrient_a_1(28, true);
 DoserPump pump_2_nutrient_b_1(29, true);
-PulseActuator pump_3_ph_up_1(30, true, 50, 4000);
-PulseActuator pump_4_ph_down_1(31, true, 50, 4000);
+PulseActuator pump_3_ph_up_1(30, true);
+PulseActuator pump_4_ph_down_1(31, true);
 BinaryActuator pump_5_water_1(32, true, 10000);
 BinaryActuator chiller_fan_1(33, true, 10000);
 BinaryActuator chiller_pump_1(34, true, 10000);
@@ -168,7 +168,7 @@ void actuatorLoop(){
   chiller_fan_1.set_cmd(str2bool(splitMessages[6]));              // BinaryActuator bool
   chiller_pump_1.set_cmd(str2bool(splitMessages[7]));             // BinaryActuator bool
   heater_core_2_1.set_cmd(str2bool(splitMessages[8]));            // BinaryActuator bool
-  air_flush_1.set_cmd(str2bool(splitMessages[9]));                // BinaryActuator bool
+  air_flush_1.set_cmd(splitMessages[9].toFloat());                // BinaryActuator float CFM 0 - 12ish
   water_aeration_pump_1.set_cmd(str2bool(splitMessages[10]));     // BinaryActuator bool
   water_circulation_pump_1.set_cmd(str2bool(splitMessages[11]));  // BinaryActuator bool
   chamber_fan_1.set_cmd(str2bool(splitMessages[12]));             // BinaryActuator bool
