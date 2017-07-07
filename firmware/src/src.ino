@@ -42,7 +42,6 @@ ToneActuator chiller_compressor_1(9, false, 140, -1);
 // Message string
 String message = "";
 bool stringComplete = false;
-bool receivedFirstMessage = false;
 const int COMMAND_LENGTH = 18; // status + num_actuators
 const unsigned int MESSAGE_LENGTH = 500;
 
@@ -57,7 +56,7 @@ void resetMessage();
 int split(String messages, String* splitMessages,  char delimiter=',');
 void sendModuleStatus(Module &module, String name);
 bool beginModule(Module &module, String name);
-bool updateModule(Module &module, String name);
+bool checkModule(Module &module, String name);
 bool str2bool(String str);
 
 // These functions are defined in the Arduino.h and are the framework.
@@ -107,8 +106,13 @@ void loop() {
   if(! stringComplete){
     return;
   }
+  bool allActuatorSuccess = checkActuatorLoop();
   actuatorLoop();
-  sensorLoop();
+
+  bool allSensorSuccess = checkSensorLoop();
+  if(allSensorSuccess){
+    sensorLoop();
+  }
 }
 
 // Runs inbetween loop()s, just takes any input serial to a string buffer.
@@ -127,7 +131,6 @@ void serialEvent() {
     // so the main loop can do something about it:
     if (inChar == '\n') {
       stringComplete = true;
-      receivedFirstMessage = true; // first contact! (handshaking)
       return;
     }
   }
@@ -181,46 +184,73 @@ void actuatorLoop(){
 
 // Run the update loop
 void updateLoop(){
-  if(! receivedFirstMessage){ // don't send any serial data until first contact
-    return;
-  }
-  bool allActuatorSuccess = true;
+  pump_1_nutrient_a_1.update();
+  pump_2_nutrient_b_1.update();
+  pump_3_ph_up_1.update();
+  pump_4_ph_down_1.update();
+  pump_5_water_1.update();
+  chiller_fan_1.update();
+  chiller_pump_1.update();
+  heater_core_2_1.update();
+  air_flush_1.update();
+  water_aeration_pump_1.update();
+  water_circulation_pump_1.update();
+  chamber_fan_1.update();
+  led_blue_1.update();
+  led_white_1.update();
+  led_red_1.update();
+  heater_core_1_1.update();
+  chiller_compressor_1.update();
 
-  allActuatorSuccess = updateModule(pump_1_nutrient_a_1, "Pump 1 Nutrient A") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(pump_2_nutrient_b_1, "Pump 2 Nutrient B") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(pump_3_ph_up_1, "Pump 3 pH Up") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(pump_4_ph_down_1, "Pump 4 pH Down") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(pump_5_water_1, "Pump 5 Water") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(chiller_fan_1, "Chiller Fan") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(chiller_pump_1, "Chiller Pump") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(heater_core_2_1, "Heater core #2") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(air_flush_1, "Air Flush") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(water_aeration_pump_1, "Water Aeration Pump") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(water_circulation_pump_1, "Water Circulation Pump") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(chamber_fan_1, "Chamber Circulation Fan") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(led_blue_1, "LED Blue") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(led_white_1, "LED White") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(led_red_1, "LED Red") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(heater_core_1_1, "Heater Core #1") && allActuatorSuccess;
-  allActuatorSuccess = updateModule(chiller_compressor_1, "Chiller Compressor #1") && allActuatorSuccess;
+  am2315_1.update();
+  mhz16_1.update();
+  ds18b20_1.update();
+  water_level_sensor_low_1.update();
+  water_level_sensor_high_1.update();
+  atlas_ph_1.update();
+  atlas_ec_1.update();
 }
 
-void sensorLoop(){
+bool checkActuatorLoop(){
+  bool allActuatorSuccess = true;
+
+  allActuatorSuccess = checkModule(pump_1_nutrient_a_1, "Pump 1 Nutrient A") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(pump_2_nutrient_b_1, "Pump 2 Nutrient B") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(pump_3_ph_up_1, "Pump 3 pH Up") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(pump_4_ph_down_1, "Pump 4 pH Down") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(pump_5_water_1, "Pump 5 Water") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(chiller_fan_1, "Chiller Fan") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(chiller_pump_1, "Chiller Pump") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(heater_core_2_1, "Heater core #2") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(air_flush_1, "Air Flush") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(water_aeration_pump_1, "Water Aeration Pump") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(water_circulation_pump_1, "Water Circulation Pump") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(chamber_fan_1, "Chamber Circulation Fan") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(led_blue_1, "LED Blue") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(led_white_1, "LED White") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(led_red_1, "LED Red") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(heater_core_1_1, "Heater Core #1") && allActuatorSuccess;
+  allActuatorSuccess = checkModule(chiller_compressor_1, "Chiller Compressor #1") && allActuatorSuccess;
+
+  return allActuatorSuccess;
+}
+
+bool checkSensorLoop(){
   bool allSensorSuccess = true;
 
   // Run Update on all sensors
-  allSensorSuccess = updateModule(am2315_1, "AM2315 #1") && allSensorSuccess;
-  allSensorSuccess = updateModule(mhz16_1, "MHZ16 #1") && allSensorSuccess;
-  allSensorSuccess = updateModule(ds18b20_1, "DS18B20 #1") && allSensorSuccess;
-  allSensorSuccess = updateModule(water_level_sensor_low_1, "Water Level Low sensor") && allSensorSuccess;
-  allSensorSuccess = updateModule(water_level_sensor_high_1, "Water Level High sensor") && allSensorSuccess;
-  allSensorSuccess = updateModule(atlas_ph_1, "Atlas pH #1") && allSensorSuccess;
-  allSensorSuccess = updateModule(atlas_ec_1, "Atlas EC #1") && allSensorSuccess;
+  allSensorSuccess = checkModule(am2315_1, "AM2315 #1") && allSensorSuccess;
+  allSensorSuccess = checkModule(mhz16_1, "MHZ16 #1") && allSensorSuccess;
+  allSensorSuccess = checkModule(ds18b20_1, "DS18B20 #1") && allSensorSuccess;
+  allSensorSuccess = checkModule(water_level_sensor_low_1, "Water Level Low sensor") && allSensorSuccess;
+  allSensorSuccess = checkModule(water_level_sensor_high_1, "Water Level High sensor") && allSensorSuccess;
+  allSensorSuccess = checkModule(atlas_ph_1, "Atlas pH #1") && allSensorSuccess;
+  allSensorSuccess = checkModule(atlas_ec_1, "Atlas EC #1") && allSensorSuccess;
 
-  if(!allSensorSuccess){
-    return;
-  }
+  return allSensorSuccess;
+}
 
+void sensorLoop(){
   // Prints the data in CSV format via serial.
   // Columns: status,hum,temp,co2,water_temperature,water_low,water_high,ph,ec
   Serial.print(OK);                                             Serial.print(',');
@@ -304,8 +334,8 @@ bool beginModule(Module &module, String name){
   return status;
 }
 
-bool updateModule(Module &module, String name){
-  bool status = module.update() == OK;
+bool checkModule(Module &module, String name){
+  bool status = module.status_code == OK;
   if(!status){
     sendModuleStatus(module, name);
   }
