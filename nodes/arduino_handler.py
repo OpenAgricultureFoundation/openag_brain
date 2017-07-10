@@ -309,7 +309,7 @@ def process_message(line):
 
 
 def connect_serial(serial_connection=None):
-    timeout_s = 1 / serial_rate_hz
+    timeout_s = 5 # 5 second serial port timeout
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
     # Initialize the serial connection
@@ -383,6 +383,10 @@ if __name__ == '__main__':
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
             # Read
             buf = serial_connection.readline()
+            # handle reading nothing, happens when serial port times out
+            if( 0 == len(buf)): 
+                serial_rate.sleep()
+                continue
         except serial.serialutil.SerialException as e:
             # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()
