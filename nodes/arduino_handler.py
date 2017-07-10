@@ -309,7 +309,7 @@ def process_message(line):
 
 
 def connect_serial(serial_connection=None):
-    timeout_s = 5 # 5 second serial port timeout
+    timeout_s = 2 / serial_rate_hz # serial port timeout is 2x loop rate
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
     # Initialize the serial connection
