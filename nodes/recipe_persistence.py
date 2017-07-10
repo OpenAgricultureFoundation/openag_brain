@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     for variable in VALID_VARIABLES:
         rospy.Subscriber(
-            "~{}/desired".format(variable.name),
+            "{}/desired".format(variable.name),
             get_message_class(variable.type),
             generate_callback(variable.name)
         )
