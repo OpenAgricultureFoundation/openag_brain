@@ -383,10 +383,6 @@ if __name__ == '__main__':
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
             # Read
             buf = serial_connection.readline()
-            # handle reading nothing, happens when serial port times out
-            if( 0 == len(buf)): 
-                serial_rate.sleep()
-                continue
         except serial.serialutil.SerialException as e:
             # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()
@@ -401,7 +397,7 @@ if __name__ == '__main__':
                 sensor_state[header] = value
 
         if publish_time():
-            trace("arduino_handler publish_time")
+            #trace("arduino_handler publish_time")
             if type(pairs_or_error) is not str:
                 ARDUINO_STATUS_PUBLISHER.publish("OK")
             for variable in sensor_state:
