@@ -67,8 +67,8 @@ uint8_t DoserPump::set_cmd(float rate) {
   // and _off_duration is positive.
   float onRatio = rate / _upperBound;
 
-  _on_duration = (uint32_t) onRatio * _dosingFreq;
-  _off_duration = (uint32_t)_dosingFreq - _on_duration;
+  _on_duration = onRatio * _dosingFreq;
+  _off_duration = _dosingFreq - _on_duration;
 
   // Update the most recent command
   _last_cmd = curr_time;
