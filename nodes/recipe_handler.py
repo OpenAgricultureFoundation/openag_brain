@@ -171,9 +171,11 @@ class RecipeHandler:
 
     def stop_recipe_service(self, data):
         """Stop recipe ROS service"""
+        pub = PUBLISHERS[RECIPE_END.name]
         try:
+            pub.publish(self.__recipe["_id"])
             self.clear_recipe()
-        except RecipeIdleError:
+        except (RecipeIdleError, KeyError):
             return False, "There is no recipe running"
         return True, "Success"
 
@@ -271,7 +273,10 @@ if __name__ == '__main__':
     # and clear the recipe when we get it.
     topic_name = "{}/desired".format(RECIPE_END.name)
     def callback(data):
-        recipe_handler.clear_recipe()
+        try:
+            recipe_handler.clear_recipe()
+        except RecipeIdleError:
+            pass
         trace("recipe_handler.Subscriber: clearing current recipe.")
     sub = rospy.Subscriber(topic_name, String, callback)
 
