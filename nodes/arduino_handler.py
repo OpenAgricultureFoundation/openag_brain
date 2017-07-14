@@ -309,7 +309,7 @@ def process_message(line):
 
 
 def connect_serial(serial_connection=None):
-    timeout_s = 1 / serial_rate_hz
+    timeout_s = 2 / serial_rate_hz # serial port timeout is 2x loop rate
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
     # Initialize the serial connection
@@ -397,7 +397,7 @@ if __name__ == '__main__':
                 sensor_state[header] = value
 
         if publish_time():
-            trace("arduino_handler publish_time")
+            #trace("arduino_handler publish_time")
             if type(pairs_or_error) is not str:
                 ARDUINO_STATUS_PUBLISHER.publish("OK")
             for variable in sensor_state:
