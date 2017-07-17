@@ -15,6 +15,7 @@ Usage (in ROS launchfile):
 import serial
 import rospy
 import os
+from collections import OrderedDict
 from std_msgs.msg import String
 from roslib.message import get_message_class
 from openag_brain.load_env_var_types import VariableInfo
@@ -23,7 +24,7 @@ from openag_brain.settings import trace, TRACE
 # below: immutables/consts
 # csv_headers will be hard coded since it will be tightly coupled with Arduino sketch anyways.
 # the associated types are also included in the tuple since it is usually relevant to have around.
-sensor_csv_headers = (
+sensor_csv_headers = OrderedDict([
     ("status", int),
     ("air_humidity", float),
     ("air_temperature", float),
@@ -33,9 +34,9 @@ sensor_csv_headers = (
     ("water_level_high", float),
     ("water_potential_hydrogen", float),
     ("water_electrical_conductivity", float)
-)
+])
 
-actuator_csv_headers =  (
+actuator_csv_headers =  OrderedDict([
     ("status", int),
     ("pump_1_nutrient_a_1", float),
     ("pump_2_nutrient_b_1", float),
@@ -54,7 +55,7 @@ actuator_csv_headers =  (
     ("light_intensity_red", float),
     ("heater_core_1_1", bool),
     ("chiller_compressor_1", bool)
-)
+])
 
 actuator_listen_variables = (
     "air_temperature",
@@ -70,8 +71,8 @@ actuator_listen_variables = (
 
 # Store latest actuator and sensor states we are aware of.
 actuator_state = {
-    header: type_constructor()
-    for header, type_constructor in actuator_csv_headers
+    header: actuator_csv_headers[header]()
+    for header in actuator_csv_headers
 }
 sensor_state = {}
 
@@ -83,7 +84,7 @@ ENVIRONMENTAL_VARIABLES = frozenset(
     for d in rospy.get_param("/var_types/environment_variables").itervalues())
 
 VALID_SENSOR_VARIABLES = [v for v in ENVIRONMENTAL_VARIABLES
-    if v.name in [t[0] for t in sensor_csv_headers]]
+    if v.name in sensor_csv_headers]
 
 PUBLISHERS = {
     variable.name: rospy.Publisher(
@@ -116,6 +117,11 @@ STATUS_CODE_INDEX = {
     }
 }
 
+def recipe_end_callback(msg):
+
+    for header in actuator_state:
+        actuator_state[header] = actuator_csv_headers[header]()
+
 # These are callbacks that map the */commanded topic to the Arduino actuators.
 # This is a job that was traditionally done by topic_connector.py, but
 # these are hardcoded configurations even though the configuration is in the
@@ -129,16 +135,16 @@ STATUS_CODE_INDEX = {
 def air_temperature_callback(msg): # float -1~1
     command = msg.data
     up = (
-        ("heater_core_2_1", bool),
-        ("heater_core_1_1", bool)
+        ("heater_core_2_1", actuator_csv_headers["heater_core_2_1"]),
+        ("heater_core_1_1", actuator_csv_headers["heater_core_1_1"])
     )
     down = (
-        ("chiller_fan_1", bool),
-        ("chiller_pump_1", bool),
-        ("chiller_compressor_1", bool)
+        ("chiller_fan_1", actuator_csv_headers["chiller_fan_1"]),
+        ("chiller_pump_1", actuator_csv_headers["chiller_pump_1"]),
+        ("chiller_compressor_1", actuator_csv_headers["chiller_compressor_1"])
     )
     always = (
-        ("chamber_fan_1", bool),
+        ("chamber_fan_1", actuator_csv_headers["chamber_fan_1"]),
     )
     # Reset the state to idle
     for header, type_constructor in up + down:
@@ -157,8 +163,6 @@ def air_temperature_callback(msg): # float -1~1
 
 def water_potential_hydrogen_callback(msg): # float -1 ~ 1
     command = msg.data
-    up = ("pump_3_ph_up_1", bool)
-    down = ("pump_4_ph_down_1", bool)
 
     # reset state to idle
     actuator_state["pump_3_ph_up_1"] = False
@@ -174,32 +178,32 @@ def water_potential_hydrogen_callback(msg): # float -1 ~ 1
 # nutrient_flora_duo_a is a "Rate" of dosage, so we can just change the dosage
 # without resetting to "idle state" since that doesn't exist.
 def nutrient_flora_duo_a_callback(msg): # float
-    command = msg.data
+    command = actuator_csv_headers["pump_1_nutrient_a_1"](msg.data)
     actuator_state["pump_1_nutrient_a_1"] = command
 
 
 def nutrient_flora_duo_b_callback(msg): # float
-    command = msg.data
+    command = actuator_csv_headers["pump_2_nutrient_b_1"](msg.data)
     actuator_state["pump_2_nutrient_b_1"] = command
 
 
 def air_flush_callback(msg): # float 0/1
-    command = msg.data
+    command = actuator_csv_headers["air_flush_1"](msg.data)
     actuator_state["air_flush_1"] = float(command)
 
 
 def light_intensity_blue_callback(msg): # float 0~1
-    command = msg.data
+    command = actuator_csv_headers["light_intensity_blue"](msg.data)
     actuator_state["light_intensity_blue"] = command
 
 
 def light_intensity_white_callback(msg): # float 0~1
-    command = msg.data
+    command = actuator_csv_headers["light_intensity_white"](msg.data)
     actuator_state["light_intensity_white"] = command
 
 
 def light_intensity_red_callback(msg): # float 0~1
-    command = msg.data
+    command = actuator_csv_headers["light_intensity_red"](msg.data)
     actuator_state["light_intensity_red"] = command
 
 
@@ -210,12 +214,9 @@ def light_intensity_red_callback(msg): # float 0~1
 # TODO: I want to deprecate this with something more feedback loop oriented:
 # See https://github.com/OpenAgInitiative/openag_brain/issues/270 for details
 def water_level_high_callback(msg): # float 1 / 0
-    command = float(msg.data)
-    # if the high water level is > .5, turn the pump on
-    if command > 0.5:
-        actuator_state["pump_5_water_1"] = True
-    else:
-        actuator_state["pump_5_water_1"] = False
+    command = msg.data
+    # if the high water level is >= .5, turn the pump on
+    actuator_state["pump_5_water_1"] = command >= 0.5
 
 
 CALLBACKS = {
@@ -238,6 +239,11 @@ SUBSCRIBERS = {
         )
     for variable in VALID_ACTUATOR_VARIABLES
 }
+recipe_end_subscriber = rospy.Subscriber(
+    "{ns}recipe_end/desired".format(ns=rospy.get_namespace()),
+    String,
+    recipe_end_callback
+)
 
 def expand_unknown_status(status_code):
     return {
@@ -290,8 +296,8 @@ def process_message(line):
 
         # Zip values with the corresponding environmental variable
         variable_values = values[1:]
-        pairs = tuple((headers[0], headers[1](value))
-            for headers, value in zip(sensor_csv_headers[1:], variable_values))
+        pairs = tuple((headers, sensor_csv_headers[headers](value))
+            for headers, value in zip(sensor_csv_headers.keys()[1:], variable_values))
         return pairs
     except ValueError:
         message = "arduino_handler: Type conversion error, skipping."
