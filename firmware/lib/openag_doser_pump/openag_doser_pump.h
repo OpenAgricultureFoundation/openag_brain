@@ -26,8 +26,8 @@ class DoserPump : public Module {
     bool _is_active_low;
     bool _isOn;
     float _dosingFreq = 60000; // dose once every minute
-    float _lowerBound = 100;
-    float _upperBound = 1000;
+    float _lowerBound = 100; // ml/hr
+    float _upperBound = 1000; // ml/hr
 
     uint8_t bool2command(bool isOn);
 
