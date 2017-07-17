@@ -331,7 +331,6 @@ def connect_serial(serial_connection=None):
             rospy.logwarn(e)
             rospy.sleep(0.2) #seconds
 
-
 if __name__ == '__main__':
     if TRACE:
         rospy.init_node('arduino_handler', log_level=rospy.DEBUG)
@@ -349,6 +348,9 @@ if __name__ == '__main__':
     actuator_state["water_circulation_pump_1"] = True
 
     publish_time = ros_next(publisher_rate_hz)
+
+    temp_buf = ""
+
     while not rospy.is_shutdown():
 
         # Generate the message for the current state (csv headers below):
@@ -382,7 +384,13 @@ if __name__ == '__main__':
             serial_connection.flush()
             trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
             # Read
-            buf = serial_connection.readline()
+            trace('arduino_handler temp_buf: >%s<', temp_buf)
+            trace('arduino_handler inWaiting bytes: >%d<', serial_connection.inWaiting())
+            temp_buf = temp_buf + serial_connection.read(serial_connection.inWaiting())
+            if '\n' in temp_buf:
+                lines = temp_buf.split('\n') # Guaranteed to have at least 2 entries
+                buf = lines[-2] # Last full line read (earlier lines will be discarded)
+                temp_buf = lines[-1] # Keep for next time, its either a partial line read or empty string
         except serial.serialutil.SerialException as e:
             # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()

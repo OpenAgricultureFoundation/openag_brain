@@ -33,14 +33,17 @@ def db_init(db_url, api_url):
     for section, param, value in config_items:
         url = urljoin(server.resource.url, "_config", section, param)
         try:
-            current_val = server.resource.session.request( "GET", url \
-                )[2].read().strip()
+            current_val = server.resource.session.request(
+                "GET", url, body = None, headers = None,
+                 credentials = server.resource.credentials
+            )[2].read().strip()
         except ResourceNotFound:
             current_val = None
         desired_val = '"{}"'.format(value.replace('"', '\\"'))
         if current_val != desired_val:
             status = server.resource.session.request(
-                "PUT", url, body=desired_val
+                "PUT", url, body = desired_val, headers = None,
+                 credentials = server.resource.credentials
             )[0]
             # Unless there is some delay between requests, CouchDB gets
             # sad for some reason
