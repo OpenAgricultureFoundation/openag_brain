@@ -47,6 +47,9 @@ class PID:
 
         error = self.set_point - state
 
+        if abs(error) < self.deadband_width:
+            return 0
+
         p_value = self.Kp * error
         d_value = self.Kd * (error - self.last_error)
         self.last_error = error
@@ -56,9 +59,6 @@ class PID:
 
         res = p_value + i_value + d_value
         res = min(self.upper_limit, max(self.lower_limit, res))
-
-        if abs(res) < self.deadband_width:
-            return 0
 
         return res
 
@@ -110,9 +110,9 @@ if __name__ == '__main__':
     # This disables the set point so the controller will just idle until it is set by a new recipe.
     def recipe_end_callback(item):
         pid = PID(**param_values)
+        pid.set_point = None
 
     recipe_end_topic = "{ns}recipe_end/desired".format(ns=rospy.get_namespace())
-    rospy.logwarn(recipe_end_topic)
     recipe_end_sub = rospy.Subscriber(recipe_end_topic, String, recipe_end_callback)
     state_sub = rospy.Subscriber(state_sub_name, Float64, state_callback)
     set_point_sub = rospy.Subscriber(
