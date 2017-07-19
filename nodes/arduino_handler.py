@@ -349,16 +349,14 @@ if __name__ == '__main__':
 
     serial_connection = connect_serial()
 
-    # These 2 are permanently on.
-    actuator_state["water_aeration_pump_1"] = True
-    actuator_state["water_circulation_pump_1"] = True
-
     publish_time = ros_next(publisher_rate_hz)
 
     temp_buf = ""
 
     while not rospy.is_shutdown():
-
+        # These 2 are permanently on.
+        actuator_state["water_aeration_pump_1"] = True
+        actuator_state["water_circulation_pump_1"] = True
         # Generate the message for the current state (csv headers below):
         # status, pump1, pump2, pump3, pump4, pump5, chiller_fan,
         # chiller_pump, heater_core2, air_flush, water_aeration,
