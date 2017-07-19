@@ -173,7 +173,10 @@ class RecipeHandler:
         """Stop recipe ROS service"""
         pub = PUBLISHERS[RECIPE_END.name]
         try:
-            pub.publish(self.__recipe["_id"])
+            recipe_name = ""
+            if self.__recipe is not None:
+                recipe_name = self.__recipe["_id"]
+            pub.publish(recipe_name)
             self.clear_recipe()
         except (RecipeIdleError, KeyError):
             return False, "There is no recipe running"
