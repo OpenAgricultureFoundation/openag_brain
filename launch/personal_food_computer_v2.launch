@@ -13,9 +13,9 @@
       <param name="upper_limit" value="1" type="double"/>
       <param name="lower_limit" value="-1" type="double"/>
       <param name="variable" value="water_potential_hydrogen" type="str"/>
-      <param name="Kp" value="1" type="double"/>
-      <param name="Ki" value="1" type="double"/>
-      <param name="Kd" value="0" type="double"/>
+      <param name="Kp" value="0.25" type="double"/>
+      <param name="Ki" value="0.25" type="double"/>
+      <param name="Kd" value="0.75" type="double"/>
     </node>
     <node pkg="openag_brain" type="topic_filter.py" name="topic_filter_1"/>
     <node pkg="openag_brain" type="pid.py" name="air_temperature_controller_1">
@@ -26,7 +26,7 @@
       <param name="variable" value="air_temperature" type="str"/>
       <param name="Kp" value="1" type="double"/>
       <param name="Ki" value="0" type="double"/>
-      <param name="Kd" value="0" type="double"/>
+      <param name="Kd" value="1" type="double"/>
     </node>
     <node pkg="openag_brain" type="recipe_handler.py" name="recipe_handler_1"/>
     <node pkg="openag_brain" type="recipe_persistence.py" name="recipe_persistence_1"/>
