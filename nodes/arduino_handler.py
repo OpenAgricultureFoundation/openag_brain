@@ -331,7 +331,7 @@ def connect_serial(serial_connection=None):
             if len(ports) == 0:
               raise Exception("No arduino device found on system in {}".format(path))
             port = ports[0]
-            serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s)
+            serial_connection = serial.Serial(os.path.join(path, port), baud_rate, timeout=timeout_s, writeTimeout=0)
             return serial_connection
         except Exception as e:
             rospy.logwarn(e)
@@ -351,7 +351,7 @@ if __name__ == '__main__':
 
     publish_time = ros_next(publisher_rate_hz)
 
-    temp_buf = ""
+    arduino_delay_s = 0.5 / serial_rate_hz # Reserve 50% of loop period for Arduino comm delays
 
     while not rospy.is_shutdown():
         # These 2 are permanently on.
@@ -384,17 +384,20 @@ if __name__ == '__main__':
         buf = ""
         try:
             # Write
-            serial_connection.write(message)
-            serial_connection.flush()
-            trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
-            # Read
-            trace('arduino_handler temp_buf: >%s<', temp_buf)
-            trace('arduino_handler inWaiting bytes: >%d<', serial_connection.inWaiting())
-            temp_buf = temp_buf + serial_connection.read(serial_connection.inWaiting())
-            if '\n' in temp_buf:
-                lines = temp_buf.split('\n') # Guaranteed to have at least 2 entries
-                buf = lines[-2] # Last full line read (earlier lines will be discarded)
-                temp_buf = lines[-1] # Keep for next time, its either a partial line read or empty string
+            nbytes = serial_connection.write(message) # Non-blocking write (writeTimeout=0)
+            trace('arduino_handler serial write %d of %d bytes: >%s<', nbytes, len(message), message.replace('\n',''))
+            serial_connection.flush() # Wait until all data is written
+            serial_connection.flushOutput() # Clear output buffer
+            # Read. Arduino sends both error messages and sensor data, in that order, and both may be in the buffer.
+            # Wait until Arduino data is stable (rospy.Rate will still try to keep the loop at serial_rate_hz)
+            rospy.sleep(arduino_delay_s)
+            buf = serial_connection.readline() # Blocks until one line is read or times out
+            """
+            Since errors are sent first, the readline may have gotten an Arduino error message and not sensor data.
+            Therefore the flush below will throw away sensor data if it was sent after the error message.
+            Without the flush the input buffer eventually will overflow if enough error messages are sent by the Arduino.
+            """
+            serial_connection.flushInput()
         except serial.serialutil.SerialException as e:
             # This usually happens when the serial port gets closed or switches
             serial_connection = connect_serial()
