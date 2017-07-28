@@ -61,8 +61,6 @@ bool str2bool(String str);
 
 // These functions are defined in the Arduino.h and are the framework.
 void setup() {
-  pinMode(12, OUTPUT); // for debug - message rx'ed
-  pinMode(10, OUTPUT); // for debug - message tx'ed
   Serial.begin(115200);
   while(!Serial){
     // wait for serial port to connect, needed for USB
@@ -106,11 +104,8 @@ void loop() {
   // node control the message traffic.  For every message sent to this arduino
   // code, one is sent back.
   if(! stringComplete){
-    digitalWrite(12, LOW); // for debug - reset message rx indicator
     return;
   }
-
-  digitalWrite(12, HIGH); // for debug - set message rx indicator
 
   bool allActuatorSuccess = checkActuatorLoop();
   actuatorLoop();
@@ -133,9 +128,9 @@ void serialEvent() {
     // get the new byte:
     char inChar = (char)Serial.read();
     // add it to the inputString but first check for potential overflow:
-    // (this can happen if a few partial lines are recieved one after the other without newlines)
-    if (sizeof(message) == (MESSAGE_LENGTH - 1)) {
-      message += '\n'; // 1 byte add!
+    // (this can happen if a few partial lines are received sequentially without newlines)
+    if (message.length() == (MESSAGE_LENGTH - 2)) {
+      message += '\n'; // 1 byte add + null terminator makes the full message length
       stringComplete = true;
       return;
     }
@@ -264,9 +259,6 @@ bool checkSensorLoop(){
 }
 
 void sensorLoop(){
-
-  digitalWrite(10, HIGH); // for debug - set message tx indicator
-
   // Prints the data in CSV format via serial.
   // Columns: status,hum,temp,co2,water_temperature,water_low,water_high,ph,ec
   Serial.print(OK);                                             Serial.print(',');
@@ -281,15 +273,9 @@ void sensorLoop(){
   // https://www.arduino.cc/en/serial/flush
   // Wait until done writing.
   Serial.flush();
-
-  digitalWrite(10, LOW); // for debug - set message tx indicator
-
 }
 
 void send_invalid_message_length_error(String msg) {
-
-  digitalWrite(10, HIGH); // for debug - set message tx indicator
-
   String clean_msg = msg;
   clean_msg.replace(',', '_');
   clean_msg.replace("\n", "");
@@ -302,9 +288,6 @@ void send_invalid_message_length_error(String msg) {
   warn += "|\n";
   Serial.print(warn);
   Serial.flush();
-
-  digitalWrite(10, LOW); // for debug - set message tx indicator
-
 }
 
 // Resets our global string and flag.
@@ -344,17 +327,11 @@ int split(String messages, String* splitMessages,  char delimiter){
 }
 
 void sendModuleStatus(Module &module, String name){
-
-  digitalWrite(10, HIGH); // for debug - set message tx indicator
-
   Serial.print(module.status_level); Serial.print(',');
   Serial.print(name);  Serial.print(',');
   Serial.print(module.status_code);  Serial.print(',');
   Serial.print(module.status_msg);   Serial.print('\n');
   Serial.flush();
-
-  digitalWrite(10, LOW); // for debug - set message tx indicator
-
 }
 
 bool beginModule(Module &module, String name){
