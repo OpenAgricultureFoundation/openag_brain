@@ -106,6 +106,7 @@ void loop() {
   if(! stringComplete){
     return;
   }
+
   bool allActuatorSuccess = checkActuatorLoop();
   actuatorLoop();
 
@@ -113,6 +114,7 @@ void loop() {
   if(allSensorSuccess){
     sensorLoop();
   }
+
 }
 
 // Runs inbetween loop()s, just takes any input serial to a string buffer.
@@ -125,7 +127,13 @@ void serialEvent() {
   while (Serial.available()) {
     // get the new byte:
     char inChar = (char)Serial.read();
-    // add it to the inputString:
+    // add it to the inputString but first check for potential overflow:
+    // (this can happen if a few partial lines are received sequentially without newlines)
+    if (message.length() == (MESSAGE_LENGTH - 2)) {
+      message += '\n'; // 1 byte add + null terminator makes the full message length
+      stringComplete = true;
+      return;
+    }
     message += inChar;
     // if the incoming character is a newline, set a flag
     // so the main loop can do something about it:
