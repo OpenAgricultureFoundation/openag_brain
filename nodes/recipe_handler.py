@@ -19,7 +19,7 @@ from threading import RLock
 # srv causing import issues, if it is not first :(
 from openag_brain.srv import StartRecipe, Empty
 from openag_lib.db_bootstrap.db_names import ENVIRONMENTAL_DATA_POINT, RECIPE
-from openag_lib.config import config 
+from openag_lib.config import config
 from openag_brain import params, services
 from openag_brain.constants import NULL_SETPOINT_SENTINEL
 from openag_brain.models import EnvironmentalDataPoint
@@ -203,6 +203,7 @@ class RecipeHandler:
             "openag/by_variable",
             startkey=[self.environment, "desired", RECIPE_START.name],
             endkey=[self.environment, "desired", RECIPE_START.name, {}],
+            stale="update_after",
             group_level=3
         )
         if len(start_view) == 0:
@@ -216,6 +217,7 @@ class RecipeHandler:
             "openag/by_variable",
             startkey=[self.environment, "desired", RECIPE_END.name],
             endkey=[self.environment, "desired", RECIPE_END.name, {}],
+            stale="update_after",
             group_level=3
         )
         if len(end_view):
@@ -303,7 +305,7 @@ if __name__ == '__main__':
             # Get recipe state and publish it
             setpoints = interpret_recipe(recipe_doc, start_time, now_time)
             trace("Start_time: %s  Now_time: %s", start_time, now_time)
-                            
+
             for variable, value in setpoints:
                 try:
                     pub = PUBLISHERS[variable]
@@ -313,7 +315,7 @@ if __name__ == '__main__':
                     continue
                 if TRACE:
                     pub_debug.publish("{} : {}".format(variable, value))
-            
+
                 # Publish any setpoints that we can
                 trace("recipe_handler publish: %s, %s", variable, value)
                 if variable == RECIPE_END.name:
