@@ -107,7 +107,7 @@ void loop() {
     return;
   }
 
-  bool allActuatorSuccess = checkActuatorLoop();
+  checkActuatorLoop();
   actuatorLoop();
 
   bool allSensorSuccess = checkSensorLoop();
