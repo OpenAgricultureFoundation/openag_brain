@@ -156,12 +156,15 @@ void actuatorLoop(){
   }
   int command_count = split(message, splitMessages);
   if( command_count != COMMAND_LENGTH ){
+    /* don't send the error message back, it happens too frequently and is 
+       more of a debugging message at this point.  2017-08-02 rbaynes.
     String warn = message;
     warn += " comma counts: ";
     warn += command_count;
     warn += " != ";
     warn += COMMAND_LENGTH;
     send_invalid_message_length_error(warn);
+    */
     splitMessages[0] = "2";
   }
 
