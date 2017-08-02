@@ -37,10 +37,15 @@ echo "Update apt"
 sudo apt-get update -q
 # sudo apt-get -y upgrade
 
-# Install pip and couchdb (couchdb is not available via rosdep -- see below)
+# Install couchdb (couchdb is not available via rosdep -- see below)
 echo "Install pip, couchdb and ROS bootstrapping tools"
 sudo apt-get install -y -q couchdb python-setuptools
-# Install bootstrapping dependencies
+
+# Configure couchdb to do auto DB and view compaction
+# (or we will run out of disk space on a 32G SD card in a few weeks).
+curl -X PUT http://localhost:5984/_config/compactions/_default -d '"[{db_fragmentation, \"40%\"}, {view_fragmentation, \"30%\"}, {from, \"23:00\"}, {to, \"06:00\"}]"'
+
+# Install pip and python bootstrapping dependencies
 # We install pip with easy_install because the ARM/Debian apt package
 # `python-pip` is way out of date and causes a version conflict with Requests
 # as of 2017-05
