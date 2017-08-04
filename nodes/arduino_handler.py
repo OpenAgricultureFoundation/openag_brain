@@ -384,20 +384,33 @@ if __name__ == '__main__':
             actuator_state["chiller_compressor_1"]
         ).encode('utf-8')
         buf = ""
+
+        # Fix issue #328, sometimes serial_connection is None because of a 
+        # serial port path / or error opening issue.
+        if serial_connection is None:
+            serial_connection = connect_serial()
+        
         try:
             # Write
-            serial_connection.write(message) # Write len(message) bytes or timeout
-            trace('arduino_handler serial write %d bytes: >%s<', len(message), message.replace('\n',''))
+            serial_connection.write(message) # Write message or timeout
+            trace('arduino_handler serial write %d bytes: >%s<', \
+                len(message), message.replace('\n',''))
             serial_connection.flush() # Wait until all data is written
             serial_connection.flushOutput() # Clear output buffer
-            # Read. Arduino sends both error messages and sensor data, in that order, and both may be in the buffer.
-            # Wait until Arduino data is stable (rospy.Rate will still try to keep the loop at serial_rate_hz)
+            # Read. Arduino sends both error messages and sensor data, 
+            # in that order, and both may be in the buffer.
+            # Wait until Arduino data is stable 
+            # (rospy.Rate will still try to keep the loop at serial_rate_hz)
             rospy.sleep(arduino_delay_s)
-            buf = serial_connection.readline() # Blocks until one line is read or times out
+            # Blocks until one line is read or times out
+            buf = serial_connection.readline() 
             """
-            Since errors are sent first, the readline may have gotten an Arduino error message and not sensor data.
-            Therefore the flush below will throw away sensor data if it was sent after the error message.
-            Without the flush the input buffer eventually will overflow if enough error messages are sent by the Arduino.
+            Since errors are sent first, the readline may have gotten an
+            Arduino error message and not sensor data.  Therefore the flush
+            below will throw away sensor data if it was sent after the error
+            message.
+            Without the flush the input buffer eventually will overflow if
+            enough error messages are sent by the Arduino.  
             """
             serial_connection.flushInput()
         except serial.serialutil.SerialException as e1:
