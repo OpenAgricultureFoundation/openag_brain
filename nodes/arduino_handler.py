@@ -427,7 +427,6 @@ if __name__ == '__main__':
             rospy.logwarn(e2)
             serial_connection = connect_serial()
 
-#debugrob: how do we handle empty or "code:255" ?
         pairs_or_error = process_message(buf)
         if type(pairs_or_error) is str:
             error_count += 1
@@ -446,6 +445,8 @@ if __name__ == '__main__':
         # reboots the arduino board and hopefully kicks it back into a 
         # working state.
         if error_count >= MAX_ERROR_COUNT:
+            trace("arduino_handler resetting serial connection, errors=%d",
+                error_count)
             serial_connection = connect_serial()
 
         if publish_time():
