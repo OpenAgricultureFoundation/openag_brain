@@ -79,7 +79,8 @@ sensor_state = {}
 # Declare this global so our code can be tested!
 serial_connection = None
 error_count = 0
-MAX_ERROR_COUNT = 10
+# We sometimes get 9 or 10 "Initializing MHZ16" messages at startup.
+MAX_ERROR_COUNT = 20
 
 ENVIRONMENTAL_VARIABLES = frozenset(
     VariableInfo.from_dict(d)
