@@ -78,6 +78,8 @@ sensor_state = {}
 
 # Declare this global so our code can be tested!
 serial_connection = None
+error_count = 0
+MAX_ERROR_COUNT = 10
 
 ENVIRONMENTAL_VARIABLES = frozenset(
     VariableInfo.from_dict(d)
@@ -270,7 +272,8 @@ def ros_next(rate_hz):
 # Read and verify the serial message string.
 def process_message(line):
     trace('arduino_handler serial read: >%s<', line.replace('\n',''))
-    if len(line) == 0:
+    # detect an empty and a line with only a \n char:
+    if len(line) <= 1:
         return "No message"
     try:
         values = line[:-1].decode().split(',')
@@ -316,6 +319,7 @@ def process_message(line):
 def connect_serial(serial_connection=None):
     timeout_s = 2 / serial_rate_hz # serial port timeout is 2x loop rate
     baud_rate = rospy.get_param("~baud_rate", 115200)
+    error_count = 0
 
     # Initialize the serial connection
     path = "/dev/serial/by-id"
@@ -422,14 +426,26 @@ if __name__ == '__main__':
             rospy.logwarn(e2)
             serial_connection = connect_serial()
 
+#debugrob: how do we handle empty or "code:255" ?
         pairs_or_error = process_message(buf)
         if type(pairs_or_error) is str:
+            error_count += 1
             error_message = pairs_or_error
             ARDUINO_STATUS_PUBLISHER.publish(error_message)
         else:
+            error_count = 0
             pairs = pairs_or_error
             for header, value in pairs:
                 sensor_state[header] = value
+
+        # Help mitigate issue #320: when a sensor goes wonky (AM2315 always 
+        # returning code 255), or when the arduino code just stops sending
+        # any data (we always read an empty line or the read times out).
+        # We detect both cases here and reset the serial connection which 
+        # reboots the arduino board and hopefully kicks it back into a 
+        # working state.
+        if error_count >= MAX_ERROR_COUNT:
+            serial_connection = connect_serial()
 
         if publish_time():
             #trace("arduino_handler publish_time")
