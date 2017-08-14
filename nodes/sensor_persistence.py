@@ -8,7 +8,6 @@ in the system.
 
 import sys
 import time
-import random
 
 import rospy
 import rostopic
@@ -18,13 +17,14 @@ from std_msgs.msg import Float64
 from openag_lib.db_bootstrap.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_lib.config import config as cli_config
 from openag_brain.models import EnvironmentalDataPoint
-from openag_brain.utils import read_environment_from_ns
+from openag_brain.utils import gen_doc_id, read_environment_from_ns
 from openag_brain.load_env_var_types import create_variables
 
 # Filter a list of environmental variables that are specific to environment
 # sensors and actuators
 ENVIRONMENT_VARIABLES = create_variables(rospy.get_param('/var_types/environment_variables'))
 
+#-----------------------------------------------------------------------------
 class TopicPersistence:
     def __init__(
         self, db, topic, topic_type, environment, variable, is_desired,
@@ -65,15 +65,14 @@ class TopicPersistence:
             "value": value,
             "timestamp": curr_time
         })
-        point_id = self.gen_doc_id(curr_time)
+        point_id = gen_doc_id(curr_time)
         self.db[point_id] = point
 
         self.last_value = value
         self.last_time = curr_time
 
-    def gen_doc_id(self, curr_time):
-        return "{}-{}".format(curr_time, random.randint(0, sys.maxsize))
 
+#-----------------------------------------------------------------------------
 def create_persistence_objects(
     server, environment_id, max_update_interval, min_update_interval
 ):
@@ -89,6 +88,8 @@ def create_persistence_objects(
             min_update_interval=min_update_interval
         )
 
+
+#-----------------------------------------------------------------------------
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
     if not db_server:
