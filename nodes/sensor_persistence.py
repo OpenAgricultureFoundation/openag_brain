@@ -24,7 +24,7 @@ from openag_brain.load_env_var_types import create_variables
 # sensors and actuators
 ENVIRONMENT_VARIABLES = create_variables(rospy.get_param('/var_types/environment_variables'))
 
-#-----------------------------------------------------------------------------
+
 class TopicPersistence:
     def __init__(
         self, db, topic, topic_type, environment, variable, is_desired,
@@ -72,7 +72,6 @@ class TopicPersistence:
         self.last_time = curr_time
 
 
-#-----------------------------------------------------------------------------
 def create_persistence_objects(
     server, environment_id, max_update_interval, min_update_interval
 ):
@@ -89,7 +88,6 @@ def create_persistence_objects(
         )
 
 
-#-----------------------------------------------------------------------------
 if __name__ == '__main__':
     db_server = cli_config["local_server"]["url"]
     if not db_server:

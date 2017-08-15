@@ -27,7 +27,6 @@ RECIPE_VARIABLES = frozenset(
 VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
 
 
-#-----------------------------------------------------------------------------
 class TopicPersistence:
     def __init__(
         self, db, topic, topic_type, environment, variable, is_desired
@@ -69,7 +68,6 @@ class TopicPersistence:
         self.last_value = value
 
 
-#-----------------------------------------------------------------------------
 def create_persistence_objects( server, environment_id, ):
     env_var_db = server[ENVIRONMENTAL_DATA_POINT]
     for variable in VALID_VARIABLES:
@@ -83,7 +81,6 @@ def create_persistence_objects( server, environment_id, ):
         )
 
 
-#-----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     rospy.init_node('recipe_persistence')
