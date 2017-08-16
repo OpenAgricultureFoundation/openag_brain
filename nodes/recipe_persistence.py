@@ -4,6 +4,7 @@ import time
 import rospy
 from roslib.message import get_message_class
 from couchdb import Server
+from std_msgs.msg import Float64
 
 from openag_lib.db_bootstrap.db_names import ENVIRONMENTAL_DATA_POINT
 from openag_lib.config import config as cli_config
@@ -26,46 +27,71 @@ RECIPE_VARIABLES = frozenset(
 VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
 
 
+class TopicPersistence:
+    def __init__(
+        self, db, topic, topic_type, environment, variable, is_desired
+    ):
+        self.db = db
+        self.topic_type = topic_type
+        self.environment = environment
+        self.variable = variable
+        self.is_desired = is_desired
+        self.last_value = None
+        self.sub = rospy.Subscriber(topic, topic_type, self.on_data)
+
+    def on_data(self, item):
+        curr_time = time.time()
+        value = item.data
+        if value is None or value == self.last_value:
+            return
+        # This is kind of a hack to correctly interpret UInt8MultiArray
+        # messages. There should be a better way to do this
+        if item._slot_types[item.__slots__.index('data')] == "uint8[]":
+            value = [ord(x) for x in value]
+        # Throttle updates by value only (not time)
+        if self.topic_type == Float64 and \
+           self.last_value is not None and \
+           self.last_value != 0.0:
+            delta_val = value - self.last_value
+            if abs(delta_val / self.last_value) <= 0.01:
+                return
+        # Save the data point
+        point = EnvironmentalDataPoint({
+            "environment": self.environment,
+            "variable": self.variable,
+            "is_desired": self.is_desired,
+            "value": value,
+            "timestamp": curr_time
+        })
+        point_id = gen_doc_id(curr_time)
+        self.db[point_id] = point
+        self.last_value = value
+
+
+def create_persistence_objects( server, environment_id, ):
+    env_var_db = server[ENVIRONMENTAL_DATA_POINT]
+    for variable in VALID_VARIABLES:
+        topic = "{}/desired".format(variable.name)
+        TopicPersistence(
+            db=env_var_db, 
+            topic=topic, 
+            topic_type=get_message_class(variable.type),
+            environment=environment_id,
+            variable=variable.name, is_desired=True
+        )
+
+
 if __name__ == "__main__":
 
     rospy.init_node('recipe_persistence')
-    namespace = rospy.get_namespace()
-    environment = read_environment_from_ns(namespace)
 
     # Initialize the database server object
     db_server = cli_config["local_server"]["url"]
     if not db_server:
         raise RuntimeError("No local database specified")
-    environmental_data_db = Server(db_server)[ENVIRONMENTAL_DATA_POINT]
-
-    def generate_callback(variable):
-        """
-        ROS Subscribers need a callback function to call when a topic gets published to.
-        This function is a high order function that takes the variable name which is determined at
-        Subscriber generation time, to create a callback function which takes a topic and persists it to the database.
-        """
-        def desired_callback(desired_data):
-            timestamp = time.time()
-
-            doc = EnvironmentalDataPoint({
-                "environment": environment,
-                "variable": variable,
-                "is_desired": True,
-                "value": desired_data.data,
-                "timestamp": timestamp
-            })
-
-            doc_id = gen_doc_id(timestamp)
-            environmental_data_db[doc_id] = doc
-
-        return desired_callback
-
-    for variable in VALID_VARIABLES:
-        rospy.Subscriber(
-            "{}/desired".format(variable.name),
-            get_message_class(variable.type),
-            generate_callback(variable.name)
-        )
+    server = Server(db_server)
+    environment_id = read_environment_from_ns(rospy.get_namespace())
+    create_persistence_objects( server, environment_id )
 
     # Keep running until ROS stops
     rospy.spin()
