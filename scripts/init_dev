@@ -43,7 +43,7 @@ sudo apt-get install -y -q couchdb python-setuptools
 
 # Configure couchdb to do auto DB and view compaction
 # (or we will run out of disk space on a 32G SD card in a few weeks).
-curl -X PUT http://localhost:5984/_config/compactions/_default -d '"[{db_fragmentation, \"40%\"}, {view_fragmentation, \"30%\"}, {from, \"23:00\"}, {to, \"06:00\"}]"'
+# curl -X PUT http://localhost:5984/_config/compactions/_default -d '"[{db_fragmentation, \"40%\"}, {view_fragmentation, \"30%\"}, {from, \"23:00\"}, {to, \"06:00\"}]"'
 
 # Install pip and python bootstrapping dependencies
 # We install pip with easy_install because the ARM/Debian apt package
