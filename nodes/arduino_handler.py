@@ -314,13 +314,21 @@ def process_message(line):
         rospy.logwarn(message)
         return message
 
-def connect_serial(serial_connection=None):
+
+# Thanks to Lindo St Angel, this fixes the serial / arduino lockup issue!
+def close_serial():
+    if serial_connection is not None:
+        serial_connection.close() # Forces DTS on reconnect to reset Arduino
+
+
+def connect_serial():
     timeout_s = 2 / serial_rate_hz # serial port timeout is 2x loop rate
     baud_rate = rospy.get_param("~baud_rate", 115200)
 
     # Initialize the serial connection
     path = "/dev/serial/by-id"
     port = None
+    close_serial()
     while port is None:
         try:
             if not os.path.exists(path):
@@ -392,7 +400,6 @@ if __name__ == '__main__':
         # Fix issue #328, sometimes serial_connection is None because of a 
         # serial port path / or error opening issue.
         if serial_connection is None:
-            serial_connection.close() # Forces DTS on reconnect to reset Arduino
             serial_connection = connect_serial()
         
         try:
@@ -430,17 +437,14 @@ if __name__ == '__main__':
         except serial.serialutil.SerialException as e1:
             # This usually happens when the serial port gets closed or switches
             rospy.logwarn(e1)
-            serial_connection.close()
             serial_connection = connect_serial()
         except serial.serialutil.SerialTimeoutException as e2:
             # Exception that is raised on write timeouts
             rospy.logwarn(e2)
-            serial_connection.close()
             serial_connection = connect_serial()
         except Exception as e3:
             # Exception triggered by too many consecutive empty reads
             rospy.logwarn(e3)
-            serial_connection.close()
             serial_connection = connect_serial()
 
         pairs_or_error = process_message(buf)
@@ -463,5 +467,5 @@ if __name__ == '__main__':
         serial_rate.sleep()
         # end of while loop
 
-    serial_connection.close()
+    close_serial()
     # end of main
