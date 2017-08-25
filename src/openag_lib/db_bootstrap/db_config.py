@@ -11,6 +11,13 @@ def generate_config(api_url=None):
         },
         "query_server_config": {
             "reduce_limit": "false"
+        },
+        "compactions": {
+            "_default": "[{db_fragmentation, \"40%\"}, {view_fragmentation, \"30%\"}, {from, \"23:00\"}, {to, \"06:00\"}]"
+        },
+        "compaction_daemon": {
+            "check_interval": "300",
+            "min_file_size": "131072"
         }
     }
     if api_url:
