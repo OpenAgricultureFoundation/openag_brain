@@ -12,9 +12,9 @@ if [ ! -d ~/catkin_ws/src/openag_brain/ ] ; then
   echo "Location \"~/catkin_ws/src/openag_brain\" does not exist. openag_brain must be placed in \"~/catkin_ws/src\" for this script to work." && exit 1
 fi
 ~/catkin_ws/src/openag_brain/scripts/init_dev || exit 1
+~/catkin_ws/src/openag_brain/scripts/install_db || exit 1
 echo "~~~"
 echo "Now building..."
-echo "Location: /opt/ros/indigo"
 echo "~~~"
 
 # Install packages in system directory
