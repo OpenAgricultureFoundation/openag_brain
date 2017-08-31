@@ -1,7 +1,6 @@
 #!/bin/bash
 # This script sets up a developer workspace for openag_brain and its
-# dependencies, then builds everything using `catkin_make_isolated` and
-# installs it in `/opt/ros/indigo/`.
+# dependencies, then builds everything using `catkin_make`.
 
 # Make sure we exit if a failure happens.
 # http://stackoverflow.com/questions/19622198/what-does-set-e-mean-in-a-bash-script
@@ -12,7 +11,6 @@ if [ ! -d ~/catkin_ws/src/openag_brain/ ] ; then
   echo "Location \"~/catkin_ws/src/openag_brain\" does not exist. openag_brain must be placed in \"~/catkin_ws/src\" for this script to work." && exit 1
 fi
 ~/catkin_ws/src/openag_brain/scripts/init_dev || exit 1
-~/catkin_ws/src/openag_brain/scripts/install_db || exit 1
 echo "~~~"
 echo "Now building..."
 echo "~~~"
