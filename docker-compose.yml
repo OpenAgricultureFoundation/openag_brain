@@ -1,0 +1,42 @@
+# Start Docker containers with configuration for Personal Food Computer V2.
+# See http://wiki.openag.media.mit.edu/food_computer_2
+version: '2'
+services:
+    brain:
+        # Build from current folder
+        build: .
+
+        # Build from image
+        # image: openag/rpi_brain
+
+        # Build from git source with branch
+        # build: https://github.com/OpenAgInitiative/openag_brain.git#develop
+        container_name: brain
+        expose:
+            - 5000
+        devices:
+            - "/dev/ttyACM0:/dev/ttyACM0"
+            - "/dev/video0:/dev/video0"
+            - "/dev/ttyACM0:/dev/serial/by-id/arduino" # https://github.com/openaginitiative/openag_brain/blob/develop/nodes/arduino_handler.py#L322
+        command: /home/pi/catkin_ws/devel/env.sh rosrun openag_brain main personal_food_computer_v2.launch -D http://db:5984 -A http://brain:5000  --screen
+        depends_on:
+            - db
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "50m"
+                max-file: "5"
+    db:
+        image: dogi/rpi-couchdb
+        container_name: db
+        expose:
+            - 5984
+        ports:
+            - 5984:5984
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "50m"
+                max-file: "5"

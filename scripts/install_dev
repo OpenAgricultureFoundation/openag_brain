@@ -1,7 +1,6 @@
 #!/bin/bash
 # This script sets up a developer workspace for openag_brain and its
-# dependencies, then builds everything using `catkin_make_isolated` and
-# installs it in `/opt/ros/indigo/`.
+# dependencies, then builds everything using `catkin_make`.
 
 # Make sure we exit if a failure happens.
 # http://stackoverflow.com/questions/19622198/what-does-set-e-mean-in-a-bash-script
@@ -14,7 +13,6 @@ fi
 ~/catkin_ws/src/openag_brain/scripts/init_dev || exit 1
 echo "~~~"
 echo "Now building..."
-echo "Location: /opt/ros/indigo"
 echo "~~~"
 
 # Install packages in system directory

@@ -54,7 +54,7 @@ Now that openag_brain is in the catkin_build space, you can run the
 install script::
 
     cd ~/catkin_ws/src/openag_brain
-    ./scripts/install_dev
+    ./scripts/developer_setup
 
 This will set up a full development environment for openag_brain and ROS.
 
