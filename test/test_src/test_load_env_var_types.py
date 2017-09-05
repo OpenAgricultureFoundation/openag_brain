@@ -33,7 +33,7 @@ class TestLoadEnvironmentalVariables(unittest.TestCase):
  
         VALID_VARIABLES = ENVIRONMENTAL_VARIABLES.union(RECIPE_VARIABLES)
         print(VALID_VARIABLES)
-        assert len(VALID_VARIABLES) == 18
+        assert len(VALID_VARIABLES) == 19
 
 
         # This builds a dictionary of publisher instances using a

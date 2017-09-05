@@ -2,7 +2,7 @@
 #type platformio > /dev/null 2>&1 && echo "pio is already installed" && exit
 # We install platformio in a virtualenv, because platformio and rosserial
 # depend on different versions of pyserial.
-sudo apt-get install -y python-virtualenv
+sudo pip install virtualenv
 virtualenv ~/pio_env
 source ~/pio_env/bin/activate
 pip install platformio==3.3.0

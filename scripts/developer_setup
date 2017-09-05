@@ -1,0 +1,7 @@
+#!/bin/bash
+# This script sets up a developer workspace.  It is for a global stand-alone
+# system - not for a docker setup.
+set -e
+
+~/catkin_ws/src/openag_brain/scripts/install_db || exit 1
+~/catkin_ws/src/openag_brain/scripts/install_dev || exit 1

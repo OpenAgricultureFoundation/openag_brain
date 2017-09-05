@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# stop if any test fails
+set -e
+
+py.test ~/catkin_ws/src/openag_brain/test/test_lib
+
+# add --text after 'rostest' for debugging 
+rostest openag_brain test_recipe_handler.launch
+rostest openag_brain test_recipe_interpreter.launch
+rostest openag_brain test_direct_controller.launch
+rostest openag_brain test_pub_desired_topics.launch
+rostest openag_brain test_load_env_var_types.launch
+rostest openag_brain test_arduino_handler.launch
+
+# TBD debugrob, need to update these before they will run:
+# test_nodes/test_pid.py
+# test_nodes/test_topic_filter.py

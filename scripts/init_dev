@@ -37,15 +37,18 @@ echo "Update apt"
 sudo apt-get update -q
 # sudo apt-get -y upgrade
 
-# Install pip and couchdb (couchdb is not available via rosdep -- see below)
-echo "Install pip, couchdb and ROS bootstrapping tools"
-sudo apt-get install -y -q couchdb python-setuptools
-# Install bootstrapping dependencies
+echo "Install pip and ROS bootstrapping tools"
+sudo apt-get install -y -q python-setuptools
+
+# Install pip and python bootstrapping dependencies
 # We install pip with easy_install because the ARM/Debian apt package
 # `python-pip` is way out of date and causes a version conflict with Requests
 # as of 2017-05
 sudo easy_install pip
 sudo pip install rosdep rosinstall_generator wstool rosinstall
+
+# Install some python dependencies that there aren't ros packages for.
+sudo pip install voluptuous HTTPretty pytest
 
 # Initialize rosdep if it hasn't been already.
 # Checking for the .list file first makes this script idempotent.
@@ -78,17 +81,11 @@ echo "Installing binary dependencies with rosdep"
 # Install dependency binary deps
 rosdep install --from-paths ~/catkin_ws/src --ignore-src --rosdistro indigo -y -r --os=debian:jessie
 
-# Install openag_python
-mkdir -p ~/openag/src
-cd ~/openag/src
-if [ -x openag_python ]; then
-    cd openag_python
-    git pull
-else
-    git clone https://github.com/OpenAgInitiative/openag_python.git
-    cd openag_python
-fi
-sudo pip install -e .
-cd ~/catkin_ws
+# Let pi user access hid relay device without having to be root
+sudo sh -c 'echo SUBSYSTEM=="usb", ATTR{idVendor}=="0416", ATTR{idProduct}=="5020", MODE="0666", GROUP="plugdev" > /etc/udev/rules.d/99-hidrelay.rules'
+
+# Let pi user access gpio without having to be root
+echo SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c 'chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio'"  | sudo tee -a /etc/udev/rules.d/99-com.rules > /dev/null
+sudo usermod -a -G gpio pi
 
 echo "Finished setting up development environment. Ready to build with catkin_make."

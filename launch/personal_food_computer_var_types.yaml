@@ -23,9 +23,15 @@ environment_variables:
     description: "The amount of Carbon Dioxide in the air"
     units: "ppm"
     type: "std_msgs/Float64"
-  air_flush_on:
-    name: air_flush_on
-    description: "Turn on air flush (off by default)"
+  air_oxygen:
+    name: air_oxygen
+    description: "Oxygen density in the air"
+    units: "percent"
+    type: "std_msgs/Float64"
+  air_flush:
+    name: air_flush
+    description: "Air flush a specific volume"
+    units: "CFM"
     type: "std_msgs/Float64"
   water_temperature:
     name: water_temperature
@@ -52,17 +58,23 @@ environment_variables:
     description: "A measure of the amount of oxygen in the water"
     units: "mg/L"
     type: "std_msgs/Float64"
+  water_level_low:
+      name: water_level_low
+      description: "Is water below threshold?"
+      type: "std_msgs/Float64"
   water_level_high:
     name: water_level_high
     description: "Is water above threshold?"
-    type: "std_msgs/Bool"
+    type: "std_msgs/Float64"
   nutrient_flora_duo_a:
+    units: "ml/h"
     name: nutrient_flora_duo_a
-    description: "FloraDuo nutrient A"
+    description: "FloraDuo nutrient A volume"
     type: "std_msgs/Float64"
   nutrient_flora_duo_b:
+    units: "ml/h"
     name: nutrient_flora_duo_b
-    description: "FloraDuo nutrient B"
+    description: "FloraDuo nutrient B volume"
     type: "std_msgs/Float64"
   light_illuminance:
     name: light_illuminance

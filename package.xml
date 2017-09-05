@@ -47,13 +47,22 @@
   <run_depend>angles</run_depend>
   <run_depend>python-catkin-pkg</run_depend>
   <run_depend>rospy</run_depend>
-  <run_depend>rosserial_python</run_depend>
+  <run_depend>python-serial</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>python-requests</run_depend>
   <run_depend>python-gevent</run_depend>
   <run_depend>python-flask</run_depend>
+  <run_depend>python-couchdb</run_depend>
+  <run_depend>python-lxml</run_depend>
+  <run_depend>python-periphery-pip</run_depend>
+  <run_depend>python-pylibftdi-pip</run_depend>
+  <run_depend>python-w1thermsensor-pip</run_depend>
+  <run_depend>python-usb</run_depend>
+  <run_depend>python-numpy</run_depend>
+  <run_depend>python-pygame</run_depend>
   <test_depend>rosunit</test_depend>
   <test_depend>rostest</test_depend>
+
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

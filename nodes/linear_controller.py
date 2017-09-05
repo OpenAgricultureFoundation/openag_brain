@@ -23,7 +23,7 @@ if __name__ == '__main__':
     variable = rospy.get_param("~variable", None)
     if variable is not None:
         command_pub_name = "{}/commanded".format(variable)
-        state_pub_name = "{}/measured".format(variable)
+        state_pub_name = "{}/raw".format(variable)
     else:
         command_pub_name = "cmd"
         state_pub_name = "state"
