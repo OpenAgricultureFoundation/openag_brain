@@ -79,7 +79,7 @@ If you want to publish Docker images under your own account, you can follow
 these steps, substituting your own Docker info:
 
 Note: this section assumes you have a development environment set up with the
-``install_dev`` script that can be found in ``openag_brain/scripts``.
+``developer_setup`` script that can be found in ``openag_brain/scripts``.
 
 First, build ROS with ``catkin_make``::
 

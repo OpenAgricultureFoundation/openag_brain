@@ -49,7 +49,7 @@ Build firmware and flash to Arduino::
 Under the Hood
 ~~~~~~~~~~~~~~
 
-`firmware` is actually just a thin wrapper around [platformio](http://docs.platformio.org/en/latest/ide/atom.html), a tool for building Arduino binaries. The `install_dev` script installs platformio automatically.
+`firmware` is actually just a thin wrapper around [platformio](http://docs.platformio.org/en/latest/ide/atom.html), a tool for building Arduino binaries. The `developer_setup` script installs platformio automatically.
 
 
 Authoring Firmware Modules
