@@ -211,6 +211,8 @@ def calc_phase_and_time_remaining(duration_of_phases_steps, start_time, now_time
     return: current_phase_number, duration_in_phase
 
     """
+    current_phase_number = 0
+    duration_in_phase = 0
     time_elapsed = now_time - start_time
     #time_elapsed = time_elapsed - offset_duration_by_time_from_start(start_time)  # Offset elapsed time by hours on first day. this method doesn't work.
     time_elapsed = convert_duration_units(time_elapsed, time_units)
