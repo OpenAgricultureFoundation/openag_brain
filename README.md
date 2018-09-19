@@ -1,4 +1,4 @@
-OpenAg Brain
+Deprecated OpenAg software for the old PFC v2
 ============
 
 This repository holds code that runs on the main computing board of an OpenAg
